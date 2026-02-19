@@ -11,11 +11,11 @@ Properties that are useful for downstream protocol work and API ergonomics.
 
 ## Subtraction Characterization
 
-- [ ] Prove strengthened subtraction/addition coherence:
-  - [ ] `a >= b ==> sub(a, b) + b == a`
+- [x] Prove strengthened subtraction/addition coherence:
+  - [x] `a >= b ==> sub(a, b) + b == a`
 
-- [ ] Prove subtraction zero characterization:
-  - [ ] `sub(a, b) == 0 <==> a <= b`
+- [x] Prove subtraction zero characterization:
+  - [x] `sub(a, b) == 0 <==> a <= b`
 
 ## Division Shift Laws
 
