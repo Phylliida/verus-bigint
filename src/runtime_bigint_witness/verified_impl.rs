@@ -5,6 +5,7 @@ use vstd::prelude::*;
 use vstd::arithmetic::div_mod::{
     lemma_add_mod_noop,
     lemma_basic_div,
+    lemma_div_is_ordered_by_denominator,
     lemma_fundamental_div_mod,
     lemma_fundamental_div_mod_converse,
     lemma_mul_mod_noop,
@@ -1177,6 +1178,41 @@ impl RuntimeBigNatWitness {
         Self::lemma_div_rem_shift_by_multiple_nat(a.model@, d.model@, k);
     }
 
+    proof fn lemma_div_monotonic_in_divisor_nat(x: nat, d1: nat, d2: nat)
+        requires
+            d1 > 0,
+            d1 <= d2,
+        ensures
+            x / d2 <= x / d1,
+    {
+        let xi = x as int;
+        let d1i = d1 as int;
+        let d2i = d2 as int;
+
+        assert(0 <= xi);
+        assert(0 < d1i);
+        assert(d1i <= d2i);
+        assert(1 <= d1i <= d2i);
+        lemma_div_is_ordered_by_denominator(xi, d1i, d2i);
+        assert(xi / d1i >= xi / d2i);
+        assert((x / d1) as int == xi / d1i);
+        assert((x / d2) as int == xi / d2i);
+        assert((x / d1) as int >= (x / d2) as int);
+        assert(x / d2 <= x / d1);
+    }
+
+    pub proof fn lemma_model_div_monotonic_in_divisor_pos(a: &Self, d1: &Self, d2: &Self)
+        requires
+            a.wf_spec(),
+            d1.wf_spec(),
+            d2.wf_spec(),
+            0 < d1.model@ <= d2.model@,
+        ensures
+            a.model@ / d2.model@ <= a.model@ / d1.model@,
+    {
+        Self::lemma_div_monotonic_in_divisor_nat(a.model@, d1.model@, d2.model@);
+    }
+
     proof fn lemma_mod_add_compat_nat(x: nat, y: nat, m: nat)
         requires
             m > 0,
@@ -1239,6 +1275,64 @@ impl RuntimeBigNatWitness {
                 == ((a.model@ % m.model@) * (b.model@ % m.model@)) % m.model@,
     {
         Self::lemma_mod_mul_compat_nat(a.model@, b.model@, m.model@);
+    }
+
+    proof fn lemma_mod_congruence_add_nat(a: nat, b: nat, c: nat, m: nat)
+        requires
+            m > 0,
+            a % m == b % m,
+        ensures
+            (a + c) % m == (b + c) % m,
+    {
+        Self::lemma_mod_add_compat_nat(a, c, m);
+        Self::lemma_mod_add_compat_nat(b, c, m);
+        assert((a + c) % m == ((a % m) + (c % m)) % m);
+        assert((b + c) % m == ((b % m) + (c % m)) % m);
+        assert(((a % m) + (c % m)) % m == ((b % m) + (c % m)) % m);
+        assert((a + c) % m == (b + c) % m);
+    }
+
+    pub proof fn lemma_model_mod_congruence_add(a: &Self, b: &Self, c: &Self, m: &Self)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            c.wf_spec(),
+            m.wf_spec(),
+            m.model@ > 0,
+            a.model@ % m.model@ == b.model@ % m.model@,
+        ensures
+            (a.model@ + c.model@) % m.model@ == (b.model@ + c.model@) % m.model@,
+    {
+        Self::lemma_mod_congruence_add_nat(a.model@, b.model@, c.model@, m.model@);
+    }
+
+    proof fn lemma_mod_congruence_mul_nat(a: nat, b: nat, c: nat, m: nat)
+        requires
+            m > 0,
+            a % m == b % m,
+        ensures
+            (a * c) % m == (b * c) % m,
+    {
+        Self::lemma_mod_mul_compat_nat(a, c, m);
+        Self::lemma_mod_mul_compat_nat(b, c, m);
+        assert((a * c) % m == ((a % m) * (c % m)) % m);
+        assert((b * c) % m == ((b % m) * (c % m)) % m);
+        assert(((a % m) * (c % m)) % m == ((b % m) * (c % m)) % m);
+        assert((a * c) % m == (b * c) % m);
+    }
+
+    pub proof fn lemma_model_mod_congruence_mul(a: &Self, b: &Self, c: &Self, m: &Self)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            c.wf_spec(),
+            m.wf_spec(),
+            m.model@ > 0,
+            a.model@ % m.model@ == b.model@ % m.model@,
+        ensures
+            (a.model@ * c.model@) % m.model@ == (b.model@ * c.model@) % m.model@,
+    {
+        Self::lemma_mod_congruence_mul_nat(a.model@, b.model@, c.model@, m.model@);
     }
 
     fn from_parts(limbs_le: Vec<u32>, Ghost(model): Ghost<nat>) -> (out: Self)
