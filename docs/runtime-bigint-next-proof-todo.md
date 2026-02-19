@@ -27,3 +27,7 @@ Follow-on properties beyond the completed div/rem checklist.
 - [x] Prove multiplication-zero and one-sided monotonicity:
   - [x] `a * 0 == 0`, `a * 1 == a`
   - [x] `a <= b ==> a * c <= b * c`
+
+## Next
+
+- Further follow-on properties now live in `docs/runtime-bigint-follow-on-proof-todo.md`.

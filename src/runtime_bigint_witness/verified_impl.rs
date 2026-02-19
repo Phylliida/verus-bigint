@@ -3175,6 +3175,128 @@ impl RuntimeBigNatWitness {
         assert(mul_ac.model@ <= mul_bc.model@);
     }
 
+    pub proof fn lemma_model_add_commutative_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        add_ab: &Self,
+        add_ba: &Self,
+    )
+        requires
+            add_ab.model@
+                == Self::limbs_value_spec(a.limbs_le@) + Self::limbs_value_spec(b.limbs_le@),
+            add_ba.model@
+                == Self::limbs_value_spec(b.limbs_le@) + Self::limbs_value_spec(a.limbs_le@),
+        ensures
+            add_ab.model@ == add_ba.model@,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        assert(add_ab.model@ == a_val + b_val);
+        assert(add_ba.model@ == b_val + a_val);
+        assert(a_val + b_val == b_val + a_val);
+        assert(add_ab.model@ == add_ba.model@);
+    }
+
+    pub proof fn lemma_model_add_associative_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        add_ab_c: &Self,
+        add_a_bc: &Self,
+    )
+        requires
+            add_ab_c.model@
+                == (Self::limbs_value_spec(a.limbs_le@) + Self::limbs_value_spec(b.limbs_le@))
+                    + Self::limbs_value_spec(c.limbs_le@),
+            add_a_bc.model@
+                == Self::limbs_value_spec(a.limbs_le@)
+                    + (Self::limbs_value_spec(b.limbs_le@) + Self::limbs_value_spec(c.limbs_le@)),
+        ensures
+            add_ab_c.model@ == add_a_bc.model@,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        let c_val = Self::limbs_value_spec(c.limbs_le@);
+        assert(add_ab_c.model@ == (a_val + b_val) + c_val);
+        assert(add_a_bc.model@ == a_val + (b_val + c_val));
+        assert((a_val + b_val) + c_val == a_val + (b_val + c_val));
+        assert(add_ab_c.model@ == add_a_bc.model@);
+    }
+
+    pub proof fn lemma_model_mul_commutative_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        mul_ab: &Self,
+        mul_ba: &Self,
+    )
+        requires
+            mul_ab.model@
+                == Self::limbs_value_spec(a.limbs_le@) * Self::limbs_value_spec(b.limbs_le@),
+            mul_ba.model@
+                == Self::limbs_value_spec(b.limbs_le@) * Self::limbs_value_spec(a.limbs_le@),
+        ensures
+            mul_ab.model@ == mul_ba.model@,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        assert(mul_ab.model@ == a_val * b_val);
+        assert(mul_ba.model@ == b_val * a_val);
+        assert(a_val * b_val == b_val * a_val) by (nonlinear_arith);
+        assert(mul_ab.model@ == mul_ba.model@);
+    }
+
+    pub proof fn lemma_model_mul_associative_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        mul_ab_c: &Self,
+        mul_a_bc: &Self,
+    )
+        requires
+            mul_ab_c.model@
+                == (Self::limbs_value_spec(a.limbs_le@) * Self::limbs_value_spec(b.limbs_le@))
+                    * Self::limbs_value_spec(c.limbs_le@),
+            mul_a_bc.model@
+                == Self::limbs_value_spec(a.limbs_le@)
+                    * (Self::limbs_value_spec(b.limbs_le@) * Self::limbs_value_spec(c.limbs_le@)),
+        ensures
+            mul_ab_c.model@ == mul_a_bc.model@,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        let c_val = Self::limbs_value_spec(c.limbs_le@);
+        assert(mul_ab_c.model@ == (a_val * b_val) * c_val);
+        assert(mul_a_bc.model@ == a_val * (b_val * c_val));
+        assert((a_val * b_val) * c_val == a_val * (b_val * c_val)) by (nonlinear_arith);
+        assert(mul_ab_c.model@ == mul_a_bc.model@);
+    }
+
+    pub proof fn lemma_model_mul_distributes_over_add_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        mul_a_b_plus_c: &Self,
+        add_mul_ab_mul_ac: &Self,
+    )
+        requires
+            mul_a_b_plus_c.model@
+                == Self::limbs_value_spec(a.limbs_le@)
+                    * (Self::limbs_value_spec(b.limbs_le@) + Self::limbs_value_spec(c.limbs_le@)),
+            add_mul_ab_mul_ac.model@
+                == Self::limbs_value_spec(a.limbs_le@) * Self::limbs_value_spec(b.limbs_le@)
+                    + Self::limbs_value_spec(a.limbs_le@) * Self::limbs_value_spec(c.limbs_le@),
+        ensures
+            mul_a_b_plus_c.model@ == add_mul_ab_mul_ac.model@,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        let c_val = Self::limbs_value_spec(c.limbs_le@);
+        assert(mul_a_b_plus_c.model@ == a_val * (b_val + c_val));
+        assert(add_mul_ab_mul_ac.model@ == a_val * b_val + a_val * c_val);
+        assert(a_val * (b_val + c_val) == a_val * b_val + a_val * c_val) by (nonlinear_arith);
+        assert(mul_a_b_plus_c.model@ == add_mul_ab_mul_ac.model@);
+    }
+
     /// Total small-limb subtraction helper used by scalar witness plumbing.
     ///
     /// Computes the exact nonnegative difference when `self >= rhs` using full
