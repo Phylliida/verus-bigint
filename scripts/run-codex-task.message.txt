@@ -1,1 +1,1 @@
-Hardened check.sh with signature-level runtime/verified API parity checks and revalidated strict plus rug-oracle verification runs; 3 roadmap tasks remain.
+Added a trusted-escape source gate to `check.sh` (`--forbid-trusted-escapes`), wired strict CI/docs to use it, and revalidated runtime, Verus, and rug-oracle checks; 3 roadmap tasks remain.

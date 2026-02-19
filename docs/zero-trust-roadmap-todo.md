@@ -57,6 +57,7 @@
 
 - [x] Eliminate refinement-bridge reliance on `external_type_specification`
 - [x] Prefer internal, explicit view/model alignment where possible
+- [x] Add a source-tree gate that rejects trusted proof escapes (`admit`, `assume`, and `#[verifier::external*]`) in non-test files
 - [x] Document any irreducible trust assumptions
 
 ## Exit Criteria
@@ -124,3 +125,8 @@
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps` passes after the signature-level API parity gate change (runtime tests 4/4; Verus reports `89 verified, 0 errors`).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after the signature-level API parity gate change (6/6 tests).
 - Failed attempt (fixed): the first signature extractor used `rg` replacement fields with literal `\t`, which caused false API-mismatch reports; fixed by switching to an explicit `|` delimiter during parsing and normalizing signatures before comparison.
+- Completed: Added `--forbid-trusted-escapes` to `scripts/check.sh`, with a non-test `src/` source-tree gate that fails on `admit(...)`, `assume(...)`, and `#[verifier::external*]` attribute usage.
+- Completed: Updated strict-check usage in `.github/workflows/check.yml` and `README.md` to include `--forbid-trusted-escapes`.
+- Completed verification attempt: `./scripts/check.sh --runtime-only --forbid-rug-normal-deps --forbid-trusted-escapes` passes (4/4 runtime tests; rug and trusted-escape source-tree gates pass).
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes` passes (4/4 runtime tests; Verus reports `89 verified, 0 errors`; rug and trusted-escape source-tree gates pass).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes (6/6 tests) after trusted-escape gate hardening.
