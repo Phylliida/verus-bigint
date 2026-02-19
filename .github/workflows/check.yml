@@ -45,4 +45,4 @@ jobs:
           VERUS_ROOT: ${{ github.workspace }}/verus
         run: |
           set -euo pipefail
-          ./scripts/check.sh --require-verus --forbid-rug-normal-deps
+          ./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes

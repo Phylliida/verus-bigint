@@ -8,12 +8,13 @@ TOOLCHAIN="${VERUS_TOOLCHAIN:-1.93.0-x86_64-unknown-linux-gnu}"
 
 usage() {
   cat <<'USAGE'
-usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-normal-deps] [--offline]
+usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-normal-deps] [--forbid-trusted-escapes] [--offline]
 
 options:
   --runtime-only            run only cargo runtime tests; skip Verus verification
   --require-verus           fail instead of skipping when Verus verification cannot run
   --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
+  --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals)
   --offline                 run cargo commands in offline mode (`cargo --offline`)
   -h, --help                show this help
 USAGE
@@ -22,6 +23,7 @@ USAGE
 RUNTIME_ONLY=0
 REQUIRE_VERUS=0
 FORBID_RUG_NORMAL_DEPS=0
+FORBID_TRUSTED_ESCAPES=0
 OFFLINE=0
 while [[ "$#" -gt 0 ]]; do
   case "${1:-}" in
@@ -33,6 +35,9 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --forbid-rug-normal-deps)
       FORBID_RUG_NORMAL_DEPS=1
+      ;;
+    --forbid-trusted-escapes)
+      FORBID_TRUSTED_ESCAPES=1
       ;;
     --offline)
       OFFLINE=1
@@ -185,6 +190,27 @@ check_no_rug_in_non_test_sources() {
   fi
 }
 
+check_no_trusted_escapes_in_non_test_sources() {
+  local matches=""
+  matches="$(
+    rg -n \
+      --color never \
+      --glob '!**/tests.rs' \
+      --glob '!**/test_*.rs' \
+      --glob '!**/tests/**' \
+      -e '\badmit\s*\(' \
+      -e '\bassume\s*\(' \
+      -e '#\s*\[\s*verifier::external(_body|_fn_specification|_type_specification)?\b' \
+      "$ROOT_DIR/src" || true
+  )"
+
+  if [[ -n "$matches" ]]; then
+    echo "error: non-test source files use trusted proof escapes"
+    printf '%s\n' "$matches"
+    exit 1
+  fi
+}
+
 skip_or_fail_verus_unavailable() {
   local reason="$1"
   local hint="$2"
@@ -221,6 +247,11 @@ if [[ "$FORBID_RUG_NORMAL_DEPS" == "1" ]]; then
 
   echo "[check] Verifying non-test source tree excludes rug"
   check_no_rug_in_non_test_sources
+fi
+
+if [[ "$FORBID_TRUSTED_ESCAPES" == "1" ]]; then
+  echo "[check] Verifying non-test source tree excludes trusted proof escapes"
+  check_no_trusted_escapes_in_non_test_sources
 fi
 
 if [[ "$RUNTIME_ONLY" == "1" ]]; then
