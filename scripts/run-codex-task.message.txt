@@ -1,0 +1,1 @@
+Implemented a gated rug-oracle differential test suite for RuntimeBigNatWitness and updated the zero-trust roadmap burndown with completed checks and a documented compile-fix attempt.
