@@ -4246,6 +4246,36 @@ impl RuntimeBigNatWitness {
         out_mul
     }
 
+    /// Operation-level wrapper: proves tight nonzero limb-length/value window.
+    pub fn lemma_model_len_window_nonzero_ops(a: &Self)
+        requires
+            a.wf_spec(),
+            a.model@ > 0,
+        ensures
+            a.limbs_le@.len() > 0,
+            Self::pow_base_spec((a.limbs_le@.len() - 1) as nat) <= a.model@,
+            a.model@ < Self::pow_base_spec(a.limbs_le@.len()),
+    {
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            if a.limbs_le@.len() == 0 {
+                assert(Self::limbs_value_spec(a.limbs_le@) == 0);
+                assert(a.model@ == 0);
+                assert(a.model@ > 0);
+                assert(false);
+            }
+            assert(a.limbs_le@.len() > 0);
+            assert(Self::canonical_limbs_spec(a.limbs_le@));
+            assert(a.limbs_le@[(a.limbs_le@.len() - 1) as int] != 0u32);
+            Self::lemma_limbs_value_ge_pow_last_nonzero(a.limbs_le@);
+            Self::lemma_limbs_value_lt_pow_len(a.limbs_le@);
+            assert(Self::pow_base_spec((a.limbs_le@.len() - 1) as nat) <= Self::limbs_value_spec(a.limbs_le@));
+            assert(Self::limbs_value_spec(a.limbs_le@) < Self::pow_base_spec(a.limbs_le@.len()));
+            assert(Self::pow_base_spec((a.limbs_le@.len() - 1) as nat) <= a.model@);
+            assert(a.model@ < Self::pow_base_spec(a.limbs_le@.len()));
+        }
+    }
+
     /// Operation-level wrapper: computes compare output and proves `cmp <= 0 <==> a <= b`.
     pub fn lemma_cmp_le_zero_iff_le_ops(a: &Self, b: &Self) -> (out: i8)
         requires
@@ -4412,6 +4442,62 @@ impl RuntimeBigNatWitness {
             assert(add_sub_ab_b.model@ == a.model@);
         }
         (sub_ab, add_sub_ab_b)
+    }
+
+    /// Operation-level wrapper: computes compare and subtraction; positive compare implies positive subtraction.
+    pub fn lemma_cmp_pos_implies_sub_pos_ops(a: &Self, b: &Self) -> (out: (i8, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.0 == -1 || out.0 == 0 || out.0 == 1,
+            out.1.wf_spec(),
+            (out.1.model@ == 0) <==> (a.model@ <= b.model@),
+            out.0 == 1 ==> out.1.model@ > 0,
+    {
+        let cmp = Self::lemma_cmp_eq_zero_iff_eq_ops(a, b);
+        let sub_ab = Self::lemma_model_sub_zero_iff_le_ops(a, b);
+        proof {
+            if cmp == 1 {
+                assert(a.model@ > b.model@);
+                assert(!(a.model@ <= b.model@));
+                assert(sub_ab.model@ != 0) by {
+                    if sub_ab.model@ == 0 {
+                        assert(a.model@ <= b.model@);
+                        assert(false);
+                    }
+                };
+                assert(sub_ab.model@ > 0);
+            }
+        }
+        (cmp, sub_ab)
+    }
+
+    /// Operation-level wrapper: computes compare and both directional subtractions;
+    /// equality compare implies both truncated subtractions are zero.
+    pub fn lemma_cmp_eq_implies_bi_sub_zero_ops(a: &Self, b: &Self) -> (out: (i8, Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.0 == -1 || out.0 == 0 || out.0 == 1,
+            out.1.wf_spec(),
+            out.2.wf_spec(),
+            out.0 == 0 ==> out.1.model@ == 0 && out.2.model@ == 0,
+    {
+        let cmp = Self::lemma_cmp_eq_zero_iff_eq_ops(a, b);
+        let sub_ab = Self::lemma_model_sub_zero_iff_le_ops(a, b);
+        let sub_ba = Self::lemma_model_sub_zero_iff_le_ops(b, a);
+        proof {
+            if cmp == 0 {
+                assert(a.model@ == b.model@);
+                assert(a.model@ <= b.model@);
+                assert(b.model@ <= a.model@);
+                assert(sub_ab.model@ == 0);
+                assert(sub_ba.model@ == 0);
+            }
+        }
+        (cmp, sub_ab, sub_ba)
     }
 
     /// Operation-level wrapper: computes both quotients and proves quotient monotonicity.
