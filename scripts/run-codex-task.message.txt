@@ -1,1 +1,1 @@
-Hardened check gating with strict Verus/dependency/offline modes, added CI verification wiring, and updated the zero-trust burndown roadmap; 12 tasks remain.
+Reduced trusted refinement glue by removing the unused `View` bridge, deleted unreferenced verified-section proof duplicates, and updated zero-trust documentation after re-running verification/tests; 9 tasks remain.
