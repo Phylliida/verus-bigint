@@ -60,7 +60,7 @@
 
 ## Exit Criteria
 
-- [ ] Production path uses only limb-based verified implementation
+- [x] Production path uses only limb-based verified implementation
 - [x] `rug` is test-only (or fully removed)
 - [x] All exported arithmetic ops are covered by Verus proofs and runtime tests
 - [ ] `./scripts/check.sh` passes end-to-end in CI
@@ -110,3 +110,7 @@
 - Completed decision: Selected Target B (compat mode) for now, keeping the Rust-only limb runtime path plus Verus proof path, and enforcing alignment with proofs + oracle tests + API-drift gate.
 - Failed attempt (rolled back): forcing a single runtime backend by compiling `verified_impl` in normal Rust builds failed (`#[verifier::truncate]` expression attributes and ghost-only struct field usage are not accepted by stable `cargo test` in this setup).
 - Failed attempt (rolled back): making `RuntimeBigNatWitness` fields private or `pub(crate)` to harden invariant enforcement broke Verus refinement (`external_type_specification: private fields not supported for transparent datatypes`) in `src/runtime_bigint_witness_refinement.rs`.
+- Completed: Hardened `scripts/check.sh` so `--forbid-rug-normal-deps` now also fails when non-test files under `src/` reference `rug` (not just dependency-graph checks), closing the production-path guardrail for limb-only runtime code.
+- Completed verification attempt: `./scripts/check.sh --forbid-rug-normal-deps` passes after the source-tree `rug` guard was added (runtime tests 4/4; dependency and source-tree gates pass; Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps` passes after the source-tree `rug` guard was added (runtime tests 4/4; strict Verus gate passes; Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` still passes after the strict-gate hardening (6/6 tests).
