@@ -8,13 +8,14 @@ TOOLCHAIN="${VERUS_TOOLCHAIN:-1.93.0-x86_64-unknown-linux-gnu}"
 
 usage() {
   cat <<'USAGE'
-usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-normal-deps] [--forbid-trusted-escapes] [--offline]
+usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-normal-deps] [--forbid-trusted-escapes] [--target-a-strict-smoke] [--offline]
 
 options:
   --runtime-only            run only cargo runtime tests; skip Verus verification
   --require-verus           fail instead of skipping when Verus verification cannot run
   --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
   --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals)
+  --target-a-strict-smoke   verify strict-mode transition guard (non-Verus build fails, Verus verify with `target-a-strict` passes)
   --offline                 run cargo commands in offline mode (`cargo --offline`)
   -h, --help                show this help
 USAGE
@@ -24,6 +25,7 @@ RUNTIME_ONLY=0
 REQUIRE_VERUS=0
 FORBID_RUG_NORMAL_DEPS=0
 FORBID_TRUSTED_ESCAPES=0
+TARGET_A_STRICT_SMOKE=0
 OFFLINE=0
 while [[ "$#" -gt 0 ]]; do
   case "${1:-}" in
@@ -38,6 +40,9 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --forbid-trusted-escapes)
       FORBID_TRUSTED_ESCAPES=1
+      ;;
+    --target-a-strict-smoke)
+      TARGET_A_STRICT_SMOKE=1
       ;;
     --offline)
       OFFLINE=1
@@ -58,6 +63,15 @@ done
 if [[ "$RUNTIME_ONLY" == "1" && "$REQUIRE_VERUS" == "1" ]]; then
   echo "error: --runtime-only and --require-verus cannot be used together"
   exit 1
+fi
+
+if [[ "$RUNTIME_ONLY" == "1" && "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
+  echo "error: --runtime-only and --target-a-strict-smoke cannot be used together"
+  exit 1
+fi
+
+if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
+  REQUIRE_VERUS=1
 fi
 
 if [[ "$OFFLINE" == "1" ]]; then
@@ -230,6 +244,49 @@ skip_or_fail_verus_unavailable() {
   exit 0
 }
 
+run_cargo_verus_verify() {
+  local feature_flags="${1:-}"
+
+  if command -v rustup >/dev/null 2>&1; then
+    export PATH="$VERUS_SOURCE/target-verus/release:$PATH"
+    export VERUS_Z3_PATH="$VERUS_SOURCE/z3"
+    export RUSTUP_TOOLCHAIN="$TOOLCHAIN"
+    cd "$ROOT_DIR"
+    if [[ -n "$feature_flags" ]]; then
+      # shellcheck disable=SC2086
+      "${CARGO_CMD[@]}" verus verify --manifest-path Cargo.toml -p verus-bigint $feature_flags -- --triggers-mode silent
+    else
+      "${CARGO_CMD[@]}" verus verify --manifest-path Cargo.toml -p verus-bigint -- --triggers-mode silent
+    fi
+  elif command -v nix-shell >/dev/null 2>&1; then
+    if nix-shell -p rustup --run "rustup --version >/dev/null 2>&1" >/dev/null 2>&1; then
+      OFFLINE_CARGO_FLAG=""
+      OFFLINE_EXPORT=""
+      if [[ "$OFFLINE" == "1" ]]; then
+        OFFLINE_CARGO_FLAG="--offline"
+        OFFLINE_EXPORT="export CARGO_NET_OFFLINE=true"
+      fi
+      nix-shell -p rustup --run "
+        set -euo pipefail
+        $OFFLINE_EXPORT
+        export RUSTUP_TOOLCHAIN='$TOOLCHAIN'
+        export PATH='$VERUS_SOURCE/target-verus/release':\$PATH
+        export VERUS_Z3_PATH='$VERUS_SOURCE/z3'
+        cd '$ROOT_DIR'
+        cargo $OFFLINE_CARGO_FLAG verus verify --manifest-path Cargo.toml -p verus-bigint $feature_flags -- --triggers-mode silent
+      "
+    else
+      skip_or_fail_verus_unavailable \
+        "rustup is unavailable and nix-shell could not provide it in this environment" \
+        "install rustup locally, or use an environment where nix-shell can access the nix daemon"
+    fi
+  else
+    skip_or_fail_verus_unavailable \
+      "rustup not found in PATH" \
+      "install rustup with default toolchain $TOOLCHAIN"
+  fi
+}
+
 echo "[check] Verifying runtime/verified API parity"
 check_runtime_verified_api_parity
 
@@ -272,36 +329,31 @@ if [[ ! -x "$VERUS_SOURCE/z3" ]]; then
 fi
 
 echo "[check] Running cargo verus verify"
-if command -v rustup >/dev/null 2>&1; then
-  export PATH="$VERUS_SOURCE/target-verus/release:$PATH"
-  export VERUS_Z3_PATH="$VERUS_SOURCE/z3"
-  export RUSTUP_TOOLCHAIN="$TOOLCHAIN"
-  cd "$ROOT_DIR"
-  "${CARGO_CMD[@]}" verus verify --manifest-path Cargo.toml -p verus-bigint -- --triggers-mode silent
-elif command -v nix-shell >/dev/null 2>&1; then
-  if nix-shell -p rustup --run "rustup --version >/dev/null 2>&1" >/dev/null 2>&1; then
-    OFFLINE_CARGO_FLAG=""
-    OFFLINE_EXPORT=""
-    if [[ "$OFFLINE" == "1" ]]; then
-      OFFLINE_CARGO_FLAG="--offline"
-      OFFLINE_EXPORT="export CARGO_NET_OFFLINE=true"
-    fi
-    nix-shell -p rustup --run "
-      set -euo pipefail
-      $OFFLINE_EXPORT
-      export RUSTUP_TOOLCHAIN='$TOOLCHAIN'
-      export PATH='$VERUS_SOURCE/target-verus/release':\$PATH
-      export VERUS_Z3_PATH='$VERUS_SOURCE/z3'
-      cd '$ROOT_DIR'
-      cargo $OFFLINE_CARGO_FLAG verus verify --manifest-path Cargo.toml -p verus-bigint -- --triggers-mode silent
-    "
-  else
-    skip_or_fail_verus_unavailable \
-      "rustup is unavailable and nix-shell could not provide it in this environment" \
-      "install rustup locally, or use an environment where nix-shell can access the nix daemon"
+run_cargo_verus_verify ""
+
+if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
+  echo "[check] Verifying target-a-strict rejects non-Verus cargo builds"
+  strict_smoke_log="$(mktemp)"
+  set +e
+  "${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --features target-a-strict --no-run >"$strict_smoke_log" 2>&1
+  strict_smoke_status="$?"
+  set -e
+
+  if [[ "$strict_smoke_status" == "0" ]]; then
+    echo "error: expected non-Verus cargo build with --features target-a-strict to fail, but it succeeded"
+    cat "$strict_smoke_log"
+    rm -f "$strict_smoke_log"
+    exit 1
   fi
-else
-  skip_or_fail_verus_unavailable \
-    "rustup not found in PATH" \
-    "install rustup with default toolchain $TOOLCHAIN"
+
+  if ! rg -q 'feature `target-a-strict` requires a Verus build' "$strict_smoke_log"; then
+    echo "error: strict-mode smoke failure did not match the expected compile guard"
+    cat "$strict_smoke_log"
+    rm -f "$strict_smoke_log"
+    exit 1
+  fi
+  rm -f "$strict_smoke_log"
+
+  echo "[check] Running cargo verus verify with target-a-strict feature"
+  run_cargo_verus_verify "--features target-a-strict"
 fi

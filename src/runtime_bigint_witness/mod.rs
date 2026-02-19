@@ -1,3 +1,8 @@
+#[cfg(all(feature = "target-a-strict", not(verus_keep_ghost)))]
+compile_error!(
+    "feature `target-a-strict` requires a Verus build (`cfg(verus_keep_ghost)`); non-verified runtime backend is disabled"
+);
+
 #[cfg(verus_keep_ghost)]
 use vstd::prelude::*;
 
