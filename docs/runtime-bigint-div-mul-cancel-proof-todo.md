@@ -13,9 +13,9 @@ and truncated subtraction.
 
 ## Floor-Division Add Bounds
 
-- [ ] Add wrapper for quotient additivity bounds (`d > 0`):
-  - [ ] `a / d + b / d <= (a + b) / d`
-  - [ ] `(a + b) / d <= a / d + b / d + 1`
+- [x] Add wrapper for quotient additivity bounds (`d > 0`):
+  - [x] `a / d + b / d <= (a + b) / d`
+  - [x] `(a + b) / d <= a / d + b / d + 1`
 
 ## Add/Sub Round-Trip
 
