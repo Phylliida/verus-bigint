@@ -3248,6 +3248,93 @@ impl RuntimeBigNatWitness {
         assert(mul_ac.model@ < mul_bc.model@);
     }
 
+    pub proof fn lemma_model_add_cancellation_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        add_ac: &Self,
+        add_bc: &Self,
+    )
+        requires
+            add_ac.model@
+                == Self::limbs_value_spec(a.limbs_le@) + Self::limbs_value_spec(c.limbs_le@),
+            add_bc.model@
+                == Self::limbs_value_spec(b.limbs_le@) + Self::limbs_value_spec(c.limbs_le@),
+            add_ac.model@ == add_bc.model@,
+        ensures
+            Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@),
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+
+        if a_val < b_val {
+            Self::lemma_model_add_strict_monotonic_from_total_contracts(a, b, c, add_ac, add_bc);
+            assert(add_ac.model@ < add_bc.model@);
+            assert(add_ac.model@ == add_bc.model@);
+            assert(false);
+        }
+
+        if b_val < a_val {
+            Self::lemma_model_add_strict_monotonic_from_total_contracts(b, a, c, add_bc, add_ac);
+            assert(add_bc.model@ < add_ac.model@);
+            assert(add_ac.model@ == add_bc.model@);
+            assert(false);
+        }
+
+        assert(!(a_val < b_val));
+        assert(!(b_val < a_val));
+        let ai = a_val as int;
+        let bi = b_val as int;
+        assert(!(ai < bi));
+        assert(!(bi < ai));
+        assert(ai == bi);
+        assert(a_val == b_val);
+    }
+
+    pub proof fn lemma_model_mul_cancellation_pos_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        mul_ac: &Self,
+        mul_bc: &Self,
+    )
+        requires
+            Self::limbs_value_spec(c.limbs_le@) > 0,
+            mul_ac.model@
+                == Self::limbs_value_spec(a.limbs_le@) * Self::limbs_value_spec(c.limbs_le@),
+            mul_bc.model@
+                == Self::limbs_value_spec(b.limbs_le@) * Self::limbs_value_spec(c.limbs_le@),
+            mul_ac.model@ == mul_bc.model@,
+        ensures
+            Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@),
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+
+        if a_val < b_val {
+            Self::lemma_model_mul_strict_monotonic_pos_from_total_contracts(a, b, c, mul_ac, mul_bc);
+            assert(mul_ac.model@ < mul_bc.model@);
+            assert(mul_ac.model@ == mul_bc.model@);
+            assert(false);
+        }
+
+        if b_val < a_val {
+            Self::lemma_model_mul_strict_monotonic_pos_from_total_contracts(b, a, c, mul_bc, mul_ac);
+            assert(mul_bc.model@ < mul_ac.model@);
+            assert(mul_ac.model@ == mul_bc.model@);
+            assert(false);
+        }
+
+        assert(!(a_val < b_val));
+        assert(!(b_val < a_val));
+        let ai = a_val as int;
+        let bi = b_val as int;
+        assert(!(ai < bi));
+        assert(!(bi < ai));
+        assert(ai == bi);
+        assert(a_val == b_val);
+    }
+
     pub proof fn lemma_model_add_commutative_from_total_contracts(
         a: &Self,
         b: &Self,
