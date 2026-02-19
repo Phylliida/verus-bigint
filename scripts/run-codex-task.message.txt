@@ -1,1 +1,1 @@
-Added a check.sh preflight that enforces CI/README strict-command alignment (including --min-verified), revalidated strict verification locally, and 2 roadmap tasks remain.
+Added a check.sh CI toolchain-alignment preflight (workflow rustup install/default must match TOOLCHAIN), revalidated strict and rug-oracle checks locally, and 2 roadmap tasks remain.
