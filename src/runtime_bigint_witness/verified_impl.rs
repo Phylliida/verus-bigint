@@ -3071,6 +3071,44 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    pub proof fn lemma_model_add_sub_inverse_from_total_contracts(
+        self_in: &Self,
+        rhs: &Self,
+        sub_out: &Self,
+        add_out: &Self,
+    )
+        requires
+            Self::limbs_value_spec(rhs.limbs_le@) <= Self::limbs_value_spec(self_in.limbs_le@),
+            Self::limbs_value_spec(self_in.limbs_le@) <= Self::limbs_value_spec(rhs.limbs_le@)
+                ==> sub_out.model@ == 0,
+            Self::limbs_value_spec(rhs.limbs_le@) < Self::limbs_value_spec(self_in.limbs_le@)
+                ==> sub_out.model@
+                    == Self::limbs_value_spec(self_in.limbs_le@) - Self::limbs_value_spec(rhs.limbs_le@),
+            add_out.model@ == sub_out.model@ + Self::limbs_value_spec(rhs.limbs_le@),
+        ensures
+            add_out.model@ == Self::limbs_value_spec(self_in.limbs_le@),
+    {
+        let self_val = Self::limbs_value_spec(self_in.limbs_le@);
+        let rhs_val = Self::limbs_value_spec(rhs.limbs_le@);
+
+        if rhs_val == self_val {
+            assert(self_val <= rhs_val);
+            assert(sub_out.model@ == 0);
+            assert(add_out.model@ == sub_out.model@ + rhs_val);
+            assert(add_out.model@ == 0 + rhs_val);
+            assert(add_out.model@ == rhs_val);
+            assert(add_out.model@ == self_val);
+        } else {
+            assert(rhs_val != self_val);
+            assert(rhs_val < self_val);
+            assert(sub_out.model@ == self_val - rhs_val);
+            assert(add_out.model@ == sub_out.model@ + rhs_val);
+            assert(add_out.model@ == (self_val - rhs_val) + rhs_val);
+            assert((self_val - rhs_val) + rhs_val == self_val);
+            assert(add_out.model@ == self_val);
+        }
+    }
+
     /// Total small-limb subtraction helper used by scalar witness plumbing.
     ///
     /// Computes the exact nonnegative difference when `self >= rhs` using full
