@@ -16,7 +16,7 @@
 ## Target Mode Decision
 
 - [x] Choose Target A or Target B
-- [ ] Target A (strict): require Verus build for production, remove non-verified backend (in progress: `target-a-strict` strict-by-default + `runtime-compat` local-test escape hatch)
+- [ ] Target A (strict): require Verus build for production, remove non-verified backend (in progress: `target-a-strict` strict-by-default + `runtime-compat` local-test escape hatch + non-Verus release guard)
 - [x] Target B (compat): keep Rust-only build, but runtime is limb-based; keep `rug` only as optional test oracle
 
 ## Phase 1: Representation Unification
@@ -57,6 +57,7 @@
 
 - [x] Eliminate refinement-bridge reliance on `external_type_specification`
 - [x] Prefer internal, explicit view/model alignment where possible
+- [x] Remove narrowing-cast truncation annotations (`#[verifier::truncate]`) from non-test sources
 - [x] Add a source-tree gate that rejects trusted proof escapes (`admit`, `assume`, and `#[verifier::external*]`) in non-test files
 - [x] Document any irreducible trust assumptions
 
@@ -143,3 +144,10 @@
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke` passes after strict-default transition (runtime tests 4/4 under `runtime-compat`; baseline and strict-feature Verus both report `89 verified, 0 errors`).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after strict-default transition (6/6 tests).
 - Failed attempt (intentional guardrail test): `cargo test --manifest-path Cargo.toml --no-run` fails in non-Verus mode with the expected strict compile guard (`feature 'target-a-strict' requires a Verus build ... enable feature 'runtime-compat' ...`).
+- Completed: Removed all remaining `#[verifier::truncate]` narrowing-cast annotations from `src/runtime_bigint_witness/verified_impl.rs` by relying on explicit range reasoning before `u64 -> u32` casts.
+- Completed: Added a non-Verus production guard in `src/runtime_bigint_witness/mod.rs` so `--release --features runtime-compat` now fails at compile time, keeping `runtime-compat` scoped to debug/test workflows.
+- Completed: Extended `scripts/check.sh --target-a-strict-smoke` to assert the new release guard (`cargo build --release --features runtime-compat` must fail with the expected compile-error text).
+- Completed: Hardened `scripts/check.sh --forbid-trusted-escapes` so non-test `src/` files are now also rejected if they reintroduce `#[verifier::truncate]`.
+- Completed: Updated strict-mode documentation in `README.md` and trust-boundary notes in `docs/runtime-bigint-trust-assumptions.md` to reflect the new production guard and truncate-elimination status.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke` passes after these changes (runtime tests 4/4; baseline + strict-feature Verus `89 verified, 0 errors`; strict non-Verus and `runtime-compat` release guards both fail as expected).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after these changes (6/6 tests).

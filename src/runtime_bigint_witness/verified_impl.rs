@@ -1084,8 +1084,8 @@ impl RuntimeBigNatWitness {
         let base_u64 = 4_294_967_296u64;
         let lo_u64 = x % base_u64;
         let hi_u64 = x / base_u64;
-        let lo = #[verifier::truncate] (lo_u64 as u32);
-        let hi = #[verifier::truncate] (hi_u64 as u32);
+        let lo = lo_u64 as u32;
+        let hi = hi_u64 as u32;
         let out = Self::from_two_limbs(lo, hi);
         proof {
             assert(x == hi_u64 * base_u64 + lo_u64);
@@ -2241,7 +2241,6 @@ impl RuntimeBigNatWitness {
                     next_borrow = 1u64;
                     digit64 = a_plus_base.wrapping_sub(need);
                 }
-                #[verifier::truncate]
                 let digit = digit64 as u32;
                 proof {
                     let i_nat = i as nat;

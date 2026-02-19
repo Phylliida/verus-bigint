@@ -8,6 +8,17 @@ compile_error!(
      enable feature `runtime-compat` only for local non-Verus runtime/testing workflows"
 );
 
+#[cfg(all(
+    feature = "runtime-compat",
+    not(verus_keep_ghost),
+    not(debug_assertions),
+    not(test)
+))]
+compile_error!(
+    "feature `runtime-compat` is debug/test-only in non-Verus builds; \
+     production `--release` builds must verify with Verus instead"
+);
+
 #[cfg(verus_keep_ghost)]
 use vstd::prelude::*;
 
