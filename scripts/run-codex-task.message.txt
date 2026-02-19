@@ -1,1 +1,1 @@
-Hardened CI execution preflights in `scripts/check.sh` to reject verify-job `continue-on-error` and critical-step `if:` gating, updated docs/roadmap, revalidated strict checks (`89 verified, 0 errors`; rug-oracle 6/6), and 2 roadmap tasks remain.
+Added CI toolchain-install wiring preflights to `scripts/check.sh`, updated trust docs and burndown notes, revalidated strict checks (runtime 4/4, rug-oracle 6/6, Verus 89 verified/0 errors), and 2 roadmap tasks remain.

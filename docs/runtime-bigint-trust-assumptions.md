@@ -35,6 +35,11 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
 - `scripts/check.sh` also validates that `.github/workflows/check.yml` keeps the
   same pinned Verus Rust toolchain for both `rustup toolchain install` and
   `rustup default`, and that this pin matches `scripts/check.sh`.
+- `scripts/check.sh` now also validates CI toolchain-install step wiring:
+  `Install required Rust toolchain` must run before build/strict steps, be
+  fail-fast, install the pinned toolchain with `--profile minimal` and required
+  components (`rustfmt`, `rustc-dev`, `llvm-tools`), and set `rustup default`
+  to the same toolchain pin.
 - `scripts/check.sh` now also validates CI workflow checkout + step wiring for
   end-to-end strict checks: checkout steps must include `Checkout verus-bigint`
   (`path: verus-bigint`) and `Checkout Verus` (`repository: verus-lang/verus`,
