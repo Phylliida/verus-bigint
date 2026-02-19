@@ -64,6 +64,41 @@ if [[ "$OFFLINE" == "1" ]]; then
   CARGO_CMD+=(--offline)
 fi
 
+check_runtime_verified_api_parity() {
+  local runtime_impl="$ROOT_DIR/src/runtime_bigint_witness/runtime_impl.rs"
+  local verified_impl="$ROOT_DIR/src/runtime_bigint_witness/verified_impl.rs"
+  local -a runtime_methods=()
+  local -a verified_methods=()
+  local missing_in_verified=""
+  local missing_in_runtime=""
+
+  mapfile -t runtime_methods < <(rg -No '^\s*pub fn\s+([A-Za-z0-9_]+)\s*\(' -r '$1' "$runtime_impl" | LC_ALL=C sort -u)
+  mapfile -t verified_methods < <(rg -No '^\s*pub fn\s+([A-Za-z0-9_]+)\s*\(' -r '$1' "$verified_impl" | LC_ALL=C sort -u)
+
+  if [[ "${#runtime_methods[@]}" -eq 0 || "${#verified_methods[@]}" -eq 0 ]]; then
+    echo "error: failed to discover public methods in runtime/verified bigint implementations"
+    echo "runtime file: $runtime_impl"
+    echo "verified file: $verified_impl"
+    exit 1
+  fi
+
+  missing_in_verified="$(comm -23 <(printf '%s\n' "${runtime_methods[@]}") <(printf '%s\n' "${verified_methods[@]}"))"
+  missing_in_runtime="$(comm -13 <(printf '%s\n' "${runtime_methods[@]}") <(printf '%s\n' "${verified_methods[@]}"))"
+
+  if [[ -n "$missing_in_verified" || -n "$missing_in_runtime" ]]; then
+    echo "error: runtime/verified public API mismatch detected"
+    if [[ -n "$missing_in_verified" ]]; then
+      echo "missing in verified_impl.rs:"
+      printf '%s\n' "$missing_in_verified"
+    fi
+    if [[ -n "$missing_in_runtime" ]]; then
+      echo "missing in runtime_impl.rs:"
+      printf '%s\n' "$missing_in_runtime"
+    fi
+    exit 1
+  fi
+}
+
 skip_or_fail_verus_unavailable() {
   local reason="$1"
   local hint="$2"
@@ -82,6 +117,9 @@ skip_or_fail_verus_unavailable() {
   fi
   exit 0
 }
+
+echo "[check] Verifying runtime/verified API parity"
+check_runtime_verified_api_parity
 
 echo "[check] Running cargo tests"
 "${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml"

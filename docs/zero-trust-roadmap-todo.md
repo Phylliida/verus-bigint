@@ -5,7 +5,7 @@
 - [ ] Make `verus-bigint` zero-trust for production behavior:
 - [x] No production reliance on `rug::Integer`
 - [x] Exported runtime operations are implemented by verified limb algorithms
-- [ ] Verification and runtime behavior stay aligned
+- [x] Verification and runtime behavior stay aligned
 
 ## Current Trust Boundaries
 
@@ -15,9 +15,9 @@
 
 ## Target Mode Decision
 
-- [ ] Choose Target A or Target B
+- [x] Choose Target A or Target B
 - [ ] Target A (strict): require Verus build for production, remove non-verified backend
-- [ ] Target B (compat): keep Rust-only build, but runtime is limb-based; keep `rug` only as optional test oracle
+- [x] Target B (compat): keep Rust-only build, but runtime is limb-based; keep `rug` only as optional test oracle
 
 ## Phase 1: Representation Unification
 
@@ -61,8 +61,8 @@
 ## Exit Criteria
 
 - [ ] Production path uses only limb-based verified implementation
-- [ ] `rug` is test-only (or fully removed)
-- [ ] All exported arithmetic ops are covered by Verus proofs and runtime tests
+- [x] `rug` is test-only (or fully removed)
+- [x] All exported arithmetic ops are covered by Verus proofs and runtime tests
 - [ ] `./scripts/check.sh` passes end-to-end in CI
 
 ## Burndown Log
@@ -104,3 +104,9 @@
 - Completed cleanup: Removed unreferenced duplicate proof files under `src/runtime_bigint_witness/verified_sections/` to reduce dead/unverified surface area.
 - Completed verification attempt: `./scripts/check.sh` passes after trust-bridge minimization and cleanup (runtime tests 4/4; Verus reports `89 verified, 0 errors`).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after trust-bridge minimization and cleanup (6/6 tests).
+- Completed: Added runtime/verified API drift gate to `scripts/check.sh` that compares public `RuntimeBigNatWitness` methods in `src/runtime_bigint_witness/runtime_impl.rs` and `src/runtime_bigint_witness/verified_impl.rs`, failing when the sets diverge.
+- Completed verification attempt: `./scripts/check.sh --forbid-rug-normal-deps` passes after adding the API-drift gate (runtime tests 4/4, normal dependency graph excludes `rug`, Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` still passes after the API-drift gate update (6/6 tests).
+- Completed decision: Selected Target B (compat mode) for now, keeping the Rust-only limb runtime path plus Verus proof path, and enforcing alignment with proofs + oracle tests + API-drift gate.
+- Failed attempt (rolled back): forcing a single runtime backend by compiling `verified_impl` in normal Rust builds failed (`#[verifier::truncate]` expression attributes and ghost-only struct field usage are not accepted by stable `cargo test` in this setup).
+- Failed attempt (rolled back): making `RuntimeBigNatWitness` fields private or `pub(crate)` to harden invariant enforcement broke Verus refinement (`external_type_specification: private fields not supported for transparent datatypes`) in `src/runtime_bigint_witness_refinement.rs`.

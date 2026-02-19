@@ -1,1 +1,1 @@
-Reduced trusted refinement glue by removing the unused `View` bridge, deleted unreferenced verified-section proof duplicates, and updated zero-trust documentation after re-running verification/tests; 9 tasks remain.
+Added a runtime-versus-verified API drift gate in `scripts/check.sh`, recorded Target B plus strict-mode failed attempts in the zero-trust burndown, and revalidated checks/tests with 4 roadmap tasks remaining.
