@@ -16,7 +16,7 @@
 ## Target Mode Decision
 
 - [x] Choose Target A or Target B
-- [ ] Target A (strict): require Verus build for production, remove non-verified backend
+- [ ] Target A (strict): require Verus build for production, remove non-verified backend (in progress: `target-a-strict` transition guard + smoke gate)
 - [x] Target B (compat): keep Rust-only build, but runtime is limb-based; keep `rug` only as optional test oracle
 
 ## Phase 1: Representation Unification
@@ -130,3 +130,9 @@
 - Completed verification attempt: `./scripts/check.sh --runtime-only --forbid-rug-normal-deps --forbid-trusted-escapes` passes (4/4 runtime tests; rug and trusted-escape source-tree gates pass).
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes` passes (4/4 runtime tests; Verus reports `89 verified, 0 errors`; rug and trusted-escape source-tree gates pass).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes (6/6 tests) after trusted-escape gate hardening.
+- Completed: Added opt-in feature `target-a-strict` in `Cargo.toml` and compile-time guard in `src/runtime_bigint_witness/mod.rs` so non-Verus builds fail fast when strict mode is requested.
+- Completed: Extended `scripts/check.sh` with `--target-a-strict-smoke` to enforce Target A transition behavior: non-Verus `cargo test --features target-a-strict --no-run` must fail with the strict guard, and Verus verification with `--features target-a-strict` must pass.
+- Completed: Updated `.github/workflows/check.yml` and `README.md` to run/document the new strict-mode smoke gate.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke` passes (runtime tests 4/4; baseline Verus verify `89 verified, 0 errors`; strict-mode non-Verus compile fails as expected; strict-mode Verus verify `89 verified, 0 errors`).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes (6/6 tests) after strict-transition guard additions.
+- Failed attempt (intentional guardrail test): `./scripts/check.sh --runtime-only --target-a-strict-smoke` fails fast with argument conflict (`--runtime-only` cannot be combined with the strict-mode smoke check).

@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 default = []
 rug-oracle = []
+target-a-strict = []
 
 [dependencies]
 vstd = { path = "../verus/source/vstd" }
