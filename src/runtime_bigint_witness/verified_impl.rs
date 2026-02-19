@@ -4235,6 +4235,41 @@ impl RuntimeBigNatWitness {
         rem_a
     }
 
+    /// Operation-level wrapper: computes `(q, r)` and proves recomposition for `d > 0`.
+    pub fn lemma_model_div_rem_recompose_pos_ops(a: &Self, d: &Self) -> (out: (Self, Self))
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ > 0,
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.0.model@ == a.model@ / d.model@,
+            out.1.model@ == a.model@ % d.model@,
+            a.model@ == out.0.model@ * d.model@ + out.1.model@,
+            out.1.model@ < d.model@,
+    {
+        let pair = a.div_rem_limbwise_small_total(d);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(d.model@ == Self::limbs_value_spec(d.limbs_le@));
+            assert(d.model@ > 0);
+            assert(Self::limbs_value_spec(d.limbs_le@) > 0);
+            assert(
+                Self::limbs_value_spec(a.limbs_le@)
+                    == pair.0.model@ * Self::limbs_value_spec(d.limbs_le@) + pair.1.model@
+            );
+            assert(pair.0.model@ == Self::limbs_value_spec(a.limbs_le@) / Self::limbs_value_spec(d.limbs_le@));
+            assert(pair.1.model@ == Self::limbs_value_spec(a.limbs_le@) % Self::limbs_value_spec(d.limbs_le@));
+            assert(pair.1.model@ < Self::limbs_value_spec(d.limbs_le@));
+            assert(a.model@ == pair.0.model@ * d.model@ + pair.1.model@);
+            assert(pair.0.model@ == a.model@ / d.model@);
+            assert(pair.1.model@ == a.model@ % d.model@);
+            assert(pair.1.model@ < d.model@);
+        }
+        pair
+    }
+
     /// Total small-limb subtraction helper used by scalar witness plumbing.
     ///
     /// Computes the exact nonnegative difference when `self >= rhs` using full

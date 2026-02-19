@@ -30,6 +30,6 @@ so callers can use high-level laws without precomputing intermediate results.
 - [x] Add wrapper for remainder upper bound under positive divisor:
   - [x] `lemma_model_rem_upper_bound_pos_ops(a, d) -> rem_a`
 
-- [ ] Add wrapper for recomposition:
-  - [ ] `lemma_model_div_rem_recompose_pos_ops(a, d) -> (q, r)`
-  - [ ] prove `a == q * d + r` and `r < d` for `d > 0`
+- [x] Add wrapper for recomposition:
+  - [x] `lemma_model_div_rem_recompose_pos_ops(a, d) -> (q, r)`
+  - [x] prove `a == q * d + r` and `r < d` for `d > 0`
