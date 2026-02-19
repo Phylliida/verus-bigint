@@ -1,1 +1,1 @@
-Hardened CI workflow token-permission and checkout-credential preflights in `check.sh` and `.github/workflows/check.yml`, revalidated strict checks (`89 verified, 0 errors`; rug-oracle tests 6/6), and 2 roadmap tasks remain.
+Added CI trigger and verify-job execution preflights to `scripts/check.sh`, documented them, revalidated strict checks (`89 verified, 0 errors`; rug-oracle 6/6), and 2 roadmap tasks remain.
