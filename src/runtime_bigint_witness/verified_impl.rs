@@ -2951,6 +2951,126 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    pub proof fn lemma_cmp_limbwise_small_total_transitive_le(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        ab: i8,
+        bc: i8,
+        ac: i8,
+    )
+        requires
+            ab == -1 || ab == 0 || ab == 1,
+            bc == -1 || bc == 0 || bc == 1,
+            ac == -1 || ac == 0 || ac == 1,
+            ab == -1 ==> Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@),
+            ab == 0 ==> Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@),
+            ab == 1 ==> Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(b.limbs_le@),
+            bc == -1 ==> Self::limbs_value_spec(b.limbs_le@) < Self::limbs_value_spec(c.limbs_le@),
+            bc == 0 ==> Self::limbs_value_spec(b.limbs_le@) == Self::limbs_value_spec(c.limbs_le@),
+            bc == 1 ==> Self::limbs_value_spec(b.limbs_le@) > Self::limbs_value_spec(c.limbs_le@),
+            ac == -1 ==> Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(c.limbs_le@),
+            ac == 0 ==> Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(c.limbs_le@),
+            ac == 1 ==> Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(c.limbs_le@),
+            ab <= 0i8,
+            bc <= 0i8,
+        ensures
+            ac <= 0i8,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        let c_val = Self::limbs_value_spec(c.limbs_le@);
+
+        if ab == -1 {
+            assert(a_val < b_val);
+            assert(a_val <= b_val);
+        } else {
+            assert(ab == 0);
+            assert(a_val == b_val);
+            assert(a_val <= b_val);
+        }
+
+        if bc == -1 {
+            assert(b_val < c_val);
+            assert(b_val <= c_val);
+        } else {
+            assert(bc == 0);
+            assert(b_val == c_val);
+            assert(b_val <= c_val);
+        }
+
+        assert(a_val <= c_val);
+        assert(ac != 1) by {
+            if ac == 1 {
+                assert(a_val > c_val);
+                assert(!(a_val > c_val));
+            }
+        };
+
+        if ac == -1 {
+        } else if ac == 0 {
+        } else {
+            assert(ac == 1);
+            assert(false);
+        }
+        assert(ac <= 0i8);
+    }
+
+    pub proof fn lemma_cmp_limbwise_small_total_transitive_eq(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        ab: i8,
+        bc: i8,
+        ac: i8,
+    )
+        requires
+            ab == -1 || ab == 0 || ab == 1,
+            bc == -1 || bc == 0 || bc == 1,
+            ac == -1 || ac == 0 || ac == 1,
+            ab == -1 ==> Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@),
+            ab == 0 ==> Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@),
+            ab == 1 ==> Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(b.limbs_le@),
+            bc == -1 ==> Self::limbs_value_spec(b.limbs_le@) < Self::limbs_value_spec(c.limbs_le@),
+            bc == 0 ==> Self::limbs_value_spec(b.limbs_le@) == Self::limbs_value_spec(c.limbs_le@),
+            bc == 1 ==> Self::limbs_value_spec(b.limbs_le@) > Self::limbs_value_spec(c.limbs_le@),
+            ac == -1 ==> Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(c.limbs_le@),
+            ac == 0 ==> Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(c.limbs_le@),
+            ac == 1 ==> Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(c.limbs_le@),
+            ab == 0i8,
+            bc == 0i8,
+        ensures
+            ac == 0i8,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        let c_val = Self::limbs_value_spec(c.limbs_le@);
+
+        assert(a_val == b_val);
+        assert(b_val == c_val);
+        assert(a_val == c_val);
+        assert(ac != -1) by {
+            if ac == -1 {
+                assert(a_val < c_val);
+                assert(!(a_val < c_val));
+            }
+        };
+        assert(ac != 1) by {
+            if ac == 1 {
+                assert(a_val > c_val);
+                assert(!(a_val > c_val));
+            }
+        };
+
+        if ac == -1 {
+            assert(false);
+        } else if ac == 1 {
+            assert(false);
+        } else {
+            assert(ac == 0);
+        }
+    }
+
     /// Total small-limb subtraction helper used by scalar witness plumbing.
     ///
     /// Computes the exact nonnegative difference when `self >= rhs` using full
