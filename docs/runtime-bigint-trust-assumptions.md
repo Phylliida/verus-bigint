@@ -42,8 +42,9 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   `./tools/get-z3.sh` + `vargo build --release`), and `Run strict checks` must
   run in `verus-bigint` with `VERUS_ROOT` pointed at the checked-out Verus tree.
 - The CI workflow preflight also enforces fail-fast behavior in those critical
-  steps (`set -euo pipefail`, no `continue-on-error: true`, and no `|| true`
-  failure masking in step commands).
+  steps (`set -euo pipefail`, no step-level `if:` gating, no
+  `continue-on-error: true`, and no `|| true` failure masking in step
+  commands).
 - `scripts/check.sh` also enforces CI workflow permission/token hardening:
   top-level `permissions` must stay least-privilege (`contents: read`, no
   `write`/`read-all`/`write-all` grants), and both checkout steps must keep
@@ -52,7 +53,8 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   strict checks must stay bound to both `pull_request` and `push` on `main`,
   trigger filters that can silently skip enforcement (`paths*`,
   `branches-ignore`) are rejected, and the `verify` job must remain
-  unconditional (no job-level `if:`) with an explicit `timeout-minutes`.
+  unconditional (no job-level `if:` and no job-level `continue-on-error`)
+  with an explicit `timeout-minutes`.
 - `scripts/check.sh` also enforces pinned CI runner posture for the `verify`
   job: `runs-on` must remain `ubuntu-22.04`, with no dynamic runner
   expressions and no `self-hosted` labels.

@@ -268,6 +268,11 @@ check_workflow_step_fail_fast() {
   local step_name="$1"
   local step_block="$2"
 
+  if printf '%s\n' "$step_block" | rg -q '^[[:space:]]+if:[[:space:]]'; then
+    echo "error: workflow step '$step_name' must not set step-level if: gating"
+    exit 1
+  fi
+
   if printf '%s\n' "$step_block" | rg -q 'continue-on-error:[[:space:]]*true'; then
     echo "error: workflow step '$step_name' must not set continue-on-error: true"
     exit 1
@@ -356,6 +361,12 @@ check_ci_verify_job_execution_contract() {
 
   if printf '%s\n' "$verify_job_block" | rg -q '^[[:space:]]{4}if:[[:space:]]'; then
     echo "error: workflow 'verify' job must not be conditionally gated with a job-level if"
+    printf '%s\n' "$verify_job_block"
+    exit 1
+  fi
+
+  if printf '%s\n' "$verify_job_block" | rg -q '^[[:space:]]{4}continue-on-error:[[:space:]]'; then
+    echo "error: workflow 'verify' job must not set job-level continue-on-error"
     printf '%s\n' "$verify_job_block"
     exit 1
   fi
