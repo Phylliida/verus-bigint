@@ -9,6 +9,7 @@ Formally verified arbitrary-size integer witness code extracted from VerusCAD.
 - Verified/spec-heavy implementation in `src/runtime_bigint_witness/verified_impl.rs`
 - Runtime tests in `src/runtime_bigint_witness/tests.rs`
 - Verus refinement glue in `src/runtime_bigint_witness_refinement.rs` (compiled under `cfg(verus_keep_ghost)`)
+- Trusted-surface notes in `docs/runtime-bigint-trust-assumptions.md`
 
 This crate currently mirrors the bigint witness implementation from VerusCAD.
 

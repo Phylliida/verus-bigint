@@ -13,9 +13,7 @@ pub struct RuntimeBigNatWitness {
     pub model: Ghost<nat>,
 }
 
-#[cfg(not(verus_keep_ghost))]
 mod runtime_impl;
-#[cfg(verus_keep_ghost)]
 mod verified_impl;
 #[cfg(test)]
 mod tests;

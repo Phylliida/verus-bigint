@@ -1,3 +1,5 @@
+#![cfg(verus_keep_ghost)]
+
 use super::RuntimeBigNatWitness;
 use vstd::prelude::*;
 use vstd::seq::Seq;
