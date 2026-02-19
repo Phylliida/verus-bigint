@@ -12,11 +12,18 @@ fn basic_runtime_big_nat_ops() {
     let b = RuntimeBigNatWitness::from_u32(9);
     let sum = a.add(&b);
     let prod = a.mul(&b);
+    let quot = b.div(&a);
+    let rem = b.rem(&a);
+    let (q_pair, r_pair) = b.div_rem(&a);
     let small_sum = a.add_limbwise_small(&b);
     let two_limbs = RuntimeBigNatWitness::from_two_limbs(5, 3);
     assert_limbs(&sum, &[16]);
     assert_limbs(&small_sum, &[16]);
     assert_limbs(&prod, &[63]);
+    assert_limbs(&quot, &[1]);
+    assert_limbs(&rem, &[2]);
+    assert_limbs(&q_pair, &[1]);
+    assert_limbs(&r_pair, &[2]);
     assert_limbs(&two_limbs, &[5, 3]);
     assert!(!sum.is_zero());
     assert!(RuntimeBigNatWitness::zero().is_zero());
@@ -49,6 +56,49 @@ fn cmp_and_sub_total_behavior() {
 
     let non_negative_floor = one.sub_limbwise_small_total(&base);
     assert_limbs(&non_negative_floor, &[]);
+}
+
+#[test]
+fn div_total_behavior() {
+    let sixty_three = RuntimeBigNatWitness::from_u32(63);
+    let nine = RuntimeBigNatWitness::from_u32(9);
+    let seven = sixty_three.div_limbwise_small_total(&nine);
+    let zero_rem = sixty_three.rem_limbwise_small_total(&nine);
+    assert_limbs(&seven, &[7]);
+    assert_limbs(&zero_rem, &[]);
+
+    let hundred = RuntimeBigNatWitness::from_u32(100);
+    let three = RuntimeBigNatWitness::from_u32(3);
+    let thirty_three = hundred.div(&three);
+    let one = hundred.rem(&three);
+    let (q_pair, r_pair) = hundred.div_rem(&three);
+    assert_limbs(&thirty_three, &[33]);
+    assert_limbs(&one, &[1]);
+    assert_limbs(&q_pair, &[33]);
+    assert_limbs(&r_pair, &[1]);
+
+    let two_pow_32 = RuntimeBigNatWitness::from_two_limbs(0, 1);
+    let two_pow_31 = RuntimeBigNatWitness::from_u32(1u32 << 31);
+    let two = two_pow_32.div(&two_pow_31);
+    let zero_rem_2 = two_pow_32.rem(&two_pow_31);
+    assert_limbs(&two, &[2]);
+    assert_limbs(&zero_rem_2, &[]);
+
+    let one = RuntimeBigNatWitness::from_u32(1);
+    let big = RuntimeBigNatWitness::from_two_limbs(0, 1);
+    let zero_when_smaller = one.div(&big);
+    let rem_when_smaller = one.rem(&big);
+    assert_limbs(&zero_when_smaller, &[]);
+    assert_limbs(&rem_when_smaller, &[1]);
+
+    let zero_divisor = RuntimeBigNatWitness::zero();
+    let zero_on_divide_by_zero = big.div(&zero_divisor);
+    let zero_on_rem_by_zero = big.rem(&zero_divisor);
+    let (zero_div_q, zero_div_r) = big.div_rem(&zero_divisor);
+    assert_limbs(&zero_on_divide_by_zero, &[]);
+    assert_limbs(&zero_on_rem_by_zero, &[]);
+    assert_limbs(&zero_div_q, &[]);
+    assert_limbs(&zero_div_r, &[]);
 }
 
 #[test]
@@ -135,6 +185,35 @@ fn assert_pair_matches_oracle(a: &RuntimeBigNatWitness, b: &RuntimeBigNatWitness
     let sub_expected_limbs = integer_to_limbs_le(&sub_expected);
     let sub = a.sub_limbwise_small_total(b);
     assert_eq!(sub.limbs_le(), sub_expected_limbs.as_slice());
+
+    let div_expected = if b_oracle == 0 {
+        Integer::from(0)
+    } else {
+        Integer::from(&a_oracle / &b_oracle)
+    };
+    let div_expected_limbs = integer_to_limbs_le(&div_expected);
+    let div = a.div(b);
+    let div_total = a.div_limbwise_small_total(b);
+    assert_eq!(div.limbs_le(), div_expected_limbs.as_slice());
+    assert_eq!(div_total.limbs_le(), div_expected_limbs.as_slice());
+
+    let rem_expected = if b_oracle == 0 {
+        Integer::from(0)
+    } else {
+        Integer::from(&a_oracle % &b_oracle)
+    };
+    let rem_expected_limbs = integer_to_limbs_le(&rem_expected);
+    let rem = a.rem(b);
+    let rem_total = a.rem_limbwise_small_total(b);
+    assert_eq!(rem.limbs_le(), rem_expected_limbs.as_slice());
+    assert_eq!(rem_total.limbs_le(), rem_expected_limbs.as_slice());
+
+    let (div_rem_q, div_rem_r) = a.div_rem(b);
+    let (div_rem_q_total, div_rem_r_total) = a.div_rem_limbwise_small_total(b);
+    assert_eq!(div_rem_q.limbs_le(), div_expected_limbs.as_slice());
+    assert_eq!(div_rem_q_total.limbs_le(), div_expected_limbs.as_slice());
+    assert_eq!(div_rem_r.limbs_le(), rem_expected_limbs.as_slice());
+    assert_eq!(div_rem_r_total.limbs_le(), rem_expected_limbs.as_slice());
 }
 
 #[cfg(all(feature = "rug-oracle", not(verus_keep_ghost)))]
