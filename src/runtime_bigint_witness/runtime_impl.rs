@@ -164,6 +164,12 @@ impl RuntimeBigNatWitness {
         a.sub_limbwise_small_total(b)
     }
 
+    pub fn lemma_model_sub_add_inverse_ge_ops(a: &Self, b: &Self) -> (Self, Self) {
+        let sub_ab = a.sub_limbwise_small_total(b);
+        let add_sub_ab_b = sub_ab.add_limbwise_small_total(b);
+        (sub_ab, add_sub_ab_b)
+    }
+
     pub fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (Self, Self) {
         let div_a = a.div_limbwise_small_total(d);
         let div_b = b.div_limbwise_small_total(d);

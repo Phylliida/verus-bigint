@@ -19,8 +19,8 @@ so callers can use high-level laws without precomputing intermediate results.
 - [x] Add wrapper for subtraction zero characterization:
   - [x] `lemma_model_sub_zero_iff_le_ops(a, b) -> sub_ab`
 
-- [ ] Add wrapper for subtraction/addition inverse under `b <= a`:
-  - [ ] `lemma_model_sub_add_inverse_ge_ops(a, b) -> (sub_ab, add_sub_ab_b)`
+- [x] Add wrapper for subtraction/addition inverse under `b <= a`:
+  - [x] `lemma_model_sub_add_inverse_ge_ops(a, b) -> (sub_ab, add_sub_ab_b)`
 
 ## Division/Remainder Wrappers
 

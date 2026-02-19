@@ -4138,6 +4138,43 @@ impl RuntimeBigNatWitness {
         sub_ab
     }
 
+    /// Operation-level wrapper: computes `sub(a, b)` and `add(sub(a, b), b)` under `b <= a`.
+    pub fn lemma_model_sub_add_inverse_ge_ops(a: &Self, b: &Self) -> (out: (Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            b.model@ <= a.model@,
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.0.model@ == a.model@ - b.model@,
+            out.1.model@ == out.0.model@ + b.model@,
+            out.1.model@ == a.model@,
+    {
+        let sub_ab = a.sub_limbwise_small_total(b);
+        let add_sub_ab_b = sub_ab.add_limbwise_small_total(b);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(b.model@ <= a.model@);
+            assert(Self::limbs_value_spec(b.limbs_le@) <= Self::limbs_value_spec(a.limbs_le@));
+
+            if Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@) {
+                assert(sub_ab.model@ == 0);
+            }
+            if Self::limbs_value_spec(b.limbs_le@) < Self::limbs_value_spec(a.limbs_le@) {
+                assert(sub_ab.model@ == Self::limbs_value_spec(a.limbs_le@) - Self::limbs_value_spec(b.limbs_le@));
+            }
+            assert(add_sub_ab_b.model@ == sub_ab.model@ + Self::limbs_value_spec(b.limbs_le@));
+            Self::lemma_model_sub_add_inverse_ge_from_total_contracts(a, b, &sub_ab, &add_sub_ab_b);
+
+            assert(sub_ab.model@ == a.model@ - b.model@);
+            assert(add_sub_ab_b.model@ == sub_ab.model@ + b.model@);
+            assert(add_sub_ab_b.model@ == a.model@);
+        }
+        (sub_ab, add_sub_ab_b)
+    }
+
     /// Operation-level wrapper: computes both quotients and proves quotient monotonicity.
     pub fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (out: (Self, Self))
         requires
