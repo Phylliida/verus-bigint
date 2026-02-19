@@ -16,7 +16,7 @@
 ## Target Mode Decision
 
 - [x] Choose Target A or Target B
-- [ ] Target A (strict): require Verus build for production, remove non-verified backend (in progress: `target-a-strict` transition guard + smoke gate)
+- [ ] Target A (strict): require Verus build for production, remove non-verified backend (in progress: `target-a-strict` strict-by-default + `runtime-compat` local-test escape hatch)
 - [x] Target B (compat): keep Rust-only build, but runtime is limb-based; keep `rug` only as optional test oracle
 
 ## Phase 1: Representation Unification
@@ -136,3 +136,10 @@
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke` passes (runtime tests 4/4; baseline Verus verify `89 verified, 0 errors`; strict-mode non-Verus compile fails as expected; strict-mode Verus verify `89 verified, 0 errors`).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes (6/6 tests) after strict-transition guard additions.
 - Failed attempt (intentional guardrail test): `./scripts/check.sh --runtime-only --target-a-strict-smoke` fails fast with argument conflict (`--runtime-only` cannot be combined with the strict-mode smoke check).
+- Completed: Switched `Cargo.toml` to strict-by-default mode by enabling `target-a-strict` in default features and adding explicit `runtime-compat` for local non-Verus runtime/testing workflows; `rug-oracle` now implies `runtime-compat`.
+- Completed: Updated the non-Verus strict guard in `src/runtime_bigint_witness/mod.rs` so strict builds fail unless `runtime-compat` is explicitly enabled.
+- Completed: Updated `scripts/check.sh` to run runtime tests under `--features runtime-compat` while preserving strict smoke behavior (default non-Verus cargo build must fail, Verus verification must pass).
+- Completed verification attempt: `./scripts/check.sh --forbid-rug-normal-deps --forbid-trusted-escapes` passes after strict-default transition (runtime tests 4/4 under `runtime-compat`; dependency and trusted-escape gates pass; Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke` passes after strict-default transition (runtime tests 4/4 under `runtime-compat`; baseline and strict-feature Verus both report `89 verified, 0 errors`).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after strict-default transition (6/6 tests).
+- Failed attempt (intentional guardrail test): `cargo test --manifest-path Cargo.toml --no-run` fails in non-Verus mode with the expected strict compile guard (`feature 'target-a-strict' requires a Verus build ... enable feature 'runtime-compat' ...`).
