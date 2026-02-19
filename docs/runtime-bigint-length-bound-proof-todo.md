@@ -10,9 +10,9 @@ Limb-length bounds useful for complexity reasoning and memory-shape invariants.
 
 ## Multiplication
 
-- [ ] Add operation-level wrapper for multiplicative length bound:
-  - [ ] `lemma_model_mul_len_bound_ops(a, b) -> mul_ab`
-  - [ ] prove `len(mul_ab) <= len(a) + len(b)`
+- [x] Add operation-level wrapper for multiplicative length bound:
+  - [x] `lemma_model_mul_len_bound_ops(a, b) -> mul_ab`
+  - [x] prove `len(mul_ab) <= len(a) + len(b)`
 
 ## Division / Remainder
 

@@ -558,6 +558,51 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    proof fn lemma_pow_add(lhs: nat, rhs: nat)
+        ensures
+            Self::pow_base_spec(lhs + rhs) == Self::pow_base_spec(lhs) * Self::pow_base_spec(rhs),
+        decreases rhs
+    {
+        if rhs == 0 {
+            assert(lhs + rhs == lhs);
+            assert(Self::pow_base_spec(0) == 1);
+            assert(Self::pow_base_spec(lhs + rhs) == Self::pow_base_spec(lhs));
+            assert(Self::pow_base_spec(lhs) * Self::pow_base_spec(rhs) == Self::pow_base_spec(lhs));
+        } else {
+            let prev = (rhs - 1) as nat;
+            Self::lemma_pow_add(lhs, prev);
+            assert(lhs + rhs == lhs + prev + 1);
+            Self::lemma_pow_base_succ(lhs + prev);
+            Self::lemma_pow_base_succ(prev);
+            assert(
+                Self::pow_base_spec(lhs + rhs)
+                    == Self::limb_base_spec() * Self::pow_base_spec(lhs + prev)
+            );
+            assert(
+                Self::pow_base_spec(lhs + prev)
+                    == Self::pow_base_spec(lhs) * Self::pow_base_spec(prev)
+            );
+            assert(
+                Self::pow_base_spec(lhs + rhs)
+                    == Self::limb_base_spec()
+                        * (Self::pow_base_spec(lhs) * Self::pow_base_spec(prev))
+            );
+            assert(
+                Self::limb_base_spec() * (Self::pow_base_spec(lhs) * Self::pow_base_spec(prev))
+                    == Self::pow_base_spec(lhs)
+                        * (Self::limb_base_spec() * Self::pow_base_spec(prev))
+            ) by (nonlinear_arith);
+            assert(
+                Self::pow_base_spec(rhs)
+                    == Self::limb_base_spec() * Self::pow_base_spec(prev)
+            );
+            assert(
+                Self::pow_base_spec(lhs + rhs)
+                    == Self::pow_base_spec(lhs) * Self::pow_base_spec(rhs)
+            );
+        }
+    }
+
     proof fn lemma_limbs_value_unfold_nonempty(limbs: Seq<u32>)
         requires
             limbs.len() > 0,
@@ -4128,6 +4173,77 @@ impl RuntimeBigNatWitness {
             Self::lemma_model_mul_monotonic_from_total_contracts(a, b, c, &mul_ac, &mul_bc);
         }
         (mul_ac, mul_bc)
+    }
+
+    /// Operation-level wrapper: computes product and proves canonical length upper bound.
+    pub fn lemma_model_mul_len_bound_ops(a: &Self, b: &Self) -> (out: Self)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.wf_spec(),
+            out.model@ == a.model@ * b.model@,
+            out.limbs_le@.len() <= a.limbs_le@.len() + b.limbs_le@.len(),
+    {
+        let out_mul = a.mul_limbwise_small_total(b);
+        proof {
+            let alen = a.limbs_le@.len();
+            let blen = b.limbs_le@.len();
+            let pa = Self::pow_base_spec(alen);
+            let pb = Self::pow_base_spec(blen);
+
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(out_mul.model@ == a.model@ * b.model@);
+            assert(out_mul.wf_spec());
+            assert(Self::canonical_limbs_spec(out_mul.limbs_le@));
+
+            Self::lemma_limbs_value_lt_pow_len(a.limbs_le@);
+            Self::lemma_limbs_value_lt_pow_len(b.limbs_le@);
+            assert(a.model@ < pa);
+            assert(b.model@ < pb);
+            Self::lemma_pow_ge_one(alen);
+            Self::lemma_pow_ge_one(blen);
+            assert(1 <= pa);
+            assert(1 <= pb);
+            assert(a.model@ <= pa - 1);
+            assert(b.model@ <= pb - 1);
+            assert(0 <= pa - 1);
+            assert(0 <= pb - 1);
+            let d1 = (pa - 1) - a.model@;
+            assert(pa - 1 == a.model@ + d1);
+            assert((a.model@ + d1) * b.model@ == a.model@ * b.model@ + d1 * b.model@)
+                by (nonlinear_arith);
+            assert((pa - 1) * b.model@ == (a.model@ + d1) * b.model@);
+            assert((pa - 1) * b.model@ == a.model@ * b.model@ + d1 * b.model@);
+            assert(0 <= d1 * b.model@);
+            assert(a.model@ * b.model@ <= (pa - 1) * b.model@);
+            let d2 = (pb - 1) - b.model@;
+            assert(pb - 1 == b.model@ + d2);
+            assert((pa - 1) * (b.model@ + d2) == (pa - 1) * b.model@ + (pa - 1) * d2)
+                by (nonlinear_arith);
+            assert((pa - 1) * (pb - 1) == (pa - 1) * (b.model@ + d2));
+            assert((pa - 1) * (pb - 1) == (pa - 1) * b.model@ + (pa - 1) * d2);
+            assert(0 <= (pa - 1) * d2);
+            assert((pa - 1) * b.model@ <= (pa - 1) * (pb - 1));
+            assert(out_mul.model@ <= (pa - 1) * (pb - 1));
+            assert(pa == (pa - 1) + 1);
+            assert(pb == (pb - 1) + 1);
+            assert(
+                pa * pb
+                    == (pa - 1) * (pb - 1) + (pa - 1) + (pb - 1) + 1
+            ) by (nonlinear_arith);
+            assert(0 <= (pa - 1) + (pb - 1) + 1);
+            assert((pa - 1) * (pb - 1) < pa * pb);
+            assert(out_mul.model@ < pa * pb);
+
+            Self::lemma_pow_add(alen, blen);
+            assert(Self::pow_base_spec(alen + blen) == pa * pb);
+            assert(out_mul.model@ < Self::pow_base_spec(alen + blen));
+            Self::lemma_len_bound_from_value_upper_pow(out_mul.limbs_le@, alen + blen);
+            assert(out_mul.limbs_le@.len() <= alen + blen);
+        }
+        out_mul
     }
 
     /// Operation-level wrapper: computes compare output and proves `cmp <= 0 <==> a <= b`.

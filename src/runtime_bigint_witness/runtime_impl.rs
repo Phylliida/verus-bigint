@@ -152,6 +152,10 @@ impl RuntimeBigNatWitness {
         (mul_ac, mul_bc)
     }
 
+    pub fn lemma_model_mul_len_bound_ops(a: &Self, b: &Self) -> Self {
+        a.mul_limbwise_small_total(b)
+    }
+
     pub fn lemma_cmp_le_zero_iff_le_ops(a: &Self, b: &Self) -> i8 {
         a.cmp_limbwise_small_total(b)
     }
