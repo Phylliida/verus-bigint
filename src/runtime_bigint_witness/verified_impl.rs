@@ -3335,6 +3335,78 @@ impl RuntimeBigNatWitness {
         assert(a_val == b_val);
     }
 
+    pub proof fn lemma_model_div_monotonic_pos_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        d: &Self,
+        div_a: &Self,
+        div_b: &Self,
+    )
+        requires
+            Self::limbs_value_spec(d.limbs_le@) > 0,
+            Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@),
+            div_a.model@ * Self::limbs_value_spec(d.limbs_le@) <= Self::limbs_value_spec(a.limbs_le@),
+            Self::limbs_value_spec(b.limbs_le@) < (div_b.model@ + 1) * Self::limbs_value_spec(d.limbs_le@),
+        ensures
+            div_a.model@ <= div_b.model@,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        let d_val = Self::limbs_value_spec(d.limbs_le@);
+        let qa = div_a.model@;
+        let qb = div_b.model@;
+
+        if qb < qa {
+            assert(qb + 1 <= qa);
+            assert(d_val > 0);
+            let t = qa - (qb + 1);
+            assert(qa == qb + 1 + t);
+            assert(qa * d_val == (qb + 1 + t) * d_val);
+            assert((qb + 1 + t) * d_val == (qb + 1) * d_val + t * d_val) by (nonlinear_arith);
+            assert(0 <= t * d_val);
+            assert((qb + 1) * d_val <= (qb + 1) * d_val + t * d_val);
+            assert((qb + 1) * d_val <= qa * d_val);
+            assert(qa * d_val <= a_val);
+            assert(a_val <= b_val);
+            assert((qb + 1) * d_val <= b_val);
+            assert(b_val < (qb + 1) * d_val);
+            assert(false);
+        }
+
+        assert(!(qb < qa));
+        let qai = qa as int;
+        let qbi = qb as int;
+        assert(!(qbi < qai));
+        assert(qai <= qbi);
+        assert(qa <= qb);
+    }
+
+    pub proof fn lemma_model_rem_upper_bound_pos_from_total_contracts(
+        a: &Self,
+        d: &Self,
+        rem_a: &Self,
+    )
+        requires
+            Self::limbs_value_spec(d.limbs_le@) > 0,
+            rem_a.model@ == Self::limbs_value_spec(a.limbs_le@) % Self::limbs_value_spec(d.limbs_le@),
+        ensures
+            rem_a.model@ < Self::limbs_value_spec(d.limbs_le@),
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let d_val = Self::limbs_value_spec(d.limbs_le@);
+        let ai = a_val as int;
+        let di = d_val as int;
+
+        assert(di > 0);
+        lemma_mod_pos_bound(ai, di);
+        assert((a_val % d_val) as int == ai % di);
+        assert(((a_val % d_val) as int) < di);
+        assert(((a_val % d_val) as int) < d_val as int);
+        assert(a_val % d_val < d_val);
+        assert(rem_a.model@ == a_val % d_val);
+        assert(rem_a.model@ < d_val);
+    }
+
     pub proof fn lemma_model_add_commutative_from_total_contracts(
         a: &Self,
         b: &Self,

@@ -39,8 +39,8 @@ Additional formal properties worth proving after `runtime-bigint-next-proof-todo
 
 ## Div/Rem Order Coherence
 
-- [ ] Prove quotient monotonicity for positive divisors:
-  - [ ] `d > 0 && a <= b ==> div(a, d) <= div(b, d)`
+- [x] Prove quotient monotonicity for positive divisors:
+  - [x] `d > 0 && a <= b ==> div(a, d) <= div(b, d)`
 
-- [ ] Prove reusable remainder upper bound lemma:
-  - [ ] `d > 0 ==> rem(a, d) < d`
+- [x] Prove reusable remainder upper bound lemma:
+  - [x] `d > 0 ==> rem(a, d) < d`
