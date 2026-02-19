@@ -24,6 +24,9 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   `--release` builds.
 - `scripts/check.sh` supports `--min-verified N` so CI can fail fast if Verus
   verification coverage regresses below an expected floor.
+- `scripts/check.sh` also supports `--rug-oracle-tests`, and the CI-equivalent
+  strict gate runs this to enforce differential testing against `rug` on each
+  strict pipeline run.
 - In strict-smoke mode (`--target-a-strict-smoke`), `scripts/check.sh` also
   enforces verified-count parity between baseline Verus verification and
   `--features target-a-strict`, preventing feature-gated proof-coverage drift.

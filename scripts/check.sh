@@ -8,13 +8,14 @@ TOOLCHAIN="${VERUS_TOOLCHAIN:-1.93.0-x86_64-unknown-linux-gnu}"
 
 usage() {
   cat <<'USAGE'
-usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-normal-deps] [--forbid-trusted-escapes] [--target-a-strict-smoke] [--min-verified N] [--offline]
+usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-normal-deps] [--forbid-trusted-escapes] [--rug-oracle-tests] [--target-a-strict-smoke] [--min-verified N] [--offline]
 
 options:
   --runtime-only            run only cargo runtime tests; skip Verus verification
   --require-verus           fail instead of skipping when Verus verification cannot run
   --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
   --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals, `#[verifier::truncate]`, or `#[verifier::exec_allows_no_decreases_clause]`)
+  --rug-oracle-tests        run extra differential tests (`cargo test --features rug-oracle`)
   --target-a-strict-smoke   verify strict-mode guards (default non-Verus build fails; non-Verus `--release --features runtime-compat` fails; Verus verify with `target-a-strict` passes and preserves verified-count parity)
   --min-verified N          fail if any Verus run reports fewer than N verified items
   --offline                 run cargo commands in offline mode (`cargo --offline`)
@@ -26,6 +27,7 @@ RUNTIME_ONLY=0
 REQUIRE_VERUS=0
 FORBID_RUG_NORMAL_DEPS=0
 FORBID_TRUSTED_ESCAPES=0
+RUG_ORACLE_TESTS=0
 TARGET_A_STRICT_SMOKE=0
 OFFLINE=0
 MIN_VERIFIED=""
@@ -43,6 +45,9 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --forbid-trusted-escapes)
       FORBID_TRUSTED_ESCAPES=1
+      ;;
+    --rug-oracle-tests)
+      RUG_ORACLE_TESTS=1
       ;;
     --target-a-strict-smoke)
       TARGET_A_STRICT_SMOKE=1
@@ -304,6 +309,7 @@ check_ci_strict_gate_alignment() {
     "--require-verus"
     "--forbid-rug-normal-deps"
     "--forbid-trusted-escapes"
+    "--rug-oracle-tests"
     "--target-a-strict-smoke"
     "--min-verified"
   )
@@ -682,6 +688,11 @@ check_runtime_big_nat_field_privacy
 
 echo "[check] Running cargo tests (runtime-compat)"
 "${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --features runtime-compat
+
+if [[ "$RUG_ORACLE_TESTS" == "1" ]]; then
+  echo "[check] Running cargo tests (rug-oracle)"
+  "${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --features rug-oracle
+fi
 
 if [[ "$FORBID_RUG_NORMAL_DEPS" == "1" ]]; then
   echo "[check] Verifying normal dependency graph excludes rug"

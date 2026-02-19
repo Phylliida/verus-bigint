@@ -45,4 +45,4 @@ jobs:
           VERUS_ROOT: ${{ github.workspace }}/verus
         run: |
           set -euo pipefail
-          ./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke --min-verified 89
+          ./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89

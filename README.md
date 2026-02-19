@@ -20,12 +20,12 @@ This crate currently mirrors the bigint witness implementation from VerusCAD.
   - `./scripts/check.sh`
 - Run runtime tests only:
   - `./scripts/check.sh --runtime-only`
-- Run strict checks (fail if Verus tools are unavailable, fail on `rug` or trusted-escape patterns in non-test `src/` files including `#[verifier::exec_allows_no_decreases_clause]`, and gate against verification-count regressions):
-  - `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --min-verified 89`
+- Run strict checks (fail if Verus tools are unavailable, fail on `rug` or trusted-escape patterns in non-test `src/` files including `#[verifier::exec_allows_no_decreases_clause]`, run `rug` differential tests, and gate against verification-count regressions):
+  - `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --min-verified 89`
 - Smoke-check strict guards (default non-Verus Rust build must fail, non-Verus `--release --features runtime-compat` must fail, and `target-a-strict` must verify under Verus with the same verified-item count as baseline):
   - `./scripts/check.sh --target-a-strict-smoke --forbid-rug-normal-deps --forbid-trusted-escapes`
 - Run the CI-equivalent strict gate locally (kept aligned with `.github/workflows/check.yml` by `check.sh`, including strict command flags and Verus toolchain pin):
-  - `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke --min-verified 89`
+  - `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89`
   - This also preflights workflow structure so CI keeps the required end-to-end wiring (`Build Verus tools` before strict checks, expected working directories, and `VERUS_ROOT` env wiring) and enforces fail-fast step behavior (`set -euo pipefail`, no `continue-on-error: true`, no `|| true` masking).
 - Run checks in offline mode where possible:
   - `./scripts/check.sh --offline`
