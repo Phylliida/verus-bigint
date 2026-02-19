@@ -44,6 +44,10 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
 - The CI workflow preflight also enforces fail-fast behavior in those critical
   steps (`set -euo pipefail`, no `continue-on-error: true`, and no `|| true`
   failure masking in step commands).
+- `scripts/check.sh` also enforces CI workflow permission/token hardening:
+  top-level `permissions` must stay least-privilege (`contents: read`, no
+  `write`/`read-all`/`write-all` grants), and both checkout steps must keep
+  `persist-credentials: false`.
 
 ## Irreducible Trusted Assumptions
 
