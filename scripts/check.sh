@@ -64,23 +64,74 @@ if [[ "$OFFLINE" == "1" ]]; then
   CARGO_CMD+=(--offline)
 fi
 
+normalize_public_return_for_parity() {
+  local ret="$1"
+  ret="$(printf '%s' "$ret" | tr -d '[:space:]')"
+
+  # Verus exec fns often use named return syntax like `(out: T)`.
+  if [[ "$ret" =~ ^\([A-Za-z_][A-Za-z0-9_]*:(.*)\)$ ]]; then
+    ret="${BASH_REMATCH[1]}"
+  fi
+
+  printf '%s' "$ret"
+}
+
+collect_public_fn_signatures() {
+  local impl_file="$1"
+  local method=""
+  local args=""
+  local ret=""
+  local args_norm=""
+  local ret_norm=""
+
+  while IFS='|' read -r method args ret; do
+    [[ -z "$method" ]] && continue
+    args_norm="$(printf '%s' "$args" | tr -d '[:space:]')"
+    ret_norm="$(normalize_public_return_for_parity "$ret")"
+    printf '%s\t%s->%s\n' "$method" "$args_norm" "$ret_norm"
+  done < <(
+    rg -No '^\s*pub fn\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*->\s*([^{]+)' -r '$1|$2|$3' "$impl_file" || true
+  )
+}
+
 check_runtime_verified_api_parity() {
   local runtime_impl="$ROOT_DIR/src/runtime_bigint_witness/runtime_impl.rs"
   local verified_impl="$ROOT_DIR/src/runtime_bigint_witness/verified_impl.rs"
+  local -a runtime_signatures=()
+  local -a verified_signatures=()
   local -a runtime_methods=()
   local -a verified_methods=()
+  local -A runtime_sig_by_method=()
+  local -A verified_sig_by_method=()
+  local method=""
+  local sig=""
   local missing_in_verified=""
   local missing_in_runtime=""
+  local signature_mismatches=""
 
-  mapfile -t runtime_methods < <(rg -No '^\s*pub fn\s+([A-Za-z0-9_]+)\s*\(' -r '$1' "$runtime_impl" | LC_ALL=C sort -u)
-  mapfile -t verified_methods < <(rg -No '^\s*pub fn\s+([A-Za-z0-9_]+)\s*\(' -r '$1' "$verified_impl" | LC_ALL=C sort -u)
+  mapfile -t runtime_signatures < <(collect_public_fn_signatures "$runtime_impl" | LC_ALL=C sort -u)
+  mapfile -t verified_signatures < <(collect_public_fn_signatures "$verified_impl" | LC_ALL=C sort -u)
 
-  if [[ "${#runtime_methods[@]}" -eq 0 || "${#verified_methods[@]}" -eq 0 ]]; then
-    echo "error: failed to discover public methods in runtime/verified bigint implementations"
+  if [[ "${#runtime_signatures[@]}" -eq 0 || "${#verified_signatures[@]}" -eq 0 ]]; then
+    echo "error: failed to discover public method signatures in runtime/verified bigint implementations"
     echo "runtime file: $runtime_impl"
     echo "verified file: $verified_impl"
     exit 1
   fi
+
+  for sig in "${runtime_signatures[@]}"; do
+    method="${sig%%$'\t'*}"
+    runtime_methods+=("$method")
+    runtime_sig_by_method["$method"]="${sig#*$'\t'}"
+  done
+  for sig in "${verified_signatures[@]}"; do
+    method="${sig%%$'\t'*}"
+    verified_methods+=("$method")
+    verified_sig_by_method["$method"]="${sig#*$'\t'}"
+  done
+
+  mapfile -t runtime_methods < <(printf '%s\n' "${runtime_methods[@]}" | LC_ALL=C sort -u)
+  mapfile -t verified_methods < <(printf '%s\n' "${verified_methods[@]}" | LC_ALL=C sort -u)
 
   missing_in_verified="$(comm -23 <(printf '%s\n' "${runtime_methods[@]}") <(printf '%s\n' "${verified_methods[@]}"))"
   missing_in_runtime="$(comm -13 <(printf '%s\n' "${runtime_methods[@]}") <(printf '%s\n' "${verified_methods[@]}"))"
@@ -95,6 +146,21 @@ check_runtime_verified_api_parity() {
       echo "missing in runtime_impl.rs:"
       printf '%s\n' "$missing_in_runtime"
     fi
+    exit 1
+  fi
+
+  while IFS= read -r method; do
+    [[ -z "$method" ]] && continue
+    if [[ "${runtime_sig_by_method[$method]}" != "${verified_sig_by_method[$method]}" ]]; then
+      signature_mismatches+="$method"$'\n'
+      signature_mismatches+="  runtime:  ${runtime_sig_by_method[$method]}"$'\n'
+      signature_mismatches+="  verified: ${verified_sig_by_method[$method]}"$'\n'
+    fi
+  done < <(printf '%s\n' "${runtime_methods[@]}")
+
+  if [[ -n "$signature_mismatches" ]]; then
+    echo "error: runtime/verified public API signature mismatch detected"
+    printf '%s' "$signature_mismatches"
     exit 1
   fi
 }

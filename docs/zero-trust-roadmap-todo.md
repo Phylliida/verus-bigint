@@ -51,6 +51,7 @@
 - [x] Make CI fail if Verus verification fails
 - [x] Make CI fail if `rug` appears in non-test dependency graph
 - [x] Add offline-friendly check mode where practical
+- [x] Harden runtime/verified API drift gate to compare normalized public method signatures (args + return types), not just method names
 
 ## Phase 6: Trusted Surface Reduction
 
@@ -119,3 +120,7 @@
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps` passes after refinement-bridge removal (runtime tests 4/4; Verus reports `89 verified, 0 errors`).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after refinement-bridge removal (6/6 tests).
 - Failed/blocked attempt: tried to run the GitHub Actions workflow directly from this sandbox, but both `act` and `gh` are unavailable in PATH, so CI execution still cannot be validated from this environment.
+- Completed: Hardened `scripts/check.sh` API-drift gating by normalizing and comparing runtime/verified public method signatures (`name(args)->ret`) instead of only method names; Verus named returns like `(out: T)` are now normalized to `T` for comparison.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps` passes after the signature-level API parity gate change (runtime tests 4/4; Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after the signature-level API parity gate change (6/6 tests).
+- Failed attempt (fixed): the first signature extractor used `rg` replacement fields with literal `\t`, which caused false API-mismatch reports; fixed by switching to an explicit `|` delimiter during parsing and normalizing signatures before comparison.
