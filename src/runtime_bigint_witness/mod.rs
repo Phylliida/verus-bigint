@@ -29,7 +29,7 @@ use vstd::prelude::*;
 #[cfg(not(verus_keep_ghost))]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RuntimeBigNatWitness {
-    pub limbs_le: Vec<u32>,
+    limbs_le: Vec<u32>,
 }
 
 #[cfg(verus_keep_ghost)]

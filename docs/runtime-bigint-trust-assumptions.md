@@ -8,6 +8,9 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   `RuntimeBigNatWitness::wf_spec()` in `src/runtime_bigint_witness/verified_impl.rs`.
 - The runtime representation is canonical little-endian limbs (`Vec<u32>` with no
   trailing zero limbs), and both runtime/verified constructors normalize to that form.
+- In non-Verus builds, `RuntimeBigNatWitness` stores limbs in a private field
+  (`src/runtime_bigint_witness/mod.rs`), so external code cannot bypass constructor
+  normalization by creating struct literals with non-canonical limbs.
 - The `RuntimeBigNatWitness` proof-path datatype is declared directly in
   `src/runtime_bigint_witness/mod.rs` under `cfg(verus_keep_ghost)`, so no
   `external_type_specification` bridge is needed.
@@ -19,6 +22,8 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   `--release` builds.
 - `scripts/check.sh` supports `--min-verified N` so CI can fail fast if Verus
   verification coverage regresses below an expected floor.
+- `scripts/check.sh` includes a source gate (`check_runtime_big_nat_field_privacy`)
+  that fails if non-Verus `RuntimeBigNatWitness` field visibility regresses.
 
 ## Irreducible Trusted Assumptions
 
