@@ -594,6 +594,73 @@ check_ci_workflow_end_to_end_structure() {
   fi
 }
 
+check_ci_toolchain_install_wiring() {
+  local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
+  local install_step=""
+  local install_line=""
+  local build_line=""
+  local strict_line=""
+  local component=""
+  local -a required_components=(
+    "rustfmt"
+    "rustc-dev"
+    "llvm-tools"
+  )
+
+  if [[ ! -f "$workflow_file" ]]; then
+    echo "error: workflow file not found: $workflow_file"
+    exit 1
+  fi
+
+  install_line="$(rg -n '^[[:space:]]*- name:[[:space:]]*Install required Rust toolchain[[:space:]]*$' "$workflow_file" | head -n 1 | cut -d: -f1)"
+  build_line="$(rg -n '^[[:space:]]*- name:[[:space:]]*Build Verus tools[[:space:]]*$' "$workflow_file" | head -n 1 | cut -d: -f1)"
+  strict_line="$(rg -n '^[[:space:]]*- name:[[:space:]]*Run strict checks[[:space:]]*$' "$workflow_file" | head -n 1 | cut -d: -f1)"
+  if [[ -z "$install_line" || -z "$build_line" || -z "$strict_line" ]]; then
+    echo "error: required workflow steps missing in $workflow_file"
+    echo "expected steps: 'Install required Rust toolchain', 'Build Verus tools', and 'Run strict checks'"
+    exit 1
+  fi
+  if (( install_line >= build_line || install_line >= strict_line )); then
+    echo "error: workflow step order invalid for 'Install required Rust toolchain'"
+    echo "expected it to run before 'Build Verus tools' and 'Run strict checks'"
+    exit 1
+  fi
+
+  install_step="$(extract_named_workflow_step_block "$workflow_file" "Install required Rust toolchain")"
+  if [[ -z "$install_step" ]]; then
+    echo "error: failed to parse 'Install required Rust toolchain' step block in $workflow_file"
+    exit 1
+  fi
+
+  check_workflow_step_fail_fast "Install required Rust toolchain" "$install_step"
+
+  if ! printf '%s\n' "$install_step" | rg -q "rustup[[:space:]]+toolchain[[:space:]]+install[[:space:]]+$TOOLCHAIN([[:space:]]|$)"; then
+    echo "error: workflow toolchain-install step must install the pinned toolchain '$TOOLCHAIN'"
+    printf '%s\n' "$install_step"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$install_step" | rg -q -- '--profile[[:space:]]+minimal'; then
+    echo "error: workflow toolchain-install step must use '--profile minimal'"
+    printf '%s\n' "$install_step"
+    exit 1
+  fi
+
+  for component in "${required_components[@]}"; do
+    if ! printf '%s\n' "$install_step" | rg -q -- "--component[[:space:]]+$component([[:space:]]|$)"; then
+      echo "error: workflow toolchain-install step must include '--component $component'"
+      printf '%s\n' "$install_step"
+      exit 1
+    fi
+  done
+
+  if ! printf '%s\n' "$install_step" | rg -q "rustup[[:space:]]+default[[:space:]]+$TOOLCHAIN([[:space:]]|$)"; then
+    echo "error: workflow toolchain-install step must set rustup default to '$TOOLCHAIN'"
+    printf '%s\n' "$install_step"
+    exit 1
+  fi
+}
+
 check_ci_toolchain_alignment() {
   local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
   local workflow_install_toolchain=""
@@ -1007,6 +1074,9 @@ check_runtime_verified_api_parity
 
 echo "[check] Verifying CI toolchain alignment (workflow vs check.sh)"
 check_ci_toolchain_alignment
+
+echo "[check] Verifying CI toolchain-install step wiring"
+check_ci_toolchain_install_wiring
 
 echo "[check] Verifying CI workflow permissions hardening"
 check_ci_workflow_permissions_hardening
