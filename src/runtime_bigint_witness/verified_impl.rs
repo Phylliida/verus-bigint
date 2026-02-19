@@ -2121,114 +2121,114 @@ impl RuntimeBigNatWitness {
     }
 }
 
-impl vstd::std_specs::ops::AddSpecImpl for RuntimeBigNatWitness {
+impl<'a, 'b> vstd::std_specs::ops::AddSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_add_spec() -> bool {
         false
     }
 
-    open spec fn add_req(self, rhs: Self) -> bool {
+    open spec fn add_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
         true
     }
 
-    open spec fn add_spec(self, rhs: Self) -> Self::Output {
-        self
+    open spec fn add_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
+        arbitrary()
     }
 }
 
-impl vstd::std_specs::ops::SubSpecImpl for RuntimeBigNatWitness {
+impl<'a, 'b> vstd::std_specs::ops::SubSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_sub_spec() -> bool {
         false
     }
 
-    open spec fn sub_req(self, rhs: Self) -> bool {
+    open spec fn sub_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
         true
     }
 
-    open spec fn sub_spec(self, rhs: Self) -> Self::Output {
-        self
+    open spec fn sub_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
+        arbitrary()
     }
 }
 
-impl vstd::std_specs::ops::MulSpecImpl for RuntimeBigNatWitness {
+impl<'a, 'b> vstd::std_specs::ops::MulSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_mul_spec() -> bool {
         false
     }
 
-    open spec fn mul_req(self, rhs: Self) -> bool {
+    open spec fn mul_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
         true
     }
 
-    open spec fn mul_spec(self, rhs: Self) -> Self::Output {
-        self
+    open spec fn mul_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
+        arbitrary()
     }
 }
 
-impl vstd::std_specs::ops::DivSpecImpl for RuntimeBigNatWitness {
+impl<'a, 'b> vstd::std_specs::ops::DivSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_div_spec() -> bool {
         false
     }
 
-    open spec fn div_req(self, rhs: Self) -> bool {
+    open spec fn div_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
         true
     }
 
-    open spec fn div_spec(self, rhs: Self) -> Self::Output {
-        self
+    open spec fn div_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
+        arbitrary()
     }
 }
 
-impl vstd::std_specs::ops::RemSpecImpl for RuntimeBigNatWitness {
+impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_rem_spec() -> bool {
         false
     }
 
-    open spec fn rem_req(self, rhs: Self) -> bool {
+    open spec fn rem_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
         true
     }
 
-    open spec fn rem_spec(self, rhs: Self) -> Self::Output {
-        self
+    open spec fn rem_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
+        arbitrary()
     }
 }
 
-impl core::ops::Add<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+impl<'a, 'b> core::ops::Add<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     type Output = RuntimeBigNatWitness;
 
-    fn add(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
-        self.add_limbwise_small_total(&rhs)
+    fn add(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
+        self.add_limbwise_small_total(rhs)
     }
 }
 
-impl core::ops::Sub<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+impl<'a, 'b> core::ops::Sub<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     type Output = RuntimeBigNatWitness;
 
-    fn sub(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
-        self.sub_limbwise_small_total(&rhs)
+    fn sub(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
+        self.sub_limbwise_small_total(rhs)
     }
 }
 
-impl core::ops::Mul<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+impl<'a, 'b> core::ops::Mul<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     type Output = RuntimeBigNatWitness;
 
-    fn mul(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
-        self.mul_limbwise_small_total(&rhs)
+    fn mul(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
+        self.mul_limbwise_small_total(rhs)
     }
 }
 
-impl core::ops::Div<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+impl<'a, 'b> core::ops::Div<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     type Output = RuntimeBigNatWitness;
 
-    fn div(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
+    fn div(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
         let lhs_wf = self.copy_small_total();
         let rhs_wf = rhs.copy_small_total();
         lhs_wf.div_limbwise_small_total(&rhs_wf)
     }
 }
 
-impl core::ops::Rem<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+impl<'a, 'b> core::ops::Rem<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     type Output = RuntimeBigNatWitness;
 
-    fn rem(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
+    fn rem(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
         let lhs_wf = self.copy_small_total();
         let rhs_wf = rhs.copy_small_total();
         lhs_wf.rem_limbwise_small_total(&rhs_wf)
