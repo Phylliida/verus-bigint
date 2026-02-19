@@ -12,9 +12,9 @@ Follow-on properties beyond the completed div/rem checklist.
 - [x] Prove compare antisymmetry:
   - [x] `cmp(a, b) == -cmp(b, a)` (for all `a`, `b`)
 
-- [ ] Prove compare transitivity:
-  - [ ] `cmp(a, b) <= 0 && cmp(b, c) <= 0 ==> cmp(a, c) <= 0`
-  - [ ] `cmp(a, b) == 0 && cmp(b, c) == 0 ==> cmp(a, c) == 0`
+- [x] Prove compare transitivity:
+  - [x] `cmp(a, b) <= 0 && cmp(b, c) <= 0 ==> cmp(a, c) <= 0`
+  - [x] `cmp(a, b) == 0 && cmp(b, c) == 0 ==> cmp(a, c) == 0`
 
 ## Arithmetic Coherence
 
