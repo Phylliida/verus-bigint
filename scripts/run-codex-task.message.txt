@@ -1,1 +1,1 @@
-Added strict-smoke verified-count parity gating in check.sh (baseline vs target-a-strict), updated roadmap/trust docs, revalidated strict and rug-oracle checks, and 2 roadmap tasks remain.
+Added a CI workflow-structure drift gate in scripts/check.sh (step order, working directories, Verus tool build commands, and VERUS_ROOT wiring), updated docs/roadmap, revalidated strict + rug-oracle checks, and 2 roadmap tasks remain.

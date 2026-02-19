@@ -53,6 +53,7 @@
 - [x] Add offline-friendly check mode where practical
 - [x] Harden runtime/verified API drift gate to compare normalized public method signatures (args + return types), not just method names
 - [x] In strict-smoke mode, require baseline and `target-a-strict` Verus runs to report matching verified-item counts
+- [x] Add CI workflow structure preflight so strict checks fail on workflow wiring drift (required step order, working directories, and `VERUS_ROOT` env)
 
 ## Phase 6: Trusted Surface Reduction
 
@@ -179,3 +180,7 @@
 - Completed: Updated strict-check documentation in `README.md` and trust-boundary notes in `docs/runtime-bigint-trust-assumptions.md` to reflect the new strict-smoke verified-count parity gate.
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke --min-verified 89` passes after strict-smoke parity hardening (runtime tests 4/4; baseline and strict-feature Verus each report `89 verified, 0 errors`; floor gate and parity gate both pass).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after strict-smoke parity hardening (6/6 tests).
+- Completed: Added CI workflow wiring preflight in `scripts/check.sh` (`check_ci_workflow_end_to_end_structure`) that fails when `.github/workflows/check.yml` drifts from required end-to-end strict-check wiring (`Build Verus tools` before strict checks, expected working directories, `./tools/get-z3.sh`, `vargo build --release`, and `VERUS_ROOT` env in strict-check step).
+- Completed: Updated `README.md` and `docs/runtime-bigint-trust-assumptions.md` to document the new workflow-structure preflight gate.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke --min-verified 89` passes after CI-structure preflight hardening (runtime tests 4/4; rug/trusted-escape/source gates pass; baseline + strict-feature Verus each report `89 verified, 0 errors`; strict-smoke verified-count parity passes).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after CI-structure preflight hardening (6/6 tests).
