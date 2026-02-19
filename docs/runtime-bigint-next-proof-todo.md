@@ -18,8 +18,8 @@ Follow-on properties beyond the completed div/rem checklist.
 
 ## Arithmetic Coherence
 
-- [ ] Prove subtraction/addition inverse law:
-  - [ ] `rhs <= self ==> add(sub(self, rhs), rhs) == self` (model-level equality)
+- [x] Prove subtraction/addition inverse law:
+  - [x] `rhs <= self ==> add(sub(self, rhs), rhs) == self` (model-level equality)
 
 - [ ] Prove monotonicity of addition:
   - [ ] `a <= b ==> a + c <= b + c`
