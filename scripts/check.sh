@@ -15,7 +15,7 @@ options:
   --require-verus           fail instead of skipping when Verus verification cannot run
   --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
   --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals, or `#[verifier::truncate]`)
-  --target-a-strict-smoke   verify strict-mode guards (default non-Verus build fails; non-Verus `--release --features runtime-compat` fails; Verus verify with `target-a-strict` passes)
+  --target-a-strict-smoke   verify strict-mode guards (default non-Verus build fails; non-Verus `--release --features runtime-compat` fails; Verus verify with `target-a-strict` passes and preserves verified-count parity)
   --min-verified N          fail if any Verus run reports fewer than N verified items
   --offline                 run cargo commands in offline mode (`cargo --offline`)
   -h, --help                show this help
@@ -29,6 +29,7 @@ FORBID_TRUSTED_ESCAPES=0
 TARGET_A_STRICT_SMOKE=0
 OFFLINE=0
 MIN_VERIFIED=""
+LAST_VERIFIED_COUNT=""
 while [[ "$#" -gt 0 ]]; do
   case "${1:-}" in
     --runtime-only)
@@ -483,9 +484,8 @@ run_cargo_verus_verify() {
   fi
 }
 
-verify_verus_summary_threshold() {
+extract_verus_verified_count() {
   local log_file="$1"
-  local threshold="$2"
   local summary=""
   local verified_count=""
   local error_count=""
@@ -511,6 +511,14 @@ verify_verus_summary_threshold() {
     exit 1
   fi
 
+  printf '%s' "$verified_count"
+}
+
+verify_verus_summary_threshold() {
+  local log_file="$1"
+  local threshold="$2"
+  local verified_count="$3"
+
   if (( verified_count < threshold )); then
     echo "error: Verus verified-count regression: expected at least $threshold, got $verified_count"
     cat "$log_file"
@@ -525,11 +533,6 @@ run_cargo_verus_verify_with_threshold() {
   local verus_log=""
   local verus_status=0
 
-  if [[ -z "$MIN_VERIFIED" ]]; then
-    run_cargo_verus_verify "$feature_flags"
-    return
-  fi
-
   verus_log="$(mktemp)"
   set +e
   run_cargo_verus_verify "$feature_flags" 2>&1 | tee "$verus_log"
@@ -541,7 +544,13 @@ run_cargo_verus_verify_with_threshold() {
     exit "$verus_status"
   fi
 
-  verify_verus_summary_threshold "$verus_log" "$MIN_VERIFIED"
+  LAST_VERIFIED_COUNT="$(extract_verus_verified_count "$verus_log")"
+  echo "[check] Observed Verus verified count: $LAST_VERIFIED_COUNT"
+
+  if [[ -n "$MIN_VERIFIED" ]]; then
+    verify_verus_summary_threshold "$verus_log" "$MIN_VERIFIED" "$LAST_VERIFIED_COUNT"
+  fi
+
   rm -f "$verus_log"
 }
 
@@ -597,6 +606,7 @@ fi
 
 echo "[check] Running cargo verus verify"
 run_cargo_verus_verify_with_threshold ""
+baseline_verified_count="$LAST_VERIFIED_COUNT"
 
 if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
   echo "[check] Verifying target-a-strict rejects non-Verus cargo builds"
@@ -645,4 +655,14 @@ if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
 
   echo "[check] Running cargo verus verify with target-a-strict feature"
   run_cargo_verus_verify_with_threshold "--features target-a-strict"
+  strict_feature_verified_count="$LAST_VERIFIED_COUNT"
+
+  if [[ "$baseline_verified_count" != "$strict_feature_verified_count" ]]; then
+    echo "error: Verus verified-count mismatch between baseline and target-a-strict runs"
+    echo "baseline: $baseline_verified_count"
+    echo "target-a-strict: $strict_feature_verified_count"
+    exit 1
+  fi
+
+  echo "[check] Verus strict-smoke verified-count parity passed ($baseline_verified_count == $strict_feature_verified_count)"
 fi

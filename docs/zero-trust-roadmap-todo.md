@@ -52,6 +52,7 @@
 - [x] Make CI fail if `rug` appears in non-test dependency graph
 - [x] Add offline-friendly check mode where practical
 - [x] Harden runtime/verified API drift gate to compare normalized public method signatures (args + return types), not just method names
+- [x] In strict-smoke mode, require baseline and `target-a-strict` Verus runs to report matching verified-item counts
 
 ## Phase 6: Trusted Surface Reduction
 
@@ -174,3 +175,7 @@
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke --min-verified 89` passes after CI toolchain-alignment hardening (runtime tests 4/4; baseline and strict-feature Verus both report `89 verified, 0 errors`; verified-count gate passes).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after the CI toolchain-alignment preflight update (6/6 tests).
 - Failed/blocked attempt: direct CI execution is still not runnable from this sandbox (`gh`/`act` unavailable in PATH), so GitHub-hosted workflow completion cannot be observed here.
+- Completed: Hardened `scripts/check.sh` strict-smoke verification so both baseline and `--features target-a-strict` Verus runs now capture reported verified counts and fail on count mismatch, preventing feature-gated proof-coverage drift.
+- Completed: Updated strict-check documentation in `README.md` and trust-boundary notes in `docs/runtime-bigint-trust-assumptions.md` to reflect the new strict-smoke verified-count parity gate.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke --min-verified 89` passes after strict-smoke parity hardening (runtime tests 4/4; baseline and strict-feature Verus each report `89 verified, 0 errors`; floor gate and parity gate both pass).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after strict-smoke parity hardening (6/6 tests).
