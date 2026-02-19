@@ -9,49 +9,29 @@ CHECKOUT_ACTION_REF="${CHECKOUT_ACTION_REF:-actions/checkout@v4.2.2}"
 
 usage() {
   cat <<'USAGE'
-usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-normal-deps] [--forbid-trusted-escapes] [--rug-oracle-tests] [--target-a-strict-smoke] [--min-verified N] [--offline]
+usage: ./scripts/check.sh [--require-verus] [--forbid-trusted-escapes] [--min-verified N] [--offline]
 
 options:
-  --runtime-only            run only cargo runtime tests; skip Verus verification
   --require-verus           fail instead of skipping when Verus verification cannot run
-  --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
   --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals, `#[verifier::truncate]`, `#[verifier::exec_allows_no_decreases_clause]`, or `unsafe`)
-  --rug-oracle-tests        run extra differential tests (`cargo test --features rug-oracle`)
-  --target-a-strict-smoke   verify strict-mode guards (default non-Verus build fails; non-Verus `--release --features runtime-compat` fails; Verus verify with `target-a-strict` passes and preserves verified-count parity)
   --min-verified N          fail if any Verus run reports fewer than N verified items
   --offline                 run cargo commands in offline mode (`cargo --offline`)
   -h, --help                show this help
 USAGE
 }
 
-RUNTIME_ONLY=0
 REQUIRE_VERUS=0
-FORBID_RUG_NORMAL_DEPS=0
 FORBID_TRUSTED_ESCAPES=0
-RUG_ORACLE_TESTS=0
-TARGET_A_STRICT_SMOKE=0
 OFFLINE=0
 MIN_VERIFIED=""
 LAST_VERIFIED_COUNT=""
 while [[ "$#" -gt 0 ]]; do
   case "${1:-}" in
-    --runtime-only)
-      RUNTIME_ONLY=1
-      ;;
     --require-verus)
       REQUIRE_VERUS=1
       ;;
-    --forbid-rug-normal-deps)
-      FORBID_RUG_NORMAL_DEPS=1
-      ;;
     --forbid-trusted-escapes)
       FORBID_TRUSTED_ESCAPES=1
-      ;;
-    --rug-oracle-tests)
-      RUG_ORACLE_TESTS=1
-      ;;
-    --target-a-strict-smoke)
-      TARGET_A_STRICT_SMOKE=1
       ;;
     --min-verified)
       if [[ "$#" -lt 2 ]]; then
@@ -82,25 +62,6 @@ while [[ "$#" -gt 0 ]]; do
   esac
   shift
 done
-
-if [[ "$RUNTIME_ONLY" == "1" && "$REQUIRE_VERUS" == "1" ]]; then
-  echo "error: --runtime-only and --require-verus cannot be used together"
-  exit 1
-fi
-
-if [[ "$RUNTIME_ONLY" == "1" && "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
-  echo "error: --runtime-only and --target-a-strict-smoke cannot be used together"
-  exit 1
-fi
-
-if [[ "$RUNTIME_ONLY" == "1" && -n "$MIN_VERIFIED" ]]; then
-  echo "error: --runtime-only and --min-verified cannot be used together"
-  exit 1
-fi
-
-if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
-  REQUIRE_VERUS=1
-fi
 
 if [[ "$OFFLINE" == "1" ]]; then
   export CARGO_NET_OFFLINE=true
@@ -133,7 +94,7 @@ normalize_inline_command() {
 extract_ci_check_command_from_workflow() {
   local workflow_file="$1"
   rg -No '\./scripts/check\.sh[^\n]*' "$workflow_file" \
-    | rg -- '--target-a-strict-smoke' \
+    | rg -- '--require-verus' \
     | rg -- '--min-verified' \
     | head -n 1 || true
 }
@@ -141,7 +102,7 @@ extract_ci_check_command_from_workflow() {
 extract_ci_check_command_from_readme() {
   local readme_file="$1"
   rg -No '\./scripts/check\.sh[^\n`]*' "$readme_file" \
-    | rg -- '--target-a-strict-smoke' \
+    | rg -- '--require-verus' \
     | rg -- '--min-verified' \
     | head -n 1 || true
 }
@@ -718,10 +679,7 @@ check_ci_strict_gate_alignment() {
   local readme_min=""
   local -a required_flags=(
     "--require-verus"
-    "--forbid-rug-normal-deps"
     "--forbid-trusted-escapes"
-    "--rug-oracle-tests"
-    "--target-a-strict-smoke"
     "--min-verified"
   )
   local flag=""
@@ -743,7 +701,7 @@ check_ci_strict_gate_alignment() {
   fi
   if [[ -z "$readme_cmd" ]]; then
     echo "error: could not find CI-equivalent check command in $readme_file"
-    echo "expected a README command containing both --target-a-strict-smoke and --min-verified"
+    echo "expected a README command containing both --require-verus and --min-verified"
     exit 1
   fi
 
@@ -778,165 +736,6 @@ check_ci_strict_gate_alignment() {
     echo "error: workflow and README CI-equivalent strict commands drifted"
     echo "workflow: $workflow_norm"
     echo "README:   $readme_norm"
-    exit 1
-  fi
-}
-
-normalize_public_return_for_parity() {
-  local ret="$1"
-  ret="$(printf '%s' "$ret" | tr -d '[:space:]')"
-
-  # Verus exec fns often use named return syntax like `(out: T)`.
-  if [[ "$ret" =~ ^\([A-Za-z_][A-Za-z0-9_]*:(.*)\)$ ]]; then
-    ret="${BASH_REMATCH[1]}"
-  fi
-
-  printf '%s' "$ret"
-}
-
-collect_public_fn_signatures() {
-  local -a impl_files=("$@")
-  local impl_file=""
-  local method=""
-  local args=""
-  local ret=""
-  local args_norm=""
-  local ret_norm=""
-
-  for impl_file in "${impl_files[@]}"; do
-    while IFS='|' read -r method args ret; do
-      [[ -z "$method" ]] && continue
-      args_norm="$(printf '%s' "$args" | tr -d '[:space:]')"
-      ret_norm="$(normalize_public_return_for_parity "$ret")"
-      printf '%s\t%s->%s\n' "$method" "$args_norm" "$ret_norm"
-    done < <(
-      rg -No '^\s*pub fn\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*->\s*([^{]+)' -r '$1|$2|$3' "$impl_file" || true
-    )
-  done
-}
-
-check_runtime_verified_api_parity() {
-  local runtime_impl="$ROOT_DIR/src/runtime_bigint_witness/runtime_impl.rs"
-  local verified_impl="$ROOT_DIR/src/runtime_bigint_witness/verified_impl.rs"
-  local verified_impl_dir="$ROOT_DIR/src/runtime_bigint_witness/verified_impl"
-  local -a verified_impl_files=("$verified_impl")
-  local -a runtime_signatures=()
-  local -a verified_signatures=()
-  local -a runtime_methods=()
-  local -a verified_methods=()
-  local -A runtime_sig_by_method=()
-  local -A verified_sig_by_method=()
-  local method=""
-  local sig=""
-  local missing_in_verified=""
-  local missing_in_runtime=""
-  local signature_mismatches=""
-  local discovered_file=""
-
-  if [[ -d "$verified_impl_dir" ]]; then
-    while IFS= read -r discovered_file; do
-      [[ -z "$discovered_file" ]] && continue
-      verified_impl_files+=("$discovered_file")
-    done < <(rg --files "$verified_impl_dir" -g '*.rs' | LC_ALL=C sort)
-  fi
-
-  mapfile -t runtime_signatures < <(collect_public_fn_signatures "$runtime_impl" | LC_ALL=C sort -u)
-  mapfile -t verified_signatures < <(collect_public_fn_signatures "${verified_impl_files[@]}" | LC_ALL=C sort -u)
-
-  if [[ "${#runtime_signatures[@]}" -eq 0 || "${#verified_signatures[@]}" -eq 0 ]]; then
-    echo "error: failed to discover public method signatures in runtime/verified bigint implementations"
-    echo "runtime file: $runtime_impl"
-    echo "verified files:"
-    printf '  %s\n' "${verified_impl_files[@]}"
-    exit 1
-  fi
-
-  for sig in "${runtime_signatures[@]}"; do
-    method="${sig%%$'\t'*}"
-    runtime_methods+=("$method")
-    runtime_sig_by_method["$method"]="${sig#*$'\t'}"
-  done
-  for sig in "${verified_signatures[@]}"; do
-    method="${sig%%$'\t'*}"
-    verified_methods+=("$method")
-    verified_sig_by_method["$method"]="${sig#*$'\t'}"
-  done
-
-  mapfile -t runtime_methods < <(printf '%s\n' "${runtime_methods[@]}" | LC_ALL=C sort -u)
-  mapfile -t verified_methods < <(printf '%s\n' "${verified_methods[@]}" | LC_ALL=C sort -u)
-
-  missing_in_verified="$(comm -23 <(printf '%s\n' "${runtime_methods[@]}") <(printf '%s\n' "${verified_methods[@]}"))"
-  missing_in_runtime="$(comm -13 <(printf '%s\n' "${runtime_methods[@]}") <(printf '%s\n' "${verified_methods[@]}"))"
-
-  if [[ -n "$missing_in_verified" || -n "$missing_in_runtime" ]]; then
-    echo "error: runtime/verified public API mismatch detected"
-    if [[ -n "$missing_in_verified" ]]; then
-      echo "missing in verified implementation:"
-      printf '%s\n' "$missing_in_verified"
-    fi
-    if [[ -n "$missing_in_runtime" ]]; then
-      echo "missing in runtime_impl.rs:"
-      printf '%s\n' "$missing_in_runtime"
-    fi
-    exit 1
-  fi
-
-  while IFS= read -r method; do
-    [[ -z "$method" ]] && continue
-    if [[ "${runtime_sig_by_method[$method]}" != "${verified_sig_by_method[$method]}" ]]; then
-      signature_mismatches+="$method"$'\n'
-      signature_mismatches+="  runtime:  ${runtime_sig_by_method[$method]}"$'\n'
-      signature_mismatches+="  verified: ${verified_sig_by_method[$method]}"$'\n'
-    fi
-  done < <(printf '%s\n' "${runtime_methods[@]}")
-
-  if [[ -n "$signature_mismatches" ]]; then
-    echo "error: runtime/verified public API signature mismatch detected"
-    printf '%s' "$signature_mismatches"
-    exit 1
-  fi
-}
-
-check_runtime_big_nat_field_privacy() {
-  local witness_mod="$ROOT_DIR/src/runtime_bigint_witness/mod.rs"
-  local runtime_block=""
-  local matches=""
-
-  runtime_block="$(sed -n '/#\[cfg(not(verus_keep_ghost))\]/,/#\[cfg(verus_keep_ghost)\]/p' "$witness_mod")"
-  if [[ -z "$runtime_block" ]]; then
-    echo "error: failed to locate non-Verus RuntimeBigNatWitness declaration in $witness_mod"
-    exit 1
-  fi
-
-  matches="$(printf '%s\n' "$runtime_block" | rg -n --color never -e '^\s*pub(\([^)]*\))?\s+limbs_le\s*:' || true)"
-  if [[ -n "$matches" ]]; then
-    echo "error: non-Verus RuntimeBigNatWitness field `limbs_le` must stay private"
-    printf '%s\n' "$matches"
-    exit 1
-  fi
-
-  if ! printf '%s\n' "$runtime_block" | rg -q --color never -e '^\s*limbs_le\s*:\s*Vec<u32>\s*,'; then
-    echo "error: could not find non-Verus RuntimeBigNatWitness `limbs_le: Vec<u32>` field"
-    exit 1
-  fi
-}
-
-check_no_rug_in_non_test_sources() {
-  local matches=""
-  matches="$(
-    rg -n \
-      --color never \
-      --glob '!**/tests.rs' \
-      --glob '!**/test_*.rs' \
-      --glob '!**/tests/**' \
-      -e '\brug::' \
-      -e 'extern\s+crate\s+rug\b' \
-      "$ROOT_DIR/src" || true
-  )"
-
-  if [[ -n "$matches" ]]; then
-    echo "error: non-test source files reference rug"
-    printf '%s\n' "$matches"
     exit 1
   fi
 }
@@ -1099,9 +898,6 @@ run_cargo_verus_verify_with_threshold() {
 
 require_command rg "install ripgrep (binary: rg) before running strict checks"
 
-echo "[check] Verifying runtime/verified API parity"
-check_runtime_verified_api_parity
-
 echo "[check] Verifying CI toolchain alignment (workflow vs check.sh)"
 check_ci_toolchain_alignment
 
@@ -1129,38 +925,9 @@ check_ci_workflow_end_to_end_structure
 echo "[check] Verifying CI strict-gate command alignment (workflow vs README)"
 check_ci_strict_gate_alignment
 
-echo "[check] Verifying RuntimeBigNatWitness field privacy"
-check_runtime_big_nat_field_privacy
-
-echo "[check] Running cargo tests (runtime-compat)"
-"${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --features runtime-compat
-
-if [[ "$RUG_ORACLE_TESTS" == "1" ]]; then
-  echo "[check] Running cargo tests (rug-oracle)"
-  "${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --features rug-oracle
-fi
-
-if [[ "$FORBID_RUG_NORMAL_DEPS" == "1" ]]; then
-  echo "[check] Verifying normal dependency graph excludes rug"
-  dep_tree="$("${CARGO_CMD[@]}" tree -e normal --prefix none --manifest-path "$ROOT_DIR/Cargo.toml")"
-  if printf '%s\n' "$dep_tree" | rg -q '^rug v'; then
-    echo "error: rug appears in the normal dependency graph"
-    printf '%s\n' "$dep_tree" | rg '^rug v'
-    exit 1
-  fi
-
-  echo "[check] Verifying non-test source tree excludes rug"
-  check_no_rug_in_non_test_sources
-fi
-
 if [[ "$FORBID_TRUSTED_ESCAPES" == "1" ]]; then
   echo "[check] Verifying non-test source tree excludes trusted proof escapes"
   check_no_trusted_escapes_in_non_test_sources
-fi
-
-if [[ "$RUNTIME_ONLY" == "1" ]]; then
-  echo "runtime checks complete"
-  exit 0
 fi
 
 if [[ ! -x "$VERUS_SOURCE/target-verus/release/cargo-verus" ]]; then
@@ -1177,63 +944,3 @@ fi
 
 echo "[check] Running cargo verus verify"
 run_cargo_verus_verify_with_threshold ""
-baseline_verified_count="$LAST_VERIFIED_COUNT"
-
-if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
-  echo "[check] Verifying target-a-strict rejects non-Verus cargo builds"
-  strict_smoke_log="$(mktemp)"
-  set +e
-  "${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --no-run >"$strict_smoke_log" 2>&1
-  strict_smoke_status="$?"
-  set -e
-
-  if [[ "$strict_smoke_status" == "0" ]]; then
-    echo "error: expected non-Verus cargo build (default strict mode) to fail, but it succeeded"
-    cat "$strict_smoke_log"
-    rm -f "$strict_smoke_log"
-    exit 1
-  fi
-
-  if ! rg -q 'feature `target-a-strict` requires a Verus build' "$strict_smoke_log"; then
-    echo "error: strict-mode smoke failure did not match the expected compile guard"
-    cat "$strict_smoke_log"
-    rm -f "$strict_smoke_log"
-    exit 1
-  fi
-  rm -f "$strict_smoke_log"
-
-  echo "[check] Verifying runtime-compat rejects non-Verus release builds"
-  runtime_compat_release_log="$(mktemp)"
-  set +e
-  "${CARGO_CMD[@]}" build --manifest-path "$ROOT_DIR/Cargo.toml" --release --features runtime-compat >"$runtime_compat_release_log" 2>&1
-  runtime_compat_release_status="$?"
-  set -e
-
-  if [[ "$runtime_compat_release_status" == "0" ]]; then
-    echo "error: expected non-Verus release build with runtime-compat to fail, but it succeeded"
-    cat "$runtime_compat_release_log"
-    rm -f "$runtime_compat_release_log"
-    exit 1
-  fi
-
-  if ! rg -q 'feature `runtime-compat` is debug/test-only in non-Verus builds' "$runtime_compat_release_log"; then
-    echo "error: runtime-compat release guard failure did not match the expected compile guard"
-    cat "$runtime_compat_release_log"
-    rm -f "$runtime_compat_release_log"
-    exit 1
-  fi
-  rm -f "$runtime_compat_release_log"
-
-  echo "[check] Running cargo verus verify with target-a-strict feature"
-  run_cargo_verus_verify_with_threshold "--features target-a-strict"
-  strict_feature_verified_count="$LAST_VERIFIED_COUNT"
-
-  if [[ "$baseline_verified_count" != "$strict_feature_verified_count" ]]; then
-    echo "error: Verus verified-count mismatch between baseline and target-a-strict runs"
-    echo "baseline: $baseline_verified_count"
-    echo "target-a-strict: $strict_feature_verified_count"
-    exit 1
-  fi
-
-  echo "[check] Verus strict-smoke verified-count parity passed ($baseline_verified_count == $strict_feature_verified_count)"
-fi

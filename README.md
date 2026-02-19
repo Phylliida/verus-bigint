@@ -5,14 +5,70 @@ Formally verified arbitrary-size integer witness code extracted from VerusCAD.
 ## Contents
 
 - `RuntimeBigNatWitness` exported from `src/runtime_bigint_witness/mod.rs`
-- In non-Verus builds, `RuntimeBigNatWitness` runtime storage is encapsulated (private `limbs_le` field); use constructors + `limbs_le()` accessor
-- Runtime execution implementation in `src/runtime_bigint_witness/runtime_impl.rs`
 - Verified/spec-heavy implementation in `src/runtime_bigint_witness/verified_impl.rs`
-- Runtime tests in `src/runtime_bigint_witness/tests.rs`
 - Verus-path witness datatype declared directly in `src/runtime_bigint_witness/mod.rs` under `cfg(verus_keep_ghost)` (no external refinement bridge file)
+- Non-Verus builds fail at compile time; there is no runtime fallback backend
 - Trusted-surface notes in `docs/runtime-bigint-trust-assumptions.md`
 
 This crate currently mirrors the bigint witness implementation from VerusCAD.
+
+## Usage In A Rust Library
+
+This crate is verified-only. A plain `cargo build`/`cargo test` in non-Verus mode
+fails by design. Use it from a Verus-verified crate (`cargo verus verify`).
+
+### 1) Add dependency
+
+```toml
+[dependencies]
+verus-bigint = { path = "../verus-bigint" }
+vstd = { path = "../verus/source/vstd" }
+```
+
+### 2) Import and use
+
+```rust
+use vstd::prelude::*;
+use verus_bigint::RuntimeBigNatWitness;
+
+verus! {
+pub fn bigint_example() -> (out: (RuntimeBigNatWitness, RuntimeBigNatWitness, RuntimeBigNatWitness, RuntimeBigNatWitness, i8, bool))
+{
+    let a = RuntimeBigNatWitness::from_u64(7);
+    let b = RuntimeBigNatWitness::from_u64(9);
+
+    let sum = a.add(&b);                     // 16
+    let product = a.mul(&b);                 // 63
+    let quotient = product.div(&b);          // 7
+    let remainder = product.rem(&b);         // 0
+    let ordering = a.cmp_limbwise_small_total(&b); // -1, 0, or 1
+    let remainder_is_zero = remainder.is_zero();
+
+    (sum, product, quotient, remainder, ordering, remainder_is_zero)
+}
+}
+```
+
+### 3) Inspect limbs
+
+```rust
+use vstd::prelude::*;
+use verus_bigint::RuntimeBigNatWitness;
+
+verus! {
+pub fn limbs_example() -> (out: &[u32])
+{
+    let x = RuntimeBigNatWitness::from_two_limbs(5, 3);
+    x.limbs_le() // little-endian limbs: [5, 3]
+}
+}
+```
+
+### 4) Verify
+
+```bash
+cargo verus verify
+```
 
 ## Proof Coverage Map
 
@@ -71,16 +127,12 @@ Notation used below: `B = 2^32`, `V(xs) = limbs_value_spec(xs)`, `|xs| = xs.len(
   `returns n with zero suffix [n..) and n=0 or limbs[n-1]!=0` [`trimmed_len_exec`](src/runtime_bigint_witness/verified_impl.rs#L792); `canonical trim with V(out)=V(in)` [`trim_trailing_zero_limbs`](src/runtime_bigint_witness/verified_impl.rs#L818); `multiply by base: out=self*B` [`shift_base_once_total`](src/runtime_bigint_witness/verified_impl.rs#L872); `multiply by one limb: out=self*rhs_limb` [`mul_by_u32_total`](src/runtime_bigint_witness/verified_impl.rs#L966).
 ## Checking
 
-- Run all checks (runtime tests + Verus verification when local Verus tools are available):
+- Run all checks:
   - `./scripts/check.sh`
-- Run runtime tests only:
-  - `./scripts/check.sh --runtime-only`
-- Run strict checks (fail if Verus tools are unavailable, fail on `rug` or trusted-escape patterns in non-test `src/` files including `#[verifier::exec_allows_no_decreases_clause]` and `unsafe`, run `rug` differential tests, and gate against verification-count regressions):
-  - `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --min-verified 89`
-- Smoke-check strict guards (default non-Verus Rust build must fail, non-Verus `--release --features runtime-compat` must fail, and `target-a-strict` must verify under Verus with the same verified-item count as baseline):
-  - `./scripts/check.sh --target-a-strict-smoke --forbid-rug-normal-deps --forbid-trusted-escapes`
+- Run strict checks (fail if Verus tools are unavailable, fail on trusted-escape patterns in non-test `src/` files including `#[verifier::exec_allows_no_decreases_clause]` and `unsafe`, and gate against verification-count regressions):
+  - `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 188`
 - Run the CI-equivalent strict gate locally (kept aligned with `.github/workflows/check.yml` by `check.sh`, including strict command flags and Verus toolchain pin):
-  - `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89`
+  - `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 188`
   - It also preflights CI trigger coverage so strict checks remain wired to both `pull_request` and `push` on `main`, and rejects trigger filters (`paths*`, `branches-ignore`) that could silently skip enforcement.
   - It also preflights the CI `verify` job execution contract (no job-level `if:` gating, no job-level `continue-on-error`, and explicit `timeout-minutes`).
   - It also preflights CI runner posture for `verify`: `runs-on` must stay pinned to `ubuntu-22.04`, with no dynamic runner expressions and no `self-hosted` labels.
@@ -89,17 +141,11 @@ Notation used below: `B = 2^32`, `V(xs) = limbs_value_spec(xs)`, `|xs| = xs.len(
   - It also preflights CI workflow permission hardening (`permissions: contents: read`) and checkout credential hygiene (`persist-credentials: false` on both checkout steps).
 - Run checks in offline mode where possible:
   - `./scripts/check.sh --offline`
-- Run runtime tests directly (outside `check.sh`) in local non-Verus mode:
-  - `cargo test --features runtime-compat`
 
-## Strict Feature
+## Build Mode
 
-- Feature `target-a-strict` is enabled by default.
-- In non-Verus builds it emits a compile error unless `runtime-compat` is enabled
-  explicitly for local runtime/testing workflows.
-- In non-Verus `--release` builds, `runtime-compat` is also rejected to keep the
-  non-verified backend out of production artifacts.
-- In Verus builds (`cfg(verus_keep_ghost)`), verification proceeds normally.
+- The crate now has a single implementation path: verified code under `cfg(verus_keep_ghost)`.
+- Non-Verus builds fail at compile time; use Verus tooling (for example `cargo verus verify`).
 
 ## Roadmaps
 
