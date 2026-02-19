@@ -25,7 +25,7 @@ verus-bigint = { path = "../verus-bigint" }
 vstd = { path = "../verus/source/vstd" }
 ```
 
-### 2) Import and use operators
+### 2) Import and use borrowed operators
 
 ```rust
 use vstd::prelude::*;
@@ -34,14 +34,15 @@ use verus_bigint::RuntimeBigNatWitness;
 verus! {
 pub fn bigint_example() -> (out: (RuntimeBigNatWitness, RuntimeBigNatWitness, RuntimeBigNatWitness, RuntimeBigNatWitness, i8, bool))
 {
-    let sum = RuntimeBigNatWitness::from_u64(7) + RuntimeBigNatWitness::from_u64(9); // 16
-    let product = RuntimeBigNatWitness::from_u64(7) * RuntimeBigNatWitness::from_u64(9); // 63
+    let a = RuntimeBigNatWitness::from_u64(7);
+    let b = RuntimeBigNatWitness::from_u64(9);
+    let sum = &a + &b; // 16
+    let product = &a * &b; // 63
 
-    // Operators consume operands; use copies if you need to reuse values.
     let numerator = RuntimeBigNatWitness::from_u64(63);
     let denominator = RuntimeBigNatWitness::from_u64(9);
-    let quotient = numerator.copy_small_total() / denominator.copy_small_total(); // 7
-    let remainder = numerator % denominator; // 0
+    let quotient = &numerator / &denominator; // 7
+    let remainder = &numerator % &denominator; // 0
 
     let ordering = RuntimeBigNatWitness::from_u64(7)
         .cmp_limbwise_small_total(&RuntimeBigNatWitness::from_u64(9)); // -1, 0, or 1
@@ -53,6 +54,8 @@ pub fn bigint_example() -> (out: (RuntimeBigNatWitness, RuntimeBigNatWitness, Ru
 ```
 
 Notes:
+- Operators are implemented only for borrowed operands (`&lhs op &rhs`).
+- Owned forms like `lhs + rhs` are intentionally unsupported to prevent accidental moves.
 - `-` uses the witness subtraction semantics: it floors at zero (`a - b == 0` when `a <= b`).
 - `/` and `%` use existing witness semantics for divisor zero (`a / 0 == 0`, `a % 0 == 0`).
 
