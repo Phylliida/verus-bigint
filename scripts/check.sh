@@ -13,7 +13,7 @@ usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-norma
 options:
   --runtime-only            run only cargo runtime tests; skip Verus verification
   --require-verus           fail instead of skipping when Verus verification cannot run
-  --forbid-rug-normal-deps  fail if `rug` appears in the normal dependency graph
+  --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
   --offline                 run cargo commands in offline mode (`cargo --offline`)
   -h, --help                show this help
 USAGE
@@ -99,6 +99,26 @@ check_runtime_verified_api_parity() {
   fi
 }
 
+check_no_rug_in_non_test_sources() {
+  local matches=""
+  matches="$(
+    rg -n \
+      --color never \
+      --glob '!**/tests.rs' \
+      --glob '!**/test_*.rs' \
+      --glob '!**/tests/**' \
+      -e '\brug::' \
+      -e 'extern\s+crate\s+rug\b' \
+      "$ROOT_DIR/src" || true
+  )"
+
+  if [[ -n "$matches" ]]; then
+    echo "error: non-test source files reference rug"
+    printf '%s\n' "$matches"
+    exit 1
+  fi
+}
+
 skip_or_fail_verus_unavailable() {
   local reason="$1"
   local hint="$2"
@@ -132,6 +152,9 @@ if [[ "$FORBID_RUG_NORMAL_DEPS" == "1" ]]; then
     printf '%s\n' "$dep_tree" | rg '^rug v'
     exit 1
   fi
+
+  echo "[check] Verifying non-test source tree excludes rug"
+  check_no_rug_in_non_test_sources
 fi
 
 if [[ "$RUNTIME_ONLY" == "1" ]]; then

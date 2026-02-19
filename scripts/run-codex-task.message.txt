@@ -1,1 +1,1 @@
-Added a runtime-versus-verified API drift gate in `scripts/check.sh`, recorded Target B plus strict-mode failed attempts in the zero-trust burndown, and revalidated checks/tests with 4 roadmap tasks remaining.
+Hardened strict zero-trust checks to forbid `rug` in non-test source files, marked the production limb-only exit criterion complete, and revalidated checks/tests with 3 roadmap tasks remaining.
