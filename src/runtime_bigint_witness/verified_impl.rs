@@ -4007,6 +4007,197 @@ impl RuntimeBigNatWitness {
         (mul_ac, mul_bc)
     }
 
+    /// Operation-level wrapper: computes compare output and proves `cmp <= 0 <==> a <= b`.
+    pub fn lemma_cmp_le_zero_iff_le_ops(a: &Self, b: &Self) -> (out: i8)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out == -1 || out == 0 || out == 1,
+            out == -1 ==> a.model@ < b.model@,
+            out == 0 ==> a.model@ == b.model@,
+            out == 1 ==> a.model@ > b.model@,
+            (out <= 0i8) <==> (a.model@ <= b.model@),
+    {
+        let out_cmp = a.cmp_limbwise_small_total(b);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            if out_cmp == -1 {
+                assert(Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@));
+                assert(a.model@ < b.model@);
+            }
+            if out_cmp == 0 {
+                assert(Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@));
+                assert(a.model@ == b.model@);
+            }
+            if out_cmp == 1 {
+                assert(Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(b.limbs_le@));
+                assert(a.model@ > b.model@);
+            }
+            Self::lemma_cmp_le_zero_iff_le_from_total_contracts(a, b, out_cmp);
+            assert((out_cmp <= 0i8) <==> (Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@)));
+            assert((out_cmp <= 0i8) <==> (a.model@ <= b.model@));
+        }
+        out_cmp
+    }
+
+    /// Operation-level wrapper: computes compare output and proves `cmp < 0 <==> a < b`.
+    pub fn lemma_cmp_lt_zero_iff_lt_ops(a: &Self, b: &Self) -> (out: i8)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out == -1 || out == 0 || out == 1,
+            out == -1 ==> a.model@ < b.model@,
+            out == 0 ==> a.model@ == b.model@,
+            out == 1 ==> a.model@ > b.model@,
+            (out < 0i8) <==> (a.model@ < b.model@),
+    {
+        let out_cmp = a.cmp_limbwise_small_total(b);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            if out_cmp == -1 {
+                assert(Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@));
+                assert(a.model@ < b.model@);
+            }
+            if out_cmp == 0 {
+                assert(Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@));
+                assert(a.model@ == b.model@);
+            }
+            if out_cmp == 1 {
+                assert(Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(b.limbs_le@));
+                assert(a.model@ > b.model@);
+            }
+            Self::lemma_cmp_lt_zero_iff_lt_from_total_contracts(a, b, out_cmp);
+            assert((out_cmp < 0i8) <==> (Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@)));
+            assert((out_cmp < 0i8) <==> (a.model@ < b.model@));
+        }
+        out_cmp
+    }
+
+    /// Operation-level wrapper: computes compare output and proves `cmp == 0 <==> a == b`.
+    pub fn lemma_cmp_eq_zero_iff_eq_ops(a: &Self, b: &Self) -> (out: i8)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out == -1 || out == 0 || out == 1,
+            out == -1 ==> a.model@ < b.model@,
+            out == 0 ==> a.model@ == b.model@,
+            out == 1 ==> a.model@ > b.model@,
+            (out == 0i8) <==> (a.model@ == b.model@),
+    {
+        let out_cmp = a.cmp_limbwise_small_total(b);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            if out_cmp == -1 {
+                assert(Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@));
+                assert(a.model@ < b.model@);
+            }
+            if out_cmp == 0 {
+                assert(Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@));
+                assert(a.model@ == b.model@);
+            }
+            if out_cmp == 1 {
+                assert(Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(b.limbs_le@));
+                assert(a.model@ > b.model@);
+            }
+            Self::lemma_cmp_eq_zero_iff_eq_from_total_contracts(a, b, out_cmp);
+            assert((out_cmp == 0i8) <==> (Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@)));
+            assert((out_cmp == 0i8) <==> (a.model@ == b.model@));
+        }
+        out_cmp
+    }
+
+    /// Operation-level wrapper: computes subtraction and proves zero-iff-order characterization.
+    pub fn lemma_model_sub_zero_iff_le_ops(a: &Self, b: &Self) -> (out: Self)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.wf_spec(),
+            (out.model@ == 0) <==> (a.model@ <= b.model@),
+    {
+        let sub_ab = a.sub_limbwise_small_total(b);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            if Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@) {
+                assert(sub_ab.model@ == 0);
+            }
+            if Self::limbs_value_spec(b.limbs_le@) < Self::limbs_value_spec(a.limbs_le@) {
+                assert(sub_ab.model@ == Self::limbs_value_spec(a.limbs_le@) - Self::limbs_value_spec(b.limbs_le@));
+            }
+            Self::lemma_model_sub_zero_iff_le_from_total_contracts(a, b, &sub_ab);
+            assert((sub_ab.model@ == 0) <==> (Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@)));
+            assert((sub_ab.model@ == 0) <==> (a.model@ <= b.model@));
+        }
+        sub_ab
+    }
+
+    /// Operation-level wrapper: computes both quotients and proves quotient monotonicity.
+    pub fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (out: (Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            d.wf_spec(),
+            a.model@ <= b.model@,
+            d.model@ > 0,
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.0.model@ == a.model@ / d.model@,
+            out.1.model@ == b.model@ / d.model@,
+            out.0.model@ <= out.1.model@,
+    {
+        let div_a = a.div_limbwise_small_total(d);
+        let div_b = b.div_limbwise_small_total(d);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(d.model@ == Self::limbs_value_spec(d.limbs_le@));
+            assert(a.model@ <= b.model@);
+            assert(d.model@ > 0);
+            assert(Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@));
+            assert(Self::limbs_value_spec(d.limbs_le@) > 0);
+            assert(div_a.model@ * Self::limbs_value_spec(d.limbs_le@) <= Self::limbs_value_spec(a.limbs_le@));
+            assert(Self::limbs_value_spec(b.limbs_le@) < (div_b.model@ + 1) * Self::limbs_value_spec(d.limbs_le@));
+            Self::lemma_model_div_monotonic_pos_from_total_contracts(a, b, d, &div_a, &div_b);
+            assert(div_a.model@ == a.model@ / d.model@);
+            assert(div_b.model@ == b.model@ / d.model@);
+            assert(div_a.model@ <= div_b.model@);
+        }
+        (div_a, div_b)
+    }
+
+    /// Operation-level wrapper: computes remainder and proves positive-divisor upper bound.
+    pub fn lemma_model_rem_upper_bound_pos_ops(a: &Self, d: &Self) -> (out: Self)
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ > 0,
+        ensures
+            out.wf_spec(),
+            out.model@ == a.model@ % d.model@,
+            out.model@ < d.model@,
+    {
+        let rem_a = a.rem_limbwise_small_total(d);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(d.model@ == Self::limbs_value_spec(d.limbs_le@));
+            assert(d.model@ > 0);
+            assert(Self::limbs_value_spec(d.limbs_le@) > 0);
+            assert(rem_a.model@ == Self::limbs_value_spec(a.limbs_le@) % Self::limbs_value_spec(d.limbs_le@));
+            Self::lemma_model_rem_upper_bound_pos_from_total_contracts(a, d, &rem_a);
+            assert(rem_a.model@ == a.model@ % d.model@);
+            assert(rem_a.model@ < d.model@);
+        }
+        rem_a
+    }
+
     /// Total small-limb subtraction helper used by scalar witness plumbing.
     ///
     /// Computes the exact nonnegative difference when `self >= rhs` using full

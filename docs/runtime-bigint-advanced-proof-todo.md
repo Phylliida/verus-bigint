@@ -47,3 +47,8 @@ Properties that are useful for downstream protocol work and API ergonomics.
         `lemma_model_add_monotonic_ops`,
         `lemma_model_mul_commutative_ops`,
         `lemma_model_mul_monotonic_ops`.
+
+## Next
+
+- Ongoing wrapper expansion is tracked in
+  `docs/runtime-bigint-wrapper-proof-todo.md`.

@@ -148,6 +148,32 @@ impl RuntimeBigNatWitness {
         (mul_ac, mul_bc)
     }
 
+    pub fn lemma_cmp_le_zero_iff_le_ops(a: &Self, b: &Self) -> i8 {
+        a.cmp_limbwise_small_total(b)
+    }
+
+    pub fn lemma_cmp_lt_zero_iff_lt_ops(a: &Self, b: &Self) -> i8 {
+        a.cmp_limbwise_small_total(b)
+    }
+
+    pub fn lemma_cmp_eq_zero_iff_eq_ops(a: &Self, b: &Self) -> i8 {
+        a.cmp_limbwise_small_total(b)
+    }
+
+    pub fn lemma_model_sub_zero_iff_le_ops(a: &Self, b: &Self) -> Self {
+        a.sub_limbwise_small_total(b)
+    }
+
+    pub fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (Self, Self) {
+        let div_a = a.div_limbwise_small_total(d);
+        let div_b = b.div_limbwise_small_total(d);
+        (div_a, div_b)
+    }
+
+    pub fn lemma_model_rem_upper_bound_pos_ops(a: &Self, d: &Self) -> Self {
+        a.rem_limbwise_small_total(d)
+    }
+
     pub fn mul_limbwise_small_total(&self, rhs: &Self) -> Self {
         let mut acc = Self::zero();
         let mut shifted = self.copy_small_total();
