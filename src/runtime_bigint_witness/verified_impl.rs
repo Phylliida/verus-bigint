@@ -2120,4 +2120,118 @@ impl RuntimeBigNatWitness {
         out
     }
 }
+
+impl vstd::std_specs::ops::AddSpecImpl for RuntimeBigNatWitness {
+    open spec fn obeys_add_spec() -> bool {
+        false
+    }
+
+    open spec fn add_req(self, rhs: Self) -> bool {
+        true
+    }
+
+    open spec fn add_spec(self, rhs: Self) -> Self::Output {
+        self
+    }
+}
+
+impl vstd::std_specs::ops::SubSpecImpl for RuntimeBigNatWitness {
+    open spec fn obeys_sub_spec() -> bool {
+        false
+    }
+
+    open spec fn sub_req(self, rhs: Self) -> bool {
+        true
+    }
+
+    open spec fn sub_spec(self, rhs: Self) -> Self::Output {
+        self
+    }
+}
+
+impl vstd::std_specs::ops::MulSpecImpl for RuntimeBigNatWitness {
+    open spec fn obeys_mul_spec() -> bool {
+        false
+    }
+
+    open spec fn mul_req(self, rhs: Self) -> bool {
+        true
+    }
+
+    open spec fn mul_spec(self, rhs: Self) -> Self::Output {
+        self
+    }
+}
+
+impl vstd::std_specs::ops::DivSpecImpl for RuntimeBigNatWitness {
+    open spec fn obeys_div_spec() -> bool {
+        false
+    }
+
+    open spec fn div_req(self, rhs: Self) -> bool {
+        true
+    }
+
+    open spec fn div_spec(self, rhs: Self) -> Self::Output {
+        self
+    }
+}
+
+impl vstd::std_specs::ops::RemSpecImpl for RuntimeBigNatWitness {
+    open spec fn obeys_rem_spec() -> bool {
+        false
+    }
+
+    open spec fn rem_req(self, rhs: Self) -> bool {
+        true
+    }
+
+    open spec fn rem_spec(self, rhs: Self) -> Self::Output {
+        self
+    }
+}
+
+impl core::ops::Add<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+    type Output = RuntimeBigNatWitness;
+
+    fn add(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
+        self.add_limbwise_small_total(&rhs)
+    }
+}
+
+impl core::ops::Sub<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+    type Output = RuntimeBigNatWitness;
+
+    fn sub(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
+        self.sub_limbwise_small_total(&rhs)
+    }
+}
+
+impl core::ops::Mul<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+    type Output = RuntimeBigNatWitness;
+
+    fn mul(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
+        self.mul_limbwise_small_total(&rhs)
+    }
+}
+
+impl core::ops::Div<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+    type Output = RuntimeBigNatWitness;
+
+    fn div(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
+        let lhs_wf = self.copy_small_total();
+        let rhs_wf = rhs.copy_small_total();
+        lhs_wf.div_limbwise_small_total(&rhs_wf)
+    }
+}
+
+impl core::ops::Rem<RuntimeBigNatWitness> for RuntimeBigNatWitness {
+    type Output = RuntimeBigNatWitness;
+
+    fn rem(self, rhs: RuntimeBigNatWitness) -> (out: Self::Output) {
+        let lhs_wf = self.copy_small_total();
+        let rhs_wf = rhs.copy_small_total();
+        lhs_wf.rem_limbwise_small_total(&rhs_wf)
+    }
+}
 }
