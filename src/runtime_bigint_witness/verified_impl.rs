@@ -2873,6 +2873,84 @@ impl RuntimeBigNatWitness {
             0i8
         }
     }
+
+    pub proof fn lemma_cmp_limbwise_small_total_antisymmetric(
+        a: &Self,
+        b: &Self,
+        ab: i8,
+        ba: i8,
+    )
+        requires
+            ab == -1 || ab == 0 || ab == 1,
+            ba == -1 || ba == 0 || ba == 1,
+            ab == -1 ==> Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@),
+            ab == 0 ==> Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@),
+            ab == 1 ==> Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(b.limbs_le@),
+            ba == -1 ==> Self::limbs_value_spec(b.limbs_le@) < Self::limbs_value_spec(a.limbs_le@),
+            ba == 0 ==> Self::limbs_value_spec(b.limbs_le@) == Self::limbs_value_spec(a.limbs_le@),
+            ba == 1 ==> Self::limbs_value_spec(b.limbs_le@) > Self::limbs_value_spec(a.limbs_le@),
+        ensures
+            (ab as int) == -((ba) as int),
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+
+        if ab == -1 {
+            assert(a_val < b_val);
+            assert(!(b_val < a_val));
+            assert(a_val != b_val);
+            assert(ba != -1) by {
+                if ba == -1 {
+                    assert(b_val < a_val);
+                    assert(!(b_val < a_val));
+                }
+            };
+            assert(ba != 0) by {
+                if ba == 0 {
+                    assert(b_val == a_val);
+                    assert(a_val != b_val);
+                }
+            };
+            assert(ba == 1);
+            assert((ab as int) == -((ba) as int));
+        } else if ab == 0 {
+            assert(a_val == b_val);
+            assert(ba != -1) by {
+                if ba == -1 {
+                    assert(b_val < a_val);
+                    assert(!(b_val < a_val));
+                }
+            };
+            assert(ba != 1) by {
+                if ba == 1 {
+                    assert(b_val > a_val);
+                    assert(!(b_val > a_val));
+                }
+            };
+            assert(ba == 0);
+            assert((ab as int) == -((ba) as int));
+        } else {
+            assert(ab == 1);
+            assert(a_val > b_val);
+            assert(!(b_val > a_val));
+            assert(a_val != b_val);
+            assert(ba != 1) by {
+                if ba == 1 {
+                    assert(b_val > a_val);
+                    assert(!(b_val > a_val));
+                }
+            };
+            assert(ba != 0) by {
+                if ba == 0 {
+                    assert(b_val == a_val);
+                    assert(a_val != b_val);
+                }
+            };
+            assert(ba == -1);
+            assert((ab as int) == -((ba) as int));
+        }
+    }
+
     /// Total small-limb subtraction helper used by scalar witness plumbing.
     ///
     /// Computes the exact nonnegative difference when `self >= rhs` using full
