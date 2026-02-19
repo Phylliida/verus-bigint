@@ -1133,6 +1133,87 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    pub fn add(&self, rhs: &Self) -> (out: Self)
+        requires
+            self.wf_spec(),
+            rhs.wf_spec(),
+        ensures
+            out.wf_spec(),
+            out.model@ == self.model@ + rhs.model@,
+    {
+        let out = self.add_limbwise_small_total(rhs);
+        proof {
+            assert(self.model@ == Self::limbs_value_spec(self.limbs_le@));
+            assert(rhs.model@ == Self::limbs_value_spec(rhs.limbs_le@));
+            assert(
+                out.model@
+                    == Self::limbs_value_spec(self.limbs_le@)
+                        + Self::limbs_value_spec(rhs.limbs_le@)
+            );
+            assert(out.model@ == self.model@ + rhs.model@);
+        }
+        out
+    }
+
+    pub fn mul(&self, rhs: &Self) -> (out: Self)
+        requires
+            self.wf_spec(),
+            rhs.wf_spec(),
+        ensures
+            out.wf_spec(),
+            out.model@ == self.model@ * rhs.model@,
+    {
+        let out = self.mul_limbwise_small_total(rhs);
+        proof {
+            assert(self.model@ == Self::limbs_value_spec(self.limbs_le@));
+            assert(rhs.model@ == Self::limbs_value_spec(rhs.limbs_le@));
+            assert(
+                out.model@
+                    == Self::limbs_value_spec(self.limbs_le@)
+                        * Self::limbs_value_spec(rhs.limbs_le@)
+            );
+            assert(out.model@ == self.model@ * rhs.model@);
+        }
+        out
+    }
+
+    pub fn is_zero(&self) -> (out: bool)
+        requires
+            self.wf_spec(),
+        ensures
+            out == (self.model@ == 0),
+    {
+        let out = self.limbs_le.len() == 0;
+        proof {
+            if out {
+                assert(self.limbs_le@.len() == 0);
+                assert(self.model@ == Self::limbs_value_spec(self.limbs_le@));
+                assert(Self::limbs_value_spec(self.limbs_le@) == 0);
+                assert(self.model@ == 0);
+            } else {
+                assert(self.limbs_le@.len() > 0);
+                assert(Self::canonical_limbs_spec(self.limbs_le@));
+                let last = (self.limbs_le@.len() - 1) as nat;
+                assert(self.limbs_le@[last as int] != 0u32);
+                Self::lemma_limbs_value_ge_pow_last_nonzero(self.limbs_le@);
+                Self::lemma_pow_ge_one(last);
+                assert(Self::pow_base_spec(last) <= Self::limbs_value_spec(self.limbs_le@));
+                assert(Self::pow_base_spec(last) >= 1);
+                assert(Self::limbs_value_spec(self.limbs_le@) >= 1);
+                assert(self.model@ == Self::limbs_value_spec(self.limbs_le@));
+                assert(self.model@ != 0);
+            }
+        }
+        out
+    }
+
+    pub fn limbs_le(&self) -> (out: &[u32])
+        ensures
+            out@ == self.limbs_le@,
+    {
+        &self.limbs_le
+    }
+
     /// First constructive limb-wise addition milestone:
     /// supports operands represented by at most one limb each.
     pub fn add_limbwise_small(&self, rhs: &Self) -> (out: Self)

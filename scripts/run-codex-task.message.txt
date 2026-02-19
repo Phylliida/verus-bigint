@@ -1,1 +1,1 @@
-Implemented a gated rug-oracle differential test suite for RuntimeBigNatWitness and updated the zero-trust roadmap burndown with completed checks and a documented compile-fix attempt.
+Added verified API-alignment methods (`add`, `mul`, `is_zero`, `limbs_le`) for `RuntimeBigNatWitness`, validated with `./scripts/check.sh` and oracle tests, and updated the zero-trust burndown; 15 tasks remain.

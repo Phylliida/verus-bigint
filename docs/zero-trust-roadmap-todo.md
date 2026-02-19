@@ -4,7 +4,7 @@
 
 - [ ] Make `verus-bigint` zero-trust for production behavior:
 - [x] No production reliance on `rug::Integer`
-- [ ] Exported runtime operations are implemented by verified limb algorithms
+- [x] Exported runtime operations are implemented by verified limb algorithms
 - [ ] Verification and runtime behavior stay aligned
 
 ## Current Trust Boundaries
@@ -27,11 +27,11 @@
 
 ## Phase 2: Runtime API Alignment
 
-- [ ] Route exported operations through limb algorithms:
+- [x] Route exported operations through limb algorithms:
 - [x] `zero`, `from_u32`, `from_u64`, `from_two_limbs`
 - [x] `add_limbwise_small_total`, `mul_limbwise_small_total`
 - [x] `cmp_limbwise_small_total`, `sub_limbwise_small_total`, `copy_small_total`
-- [ ] Ensure public API semantics match spec/view semantics
+- [x] Ensure public API semantics match spec/view semantics
 
 ## Phase 3: Dependency De-Trusting
 
@@ -88,3 +88,6 @@
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml` passes (4/4 tests).
 - Completed dependency check: `cargo tree -e normal --manifest-path Cargo.toml` still shows no `rug` in the normal dependency graph after the module-structure refactor.
 - Failed attempt (rolled back): removing `src/runtime_bigint_witness_refinement.rs` and its `lib.rs` wiring caused Verus to reject `RuntimeBigNatWitness` as an ignored external type; restored the refinement module to keep verification passing.
+- Completed: Added verified-path API methods `add`, `mul`, `is_zero`, and `limbs_le` in `src/runtime_bigint_witness/verified_impl.rs`, delegating `add`/`mul` to the proven limbwise totals and proving model-level semantic alignment (`out.model@`).
+- Completed verification attempt: `./scripts/check.sh` passes end-to-end after API alignment updates (runtime tests pass and Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes (6/6 tests) after the verified API-alignment additions.
