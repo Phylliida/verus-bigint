@@ -4580,6 +4580,42 @@ impl RuntimeBigNatWitness {
         (cmp, sub_ab, sub_ba)
     }
 
+    /// Operation-level wrapper: computes `sum = a + b` and proves both subtraction round-trips.
+    pub fn lemma_model_add_sub_round_trip_ops(a: &Self, b: &Self) -> (out: (Self, Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.2.wf_spec(),
+            out.0.model@ == a.model@ + b.model@,
+            out.1.model@ == a.model@,
+            out.2.model@ == b.model@,
+    {
+        let sum = a.add_limbwise_small_total(b);
+        let (sub_sum_b, _) = Self::lemma_model_sub_add_inverse_ge_ops(&sum, b);
+        let (sub_sum_a, _) = Self::lemma_model_sub_add_inverse_ge_ops(&sum, a);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(sum.model@ == a.model@ + b.model@);
+            assert(b.model@ <= a.model@ + b.model@);
+            assert(a.model@ <= a.model@ + b.model@);
+            assert(b.model@ <= sum.model@);
+            assert(a.model@ <= sum.model@);
+            assert(sub_sum_b.model@ == sum.model@ - b.model@);
+            assert(sub_sum_a.model@ == sum.model@ - a.model@);
+            assert(sub_sum_b.model@ == (a.model@ + b.model@) - b.model@);
+            assert(sub_sum_a.model@ == (a.model@ + b.model@) - a.model@);
+            assert((a.model@ + b.model@) - b.model@ == a.model@);
+            assert((a.model@ + b.model@) - a.model@ == b.model@);
+            assert(sub_sum_b.model@ == a.model@);
+            assert(sub_sum_a.model@ == b.model@);
+        }
+        (sum, sub_sum_b, sub_sum_a)
+    }
+
     /// Operation-level wrapper: computes both quotients and proves quotient monotonicity.
     pub fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (out: (Self, Self))
         requires

@@ -19,6 +19,6 @@ and truncated subtraction.
 
 ## Add/Sub Round-Trip
 
-- [ ] Add wrapper for total subtraction/addition round-trip:
-  - [ ] `sub(a + b, b) == a`
-  - [ ] `sub(a + b, a) == b`
+- [x] Add wrapper for total subtraction/addition round-trip:
+  - [x] `sub(a + b, b) == a`
+  - [x] `sub(a + b, a) == b`

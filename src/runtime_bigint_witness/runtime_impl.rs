@@ -204,6 +204,13 @@ impl RuntimeBigNatWitness {
         (cmp, sub_ab, sub_ba)
     }
 
+    pub fn lemma_model_add_sub_round_trip_ops(a: &Self, b: &Self) -> (Self, Self, Self) {
+        let sum = a.add_limbwise_small_total(b);
+        let sub_sum_b = sum.sub_limbwise_small_total(b);
+        let sub_sum_a = sum.sub_limbwise_small_total(a);
+        (sum, sub_sum_b, sub_sum_a)
+    }
+
     pub fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (Self, Self) {
         let div_a = a.div_limbwise_small_total(d);
         let div_b = b.div_limbwise_small_total(d);
