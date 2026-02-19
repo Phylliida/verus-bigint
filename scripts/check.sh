@@ -14,8 +14,8 @@ options:
   --runtime-only            run only cargo runtime tests; skip Verus verification
   --require-verus           fail instead of skipping when Verus verification cannot run
   --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
-  --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals)
-  --target-a-strict-smoke   verify strict-mode transition guard (default non-Verus build fails, Verus verify with `target-a-strict` passes)
+  --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals, or `#[verifier::truncate]`)
+  --target-a-strict-smoke   verify strict-mode guards (default non-Verus build fails; non-Verus `--release --features runtime-compat` fails; Verus verify with `target-a-strict` passes)
   --offline                 run cargo commands in offline mode (`cargo --offline`)
   -h, --help                show this help
 USAGE
@@ -215,6 +215,7 @@ check_no_trusted_escapes_in_non_test_sources() {
       -e '\badmit\s*\(' \
       -e '\bassume\s*\(' \
       -e '#\s*\[\s*verifier::external(_body|_fn_specification|_type_specification)?\b' \
+      -e '#\s*\[\s*verifier::truncate\b' \
       "$ROOT_DIR/src" || true
   )"
 
@@ -353,6 +354,28 @@ if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
     exit 1
   fi
   rm -f "$strict_smoke_log"
+
+  echo "[check] Verifying runtime-compat rejects non-Verus release builds"
+  runtime_compat_release_log="$(mktemp)"
+  set +e
+  "${CARGO_CMD[@]}" build --manifest-path "$ROOT_DIR/Cargo.toml" --release --features runtime-compat >"$runtime_compat_release_log" 2>&1
+  runtime_compat_release_status="$?"
+  set -e
+
+  if [[ "$runtime_compat_release_status" == "0" ]]; then
+    echo "error: expected non-Verus release build with runtime-compat to fail, but it succeeded"
+    cat "$runtime_compat_release_log"
+    rm -f "$runtime_compat_release_log"
+    exit 1
+  fi
+
+  if ! rg -q 'feature `runtime-compat` is debug/test-only in non-Verus builds' "$runtime_compat_release_log"; then
+    echo "error: runtime-compat release guard failure did not match the expected compile guard"
+    cat "$runtime_compat_release_log"
+    rm -f "$runtime_compat_release_log"
+    exit 1
+  fi
+  rm -f "$runtime_compat_release_log"
 
   echo "[check] Running cargo verus verify with target-a-strict feature"
   run_cargo_verus_verify "--features target-a-strict"

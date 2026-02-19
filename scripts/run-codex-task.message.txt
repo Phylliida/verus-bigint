@@ -1,1 +1,1 @@
-Added an opt-in target-a-strict compile guard plus check.sh --target-a-strict-smoke (wired into CI/docs) and revalidated strict and rug-oracle checks; 3 roadmap tasks remain.
+Removed all non-test #[verifier::truncate] casts, added a non-Verus release guard for runtime-compat plus smoke-gate enforcement, and updated docs/burndown with verification results; 3 roadmap tasks remain.

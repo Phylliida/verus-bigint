@@ -11,9 +11,12 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
 - The `RuntimeBigNatWitness` proof-path datatype is declared directly in
   `src/runtime_bigint_witness/mod.rs` under `cfg(verus_keep_ghost)`, so no
   `external_type_specification` bridge is needed.
+- Verified numeric narrowing now uses explicit bounds reasoning; there are no
+  remaining `#[verifier::truncate]` casts in non-test sources.
 - The feature `target-a-strict` is enabled by default and rejects non-Verus Rust
   builds at compile time unless `runtime-compat` is explicitly enabled for local
-  runtime/testing workflows.
+  runtime/testing workflows, and `runtime-compat` is rejected for non-Verus
+  `--release` builds.
 
 ## Irreducible Trusted Assumptions
 
