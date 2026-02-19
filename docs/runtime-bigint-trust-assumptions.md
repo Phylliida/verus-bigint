@@ -6,34 +6,21 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
 
 - The verified implementation defines and maintains alignment internally via
   `RuntimeBigNatWitness::wf_spec()` in `src/runtime_bigint_witness/verified_impl.rs`.
-- The runtime representation is canonical little-endian limbs (`Vec<u32>` with no
-  trailing zero limbs), and both runtime/verified constructors normalize to that form.
-- In non-Verus builds, `RuntimeBigNatWitness` stores limbs in a private field
-  (`src/runtime_bigint_witness/mod.rs`), so external code cannot bypass constructor
-  normalization by creating struct literals with non-canonical limbs.
+- The representation is canonical little-endian limbs (`Vec<u32>` with no
+  trailing zero limbs), and constructors normalize to that form.
 - The `RuntimeBigNatWitness` proof-path datatype is declared directly in
   `src/runtime_bigint_witness/mod.rs` under `cfg(verus_keep_ghost)`, so no
   `external_type_specification` bridge is needed.
+- Non-Verus builds are compile-time rejected; there is no alternate runtime
+  backend.
 - Verified numeric narrowing now uses explicit bounds reasoning; there are no
   remaining `#[verifier::truncate]` casts in non-test sources.
 - Verified loops now carry explicit `decreases` measures; non-test sources no
   longer rely on `#[verifier::exec_allows_no_decreases_clause]`.
 - Non-test source files are also kept `unsafe`-free; strict source gates fail
   if `unsafe` appears outside test code.
-- The feature `target-a-strict` is enabled by default and rejects non-Verus Rust
-  builds at compile time unless `runtime-compat` is explicitly enabled for local
-  runtime/testing workflows, and `runtime-compat` is rejected for non-Verus
-  `--release` builds.
 - `scripts/check.sh` supports `--min-verified N` so CI can fail fast if Verus
   verification coverage regresses below an expected floor.
-- `scripts/check.sh` also supports `--rug-oracle-tests`, and the CI-equivalent
-  strict gate runs this to enforce differential testing against `rug` on each
-  strict pipeline run.
-- In strict-smoke mode (`--target-a-strict-smoke`), `scripts/check.sh` also
-  enforces verified-count parity between baseline Verus verification and
-  `--features target-a-strict`, preventing feature-gated proof-coverage drift.
-- `scripts/check.sh` includes a source gate (`check_runtime_big_nat_field_privacy`)
-  that fails if non-Verus `RuntimeBigNatWitness` field visibility regresses.
 - `scripts/check.sh` also validates that `.github/workflows/check.yml` keeps the
   same pinned Verus Rust toolchain for both `rustup toolchain install` and
   `rustup default`, and that this pin matches `scripts/check.sh`.

@@ -1,37 +1,18 @@
-#[cfg(all(
-    feature = "target-a-strict",
-    not(feature = "runtime-compat"),
-    not(verus_keep_ghost)
-))]
+#[cfg(not(verus_keep_ghost))]
 compile_error!(
-    "feature `target-a-strict` requires a Verus build (`cfg(verus_keep_ghost)`); \
-     enable feature `runtime-compat` only for local non-Verus runtime/testing workflows"
+    "verus-bigint now exposes a single verified implementation; \
+     build with Verus (`cfg(verus_keep_ghost)`, e.g. `cargo verus verify`)"
 );
-
-#[cfg(all(
-    feature = "runtime-compat",
-    not(verus_keep_ghost),
-    not(debug_assertions),
-    not(test)
-))]
-compile_error!(
-    "feature `runtime-compat` is debug/test-only in non-Verus builds; \
-     production `--release` builds must verify with Verus instead"
-);
+#[cfg(not(verus_keep_ghost))]
+pub struct RuntimeBigNatWitness;
 
 #[cfg(verus_keep_ghost)]
 use vstd::prelude::*;
 
-/// Exact runtime big-natural witness scaffold for future scalar de-trusting work.
-///
-/// Phase 2 intentionally starts with minimal verified constructors and representation
-/// predicates. Arithmetic over limb vectors is added in subsequent steps.
-#[cfg(not(verus_keep_ghost))]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RuntimeBigNatWitness {
-    limbs_le: Vec<u32>,
-}
-
+// Exact runtime big-natural witness scaffold for future scalar de-trusting work.
+//
+// Phase 2 intentionally starts with minimal verified constructors and representation
+// predicates. Arithmetic over limb vectors is added in subsequent steps.
 #[cfg(verus_keep_ghost)]
 verus! {
 pub struct RuntimeBigNatWitness {
@@ -40,10 +21,7 @@ pub struct RuntimeBigNatWitness {
 }
 }
 
-mod runtime_impl;
 mod verified_impl;
-#[cfg(test)]
-mod tests;
 
 #[cfg(verus_keep_ghost)]
 impl core::fmt::Debug for RuntimeBigNatWitness {

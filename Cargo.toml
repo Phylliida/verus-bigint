@@ -3,17 +3,8 @@ name = "verus-bigint"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-default = ["target-a-strict"]
-rug-oracle = ["runtime-compat"]
-target-a-strict = []
-runtime-compat = []
-
 [dependencies]
 vstd = { path = "../verus/source/vstd" }
-
-[dev-dependencies]
-rug = { version = "1.27.0", default-features = false, features = ["integer", "rational"] }
 
 [package.metadata.verus]
 verify = true
