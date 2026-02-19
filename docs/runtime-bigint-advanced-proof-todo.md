@@ -54,3 +54,5 @@ Properties that are useful for downstream protocol work and API ergonomics.
   `docs/runtime-bigint-wrapper-proof-todo.md`.
 - Length-bound proof work is tracked in
   `docs/runtime-bigint-length-bound-proof-todo.md`.
+- Shape/compare-link proof work is tracked in
+  `docs/runtime-bigint-shape-compare-proof-todo.md`.

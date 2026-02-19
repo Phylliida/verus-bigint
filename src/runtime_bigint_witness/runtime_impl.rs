@@ -156,6 +156,9 @@ impl RuntimeBigNatWitness {
         a.mul_limbwise_small_total(b)
     }
 
+    pub fn lemma_model_len_window_nonzero_ops(_a: &Self) {
+    }
+
     pub fn lemma_cmp_le_zero_iff_le_ops(a: &Self, b: &Self) -> i8 {
         a.cmp_limbwise_small_total(b)
     }
@@ -176,6 +179,19 @@ impl RuntimeBigNatWitness {
         let sub_ab = a.sub_limbwise_small_total(b);
         let add_sub_ab_b = sub_ab.add_limbwise_small_total(b);
         (sub_ab, add_sub_ab_b)
+    }
+
+    pub fn lemma_cmp_pos_implies_sub_pos_ops(a: &Self, b: &Self) -> (i8, Self) {
+        let cmp = a.cmp_limbwise_small_total(b);
+        let sub_ab = a.sub_limbwise_small_total(b);
+        (cmp, sub_ab)
+    }
+
+    pub fn lemma_cmp_eq_implies_bi_sub_zero_ops(a: &Self, b: &Self) -> (i8, Self, Self) {
+        let cmp = a.cmp_limbwise_small_total(b);
+        let sub_ab = a.sub_limbwise_small_total(b);
+        let sub_ba = b.sub_limbwise_small_total(a);
+        (cmp, sub_ab, sub_ba)
     }
 
     pub fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (Self, Self) {
