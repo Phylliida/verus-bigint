@@ -25,5 +25,5 @@ Follow-on properties beyond the completed div/rem checklist.
   - [ ] `a <= b ==> a + c <= b + c`
 
 - [ ] Prove multiplication-zero and one-sided monotonicity:
-  - [ ] `a * 0 == 0`, `a * 1 == a`
+  - [x] `a * 0 == 0`, `a * 1 == a`
   - [ ] `a <= b ==> a * c <= b * c`

@@ -1315,6 +1315,10 @@ impl RuntimeBigNatWitness {
         ensures
             out.wf_spec(),
             out.model@ == self.model@ * rhs.model@,
+            rhs.model@ == 0 ==> out.model@ == 0,
+            rhs.model@ == 1 ==> out.model@ == self.model@,
+            self.model@ == 0 ==> out.model@ == 0,
+            self.model@ == 1 ==> out.model@ == rhs.model@,
     {
         let out = self.mul_limbwise_small_total(rhs);
         proof {
@@ -1326,6 +1330,22 @@ impl RuntimeBigNatWitness {
                         * Self::limbs_value_spec(rhs.limbs_le@)
             );
             assert(out.model@ == self.model@ * rhs.model@);
+            if rhs.model@ == 0 {
+                assert(out.model@ == self.model@ * 0);
+                assert(out.model@ == 0);
+            }
+            if rhs.model@ == 1 {
+                assert(out.model@ == self.model@ * 1);
+                assert(out.model@ == self.model@);
+            }
+            if self.model@ == 0 {
+                assert(out.model@ == 0 * rhs.model@);
+                assert(out.model@ == 0);
+            }
+            if self.model@ == 1 {
+                assert(out.model@ == 1 * rhs.model@);
+                assert(out.model@ == rhs.model@);
+            }
         }
         out
     }
