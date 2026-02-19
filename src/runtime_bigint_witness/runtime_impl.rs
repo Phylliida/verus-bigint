@@ -136,6 +136,10 @@ impl RuntimeBigNatWitness {
         (add_ac, add_bc)
     }
 
+    pub fn lemma_model_add_len_bound_ops(a: &Self, b: &Self) -> Self {
+        a.add_limbwise_small_total(b)
+    }
+
     pub fn lemma_model_mul_commutative_ops(a: &Self, b: &Self) -> (Self, Self) {
         let mul_ab = a.mul_limbwise_small_total(b);
         let mul_ba = b.mul_limbwise_small_total(a);
@@ -176,7 +180,15 @@ impl RuntimeBigNatWitness {
         (div_a, div_b)
     }
 
+    pub fn lemma_model_div_len_bound_pos_ops(a: &Self, d: &Self) -> Self {
+        a.div_limbwise_small_total(d)
+    }
+
     pub fn lemma_model_rem_upper_bound_pos_ops(a: &Self, d: &Self) -> Self {
+        a.rem_limbwise_small_total(d)
+    }
+
+    pub fn lemma_model_rem_len_bound_pos_ops(a: &Self, d: &Self) -> Self {
         a.rem_limbwise_small_total(d)
     }
 
