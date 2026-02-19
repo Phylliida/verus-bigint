@@ -795,26 +795,31 @@ normalize_public_return_for_parity() {
 }
 
 collect_public_fn_signatures() {
-  local impl_file="$1"
+  local -a impl_files=("$@")
+  local impl_file=""
   local method=""
   local args=""
   local ret=""
   local args_norm=""
   local ret_norm=""
 
-  while IFS='|' read -r method args ret; do
-    [[ -z "$method" ]] && continue
-    args_norm="$(printf '%s' "$args" | tr -d '[:space:]')"
-    ret_norm="$(normalize_public_return_for_parity "$ret")"
-    printf '%s\t%s->%s\n' "$method" "$args_norm" "$ret_norm"
-  done < <(
-    rg -No '^\s*pub fn\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*->\s*([^{]+)' -r '$1|$2|$3' "$impl_file" || true
-  )
+  for impl_file in "${impl_files[@]}"; do
+    while IFS='|' read -r method args ret; do
+      [[ -z "$method" ]] && continue
+      args_norm="$(printf '%s' "$args" | tr -d '[:space:]')"
+      ret_norm="$(normalize_public_return_for_parity "$ret")"
+      printf '%s\t%s->%s\n' "$method" "$args_norm" "$ret_norm"
+    done < <(
+      rg -No '^\s*pub fn\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*->\s*([^{]+)' -r '$1|$2|$3' "$impl_file" || true
+    )
+  done
 }
 
 check_runtime_verified_api_parity() {
   local runtime_impl="$ROOT_DIR/src/runtime_bigint_witness/runtime_impl.rs"
   local verified_impl="$ROOT_DIR/src/runtime_bigint_witness/verified_impl.rs"
+  local verified_impl_dir="$ROOT_DIR/src/runtime_bigint_witness/verified_impl"
+  local -a verified_impl_files=("$verified_impl")
   local -a runtime_signatures=()
   local -a verified_signatures=()
   local -a runtime_methods=()
@@ -826,14 +831,23 @@ check_runtime_verified_api_parity() {
   local missing_in_verified=""
   local missing_in_runtime=""
   local signature_mismatches=""
+  local discovered_file=""
+
+  if [[ -d "$verified_impl_dir" ]]; then
+    while IFS= read -r discovered_file; do
+      [[ -z "$discovered_file" ]] && continue
+      verified_impl_files+=("$discovered_file")
+    done < <(rg --files "$verified_impl_dir" -g '*.rs' | LC_ALL=C sort)
+  fi
 
   mapfile -t runtime_signatures < <(collect_public_fn_signatures "$runtime_impl" | LC_ALL=C sort -u)
-  mapfile -t verified_signatures < <(collect_public_fn_signatures "$verified_impl" | LC_ALL=C sort -u)
+  mapfile -t verified_signatures < <(collect_public_fn_signatures "${verified_impl_files[@]}" | LC_ALL=C sort -u)
 
   if [[ "${#runtime_signatures[@]}" -eq 0 || "${#verified_signatures[@]}" -eq 0 ]]; then
     echo "error: failed to discover public method signatures in runtime/verified bigint implementations"
     echo "runtime file: $runtime_impl"
-    echo "verified file: $verified_impl"
+    echo "verified files:"
+    printf '  %s\n' "${verified_impl_files[@]}"
     exit 1
   fi
 
@@ -857,7 +871,7 @@ check_runtime_verified_api_parity() {
   if [[ -n "$missing_in_verified" || -n "$missing_in_runtime" ]]; then
     echo "error: runtime/verified public API mismatch detected"
     if [[ -n "$missing_in_verified" ]]; then
-      echo "missing in verified_impl.rs:"
+      echo "missing in verified implementation:"
       printf '%s\n' "$missing_in_verified"
     fi
     if [[ -n "$missing_in_runtime" ]]; then
