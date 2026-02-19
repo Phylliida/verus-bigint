@@ -239,3 +239,5 @@
 - Completed: Removed non-Verus fallback/testing feature plumbing (`target-a-strict`, `runtime-compat`, `rug-oracle`) and `rug` dev-dependency usage from `Cargo.toml`.
 - Completed: Removed runtime fallback tests in `src/runtime_bigint_witness/tests.rs` and updated `src/runtime_bigint_witness/mod.rs` so non-Verus builds are always compile-time rejected.
 - Completed: Simplified strict checks and CI wiring to the verified-only command `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 188`, and updated `README.md` plus trust-assumption docs accordingly.
+- Completed: Added `core::ops` operator impls for owned `RuntimeBigNatWitness` values (`+`, `-`, `*`, `/`, `%`) in `src/runtime_bigint_witness/verified_impl.rs`, backed by verified total limbwise operations.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 193` passes after operator-overload support (`193 verified, 0 errors`), and strict docs/CI command pins were updated from `188` to `193`.
