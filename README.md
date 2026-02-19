@@ -5,6 +5,7 @@ Formally verified arbitrary-size integer witness code extracted from VerusCAD.
 ## Contents
 
 - `RuntimeBigNatWitness` exported from `src/runtime_bigint_witness/mod.rs`
+- In non-Verus builds, `RuntimeBigNatWitness` runtime storage is encapsulated (private `limbs_le` field); use constructors + `limbs_le()` accessor
 - Runtime execution implementation in `src/runtime_bigint_witness/runtime_impl.rs`
 - Verified/spec-heavy implementation in `src/runtime_bigint_witness/verified_impl.rs`
 - Runtime tests in `src/runtime_bigint_witness/tests.rs`

@@ -1,1 +1,1 @@
-Added a Verus verified-count regression gate (`--min-verified`) to strict checks, wired it into CI/docs with passing and intentional-failure validation, and 2 roadmap tasks remain.
+Hardened RuntimeBigNatWitness by privatizing non-Verus limb storage and adding a regression gate in check.sh, with strict verification and rug-oracle tests passing afterward, and 2 roadmap tasks remain.

@@ -205,6 +205,30 @@ check_runtime_verified_api_parity() {
   fi
 }
 
+check_runtime_big_nat_field_privacy() {
+  local witness_mod="$ROOT_DIR/src/runtime_bigint_witness/mod.rs"
+  local runtime_block=""
+  local matches=""
+
+  runtime_block="$(sed -n '/#\[cfg(not(verus_keep_ghost))\]/,/#\[cfg(verus_keep_ghost)\]/p' "$witness_mod")"
+  if [[ -z "$runtime_block" ]]; then
+    echo "error: failed to locate non-Verus RuntimeBigNatWitness declaration in $witness_mod"
+    exit 1
+  fi
+
+  matches="$(printf '%s\n' "$runtime_block" | rg -n --color never -e '^\s*pub(\([^)]*\))?\s+limbs_le\s*:' || true)"
+  if [[ -n "$matches" ]]; then
+    echo "error: non-Verus RuntimeBigNatWitness field `limbs_le` must stay private"
+    printf '%s\n' "$matches"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$runtime_block" | rg -q --color never -e '^\s*limbs_le\s*:\s*Vec<u32>\s*,'; then
+    echo "error: could not find non-Verus RuntimeBigNatWitness `limbs_le: Vec<u32>` field"
+    exit 1
+  fi
+}
+
 check_no_rug_in_non_test_sources() {
   local matches=""
   matches="$(
@@ -373,6 +397,9 @@ run_cargo_verus_verify_with_threshold() {
 
 echo "[check] Verifying runtime/verified API parity"
 check_runtime_verified_api_parity
+
+echo "[check] Verifying RuntimeBigNatWitness field privacy"
+check_runtime_big_nat_field_privacy
 
 echo "[check] Running cargo tests (runtime-compat)"
 "${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --features runtime-compat
