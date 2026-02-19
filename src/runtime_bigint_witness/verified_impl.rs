@@ -3242,6 +3242,65 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    pub proof fn lemma_model_sub_add_inverse_ge_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        sub_ab: &Self,
+        add_sub_ab_b: &Self,
+    )
+        requires
+            Self::limbs_value_spec(b.limbs_le@) <= Self::limbs_value_spec(a.limbs_le@),
+            Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@)
+                ==> sub_ab.model@ == 0,
+            Self::limbs_value_spec(b.limbs_le@) < Self::limbs_value_spec(a.limbs_le@)
+                ==> sub_ab.model@
+                    == Self::limbs_value_spec(a.limbs_le@) - Self::limbs_value_spec(b.limbs_le@),
+            add_sub_ab_b.model@ == sub_ab.model@ + Self::limbs_value_spec(b.limbs_le@),
+        ensures
+            add_sub_ab_b.model@ == Self::limbs_value_spec(a.limbs_le@),
+    {
+        Self::lemma_model_add_sub_inverse_from_total_contracts(a, b, sub_ab, add_sub_ab_b);
+    }
+
+    pub proof fn lemma_model_sub_zero_iff_le_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        sub_ab: &Self,
+    )
+        requires
+            Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@)
+                ==> sub_ab.model@ == 0,
+            Self::limbs_value_spec(b.limbs_le@) < Self::limbs_value_spec(a.limbs_le@)
+                ==> sub_ab.model@
+                    == Self::limbs_value_spec(a.limbs_le@) - Self::limbs_value_spec(b.limbs_le@),
+        ensures
+            (sub_ab.model@ == 0) <==> (Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@)),
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+
+        if a_val <= b_val {
+            assert(sub_ab.model@ == 0);
+        }
+
+        if sub_ab.model@ == 0 {
+            if b_val < a_val {
+                let d = a_val - b_val;
+                assert(sub_ab.model@ == a_val - b_val);
+                assert(a_val == b_val + d);
+                assert(b_val + 1 <= a_val);
+                assert(b_val + 1 <= b_val + d);
+                assert(1 <= d);
+                assert(0 < d);
+                assert(0 < sub_ab.model@);
+                assert(sub_ab.model@ == 0);
+                assert(false);
+            }
+            assert(!(b_val < a_val));
+            assert(a_val <= b_val);
+        }
+    }
+
     pub proof fn lemma_model_add_monotonic_from_total_contracts(
         a: &Self,
         b: &Self,
