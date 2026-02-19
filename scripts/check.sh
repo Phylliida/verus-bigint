@@ -148,6 +148,93 @@ extract_ci_toolchain_default_from_workflow() {
     | head -n 1 || true
 }
 
+extract_named_workflow_step_block() {
+  local workflow_file="$1"
+  local step_name="$2"
+
+  awk -v step_name="$step_name" '
+    {
+      if (in_step && $0 ~ /^[[:space:]]*- name:/) {
+        exit
+      }
+
+      line = $0
+      sub(/^[[:space:]]*- name:[[:space:]]*/, "", line)
+      if (!in_step && line == step_name) {
+        in_step = 1
+      }
+
+      if (in_step) {
+        print $0
+      }
+    }
+  ' "$workflow_file"
+}
+
+check_ci_workflow_end_to_end_structure() {
+  local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
+  local build_step=""
+  local strict_step=""
+  local build_line=""
+  local strict_line=""
+
+  if [[ ! -f "$workflow_file" ]]; then
+    echo "error: workflow file not found: $workflow_file"
+    exit 1
+  fi
+
+  build_line="$(rg -n '^[[:space:]]*- name:[[:space:]]*Build Verus tools[[:space:]]*$' "$workflow_file" | head -n 1 | cut -d: -f1)"
+  strict_line="$(rg -n '^[[:space:]]*- name:[[:space:]]*Run strict checks[[:space:]]*$' "$workflow_file" | head -n 1 | cut -d: -f1)"
+  if [[ -z "$build_line" || -z "$strict_line" ]]; then
+    echo "error: required workflow steps missing in $workflow_file"
+    echo "expected steps: 'Build Verus tools' and 'Run strict checks'"
+    exit 1
+  fi
+  if (( build_line >= strict_line )); then
+    echo "error: workflow step order invalid in $workflow_file"
+    echo "expected 'Build Verus tools' to run before 'Run strict checks'"
+    exit 1
+  fi
+
+  build_step="$(extract_named_workflow_step_block "$workflow_file" "Build Verus tools")"
+  strict_step="$(extract_named_workflow_step_block "$workflow_file" "Run strict checks")"
+
+  if [[ -z "$build_step" ]]; then
+    echo "error: failed to parse 'Build Verus tools' step block in $workflow_file"
+    exit 1
+  fi
+  if [[ -z "$strict_step" ]]; then
+    echo "error: failed to parse 'Run strict checks' step block in $workflow_file"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$build_step" | rg -q 'working-directory:[[:space:]]*verus/source'; then
+    echo "error: workflow 'Build Verus tools' step must run in verus/source"
+    exit 1
+  fi
+  if ! printf '%s\n' "$build_step" | rg -Fq './tools/get-z3.sh'; then
+    echo "error: workflow 'Build Verus tools' step must fetch z3 via ./tools/get-z3.sh"
+    exit 1
+  fi
+  if ! printf '%s\n' "$build_step" | rg -q 'vargo[[:space:]]+build[[:space:]]+--release'; then
+    echo "error: workflow 'Build Verus tools' step must build Verus tools via 'vargo build --release'"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$strict_step" | rg -q 'working-directory:[[:space:]]*verus-bigint'; then
+    echo "error: workflow 'Run strict checks' step must run in verus-bigint"
+    exit 1
+  fi
+  if ! printf '%s\n' "$strict_step" | rg -Fq 'VERUS_ROOT: ${{ github.workspace }}/verus'; then
+    echo "error: workflow 'Run strict checks' step must export VERUS_ROOT to the checked-out Verus tree"
+    exit 1
+  fi
+  if ! printf '%s\n' "$strict_step" | rg -q '\./scripts/check\.sh'; then
+    echo "error: workflow 'Run strict checks' step must execute ./scripts/check.sh"
+    exit 1
+  fi
+}
+
 check_ci_toolchain_alignment() {
   local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
   local workflow_install_toolchain=""
@@ -559,6 +646,9 @@ check_runtime_verified_api_parity
 
 echo "[check] Verifying CI toolchain alignment (workflow vs check.sh)"
 check_ci_toolchain_alignment
+
+echo "[check] Verifying CI workflow end-to-end structure"
+check_ci_workflow_end_to_end_structure
 
 echo "[check] Verifying CI strict-gate command alignment (workflow vs README)"
 check_ci_strict_gate_alignment
