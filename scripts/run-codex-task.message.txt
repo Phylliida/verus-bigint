@@ -1,1 +1,1 @@
-Hardened RuntimeBigNatWitness by privatizing non-Verus limb storage and adding a regression gate in check.sh, with strict verification and rug-oracle tests passing afterward, and 2 roadmap tasks remain.
+Added a check.sh preflight that enforces CI/README strict-command alignment (including --min-verified), revalidated strict verification locally, and 2 roadmap tasks remain.

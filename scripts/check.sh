@@ -104,6 +104,111 @@ if [[ "$OFFLINE" == "1" ]]; then
   CARGO_CMD+=(--offline)
 fi
 
+normalize_inline_command() {
+  local cmd="$1"
+  cmd="$(printf '%s' "$cmd" | tr '\t' ' ')"
+  cmd="$(printf '%s' "$cmd" | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//')"
+  printf '%s' "$cmd"
+}
+
+extract_ci_check_command_from_workflow() {
+  local workflow_file="$1"
+  rg -No '\./scripts/check\.sh[^\n]*' "$workflow_file" \
+    | rg -- '--target-a-strict-smoke' \
+    | rg -- '--min-verified' \
+    | head -n 1 || true
+}
+
+extract_ci_check_command_from_readme() {
+  local readme_file="$1"
+  rg -No '\./scripts/check\.sh[^\n`]*' "$readme_file" \
+    | rg -- '--target-a-strict-smoke' \
+    | rg -- '--min-verified' \
+    | head -n 1 || true
+}
+
+extract_min_verified_arg() {
+  local cmd="$1"
+  printf '%s\n' "$cmd" \
+    | rg -No -- '--min-verified[[:space:]]+[0-9]+' \
+    | rg -No -- '[0-9]+' \
+    | head -n 1 || true
+}
+
+check_ci_strict_gate_alignment() {
+  local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
+  local readme_file="$ROOT_DIR/README.md"
+  local workflow_cmd=""
+  local readme_cmd=""
+  local workflow_norm=""
+  local readme_norm=""
+  local workflow_min=""
+  local readme_min=""
+  local -a required_flags=(
+    "--require-verus"
+    "--forbid-rug-normal-deps"
+    "--forbid-trusted-escapes"
+    "--target-a-strict-smoke"
+    "--min-verified"
+  )
+  local flag=""
+
+  if [[ ! -f "$workflow_file" ]]; then
+    echo "error: workflow file not found: $workflow_file"
+    exit 1
+  fi
+  if [[ ! -f "$readme_file" ]]; then
+    echo "error: README file not found: $readme_file"
+    exit 1
+  fi
+
+  workflow_cmd="$(extract_ci_check_command_from_workflow "$workflow_file")"
+  readme_cmd="$(extract_ci_check_command_from_readme "$readme_file")"
+  if [[ -z "$workflow_cmd" ]]; then
+    echo "error: could not find CI-equivalent check command in $workflow_file"
+    exit 1
+  fi
+  if [[ -z "$readme_cmd" ]]; then
+    echo "error: could not find CI-equivalent check command in $readme_file"
+    echo "expected a README command containing both --target-a-strict-smoke and --min-verified"
+    exit 1
+  fi
+
+  workflow_norm="$(normalize_inline_command "$workflow_cmd")"
+  readme_norm="$(normalize_inline_command "$readme_cmd")"
+
+  for flag in "${required_flags[@]}"; do
+    if ! printf '%s\n' "$workflow_norm" | rg -Fq -- "$flag"; then
+      echo "error: workflow strict check command is missing required flag: $flag"
+      echo "command: $workflow_norm"
+      exit 1
+    fi
+  done
+
+  workflow_min="$(extract_min_verified_arg "$workflow_norm")"
+  readme_min="$(extract_min_verified_arg "$readme_norm")"
+  if [[ -z "$workflow_min" || -z "$readme_min" ]]; then
+    echo "error: failed to parse --min-verified value from workflow/README strict commands"
+    echo "workflow: $workflow_norm"
+    echo "README:   $readme_norm"
+    exit 1
+  fi
+
+  if [[ "$workflow_min" != "$readme_min" ]]; then
+    echo "error: workflow/README --min-verified mismatch"
+    echo "workflow: $workflow_norm"
+    echo "README:   $readme_norm"
+    exit 1
+  fi
+
+  if [[ "$workflow_norm" != "$readme_norm" ]]; then
+    echo "error: workflow and README CI-equivalent strict commands drifted"
+    echo "workflow: $workflow_norm"
+    echo "README:   $readme_norm"
+    exit 1
+  fi
+}
+
 normalize_public_return_for_parity() {
   local ret="$1"
   ret="$(printf '%s' "$ret" | tr -d '[:space:]')"
@@ -397,6 +502,9 @@ run_cargo_verus_verify_with_threshold() {
 
 echo "[check] Verifying runtime/verified API parity"
 check_runtime_verified_api_parity
+
+echo "[check] Verifying CI strict-gate command alignment (workflow vs README)"
+check_ci_strict_gate_alignment
 
 echo "[check] Verifying RuntimeBigNatWitness field privacy"
 check_runtime_big_nat_field_privacy
