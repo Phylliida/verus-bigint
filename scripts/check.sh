@@ -8,7 +8,7 @@ TOOLCHAIN="${VERUS_TOOLCHAIN:-1.93.0-x86_64-unknown-linux-gnu}"
 
 usage() {
   cat <<'USAGE'
-usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-normal-deps] [--forbid-trusted-escapes] [--target-a-strict-smoke] [--offline]
+usage: ./scripts/check.sh [--runtime-only] [--require-verus] [--forbid-rug-normal-deps] [--forbid-trusted-escapes] [--target-a-strict-smoke] [--min-verified N] [--offline]
 
 options:
   --runtime-only            run only cargo runtime tests; skip Verus verification
@@ -16,6 +16,7 @@ options:
   --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
   --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals, or `#[verifier::truncate]`)
   --target-a-strict-smoke   verify strict-mode guards (default non-Verus build fails; non-Verus `--release --features runtime-compat` fails; Verus verify with `target-a-strict` passes)
+  --min-verified N          fail if any Verus run reports fewer than N verified items
   --offline                 run cargo commands in offline mode (`cargo --offline`)
   -h, --help                show this help
 USAGE
@@ -27,6 +28,7 @@ FORBID_RUG_NORMAL_DEPS=0
 FORBID_TRUSTED_ESCAPES=0
 TARGET_A_STRICT_SMOKE=0
 OFFLINE=0
+MIN_VERIFIED=""
 while [[ "$#" -gt 0 ]]; do
   case "${1:-}" in
     --runtime-only)
@@ -43,6 +45,20 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --target-a-strict-smoke)
       TARGET_A_STRICT_SMOKE=1
+      ;;
+    --min-verified)
+      if [[ "$#" -lt 2 ]]; then
+        echo "error: --min-verified requires an integer argument"
+        usage
+        exit 1
+      fi
+      MIN_VERIFIED="${2:-}"
+      if ! [[ "$MIN_VERIFIED" =~ ^[0-9]+$ ]]; then
+        echo "error: --min-verified expects a nonnegative integer"
+        usage
+        exit 1
+      fi
+      shift
       ;;
     --offline)
       OFFLINE=1
@@ -67,6 +83,11 @@ fi
 
 if [[ "$RUNTIME_ONLY" == "1" && "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
   echo "error: --runtime-only and --target-a-strict-smoke cannot be used together"
+  exit 1
+fi
+
+if [[ "$RUNTIME_ONLY" == "1" && -n "$MIN_VERIFIED" ]]; then
+  echo "error: --runtime-only and --min-verified cannot be used together"
   exit 1
 fi
 
@@ -288,6 +309,68 @@ run_cargo_verus_verify() {
   fi
 }
 
+verify_verus_summary_threshold() {
+  local log_file="$1"
+  local threshold="$2"
+  local summary=""
+  local verified_count=""
+  local error_count=""
+
+  summary="$(rg -No 'verification results::\s*([0-9]+) verified,\s*([0-9]+) errors' -r '$1|$2' "$log_file" | tail -n 1 || true)"
+  if [[ -z "$summary" ]]; then
+    echo "error: could not parse Verus verification summary"
+    cat "$log_file"
+    exit 1
+  fi
+
+  verified_count="${summary%%|*}"
+  error_count="${summary##*|}"
+  if ! [[ "$verified_count" =~ ^[0-9]+$ && "$error_count" =~ ^[0-9]+$ ]]; then
+    echo "error: malformed Verus verification summary: $summary"
+    cat "$log_file"
+    exit 1
+  fi
+
+  if (( error_count != 0 )); then
+    echo "error: Verus verification summary reported nonzero errors: $error_count"
+    cat "$log_file"
+    exit 1
+  fi
+
+  if (( verified_count < threshold )); then
+    echo "error: Verus verified-count regression: expected at least $threshold, got $verified_count"
+    cat "$log_file"
+    exit 1
+  fi
+
+  echo "[check] Verus verified-count gate passed ($verified_count >= $threshold)"
+}
+
+run_cargo_verus_verify_with_threshold() {
+  local feature_flags="${1:-}"
+  local verus_log=""
+  local verus_status=0
+
+  if [[ -z "$MIN_VERIFIED" ]]; then
+    run_cargo_verus_verify "$feature_flags"
+    return
+  fi
+
+  verus_log="$(mktemp)"
+  set +e
+  run_cargo_verus_verify "$feature_flags" 2>&1 | tee "$verus_log"
+  verus_status="${PIPESTATUS[0]}"
+  set -e
+
+  if (( verus_status != 0 )); then
+    rm -f "$verus_log"
+    exit "$verus_status"
+  fi
+
+  verify_verus_summary_threshold "$verus_log" "$MIN_VERIFIED"
+  rm -f "$verus_log"
+}
+
 echo "[check] Verifying runtime/verified API parity"
 check_runtime_verified_api_parity
 
@@ -330,7 +413,7 @@ if [[ ! -x "$VERUS_SOURCE/z3" ]]; then
 fi
 
 echo "[check] Running cargo verus verify"
-run_cargo_verus_verify ""
+run_cargo_verus_verify_with_threshold ""
 
 if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
   echo "[check] Verifying target-a-strict rejects non-Verus cargo builds"
@@ -378,5 +461,5 @@ if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
   rm -f "$runtime_compat_release_log"
 
   echo "[check] Running cargo verus verify with target-a-strict feature"
-  run_cargo_verus_verify "--features target-a-strict"
+  run_cargo_verus_verify_with_threshold "--features target-a-strict"
 fi
