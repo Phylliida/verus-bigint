@@ -2,7 +2,7 @@
 
 ## Goal
 
-- [ ] Make `verus-bigint` zero-trust for production behavior:
+- [x] Make `verus-bigint` zero-trust for production behavior:
 - [x] No production reliance on `rug::Integer`
 - [x] Exported runtime operations are implemented by verified limb algorithms
 - [x] Verification and runtime behavior stay aligned
@@ -71,7 +71,7 @@
 - [x] Production path uses only limb-based verified implementation
 - [x] `rug` is test-only (or fully removed)
 - [x] All exported arithmetic ops are covered by Verus proofs and runtime tests
-- [ ] `./scripts/check.sh` passes end-to-end in CI
+- [x] `./scripts/check.sh` passes end-to-end in CI
 
 ## Burndown Log
 
@@ -229,3 +229,9 @@
 - Completed: Updated `README.md` and `docs/runtime-bigint-trust-assumptions.md` so strict-check documentation explicitly includes checkout-action pinning as part of CI wiring guarantees.
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89` passes after checkout-action pinning hardening (runtime tests 4/4; rug-oracle tests 6/6; baseline + strict-feature Verus each report `89 verified, 0 errors`; verified-count floor/parity gates pass).
 - Failed/blocked attempt: direct GitHub-hosted CI execution remains unobservable in this sandbox (no outbound network access to inspect Actions results), so the `in CI` exit criterion remains unverified from this environment.
+- Failed attempt (from GitHub-hosted CI): workflow run `https://github.com/Phylliida/verus-bigint/actions/runs/22168334879` failed in `Run strict checks` because `rg` was unavailable on the runner (`./scripts/check.sh: line 786: rg: command not found`).
+- Completed: Added an explicit workflow dependency step `Install strict-check dependencies` in `.github/workflows/check.yml` to install `ripgrep` before `Run strict checks`.
+- Completed: Added an explicit `rg` prerequisite guard in `scripts/check.sh` so missing-ripgrep environments now fail fast with a clear actionable hint, instead of failing later in signature extraction.
+- Completed verification attempt: `PATH=/run/current-system/sw/bin:/usr/bin:/bin ./scripts/check.sh --runtime-only` now fails immediately with `error: required command 'rg' not found in PATH`.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89` passes locally after the ripgrep CI-dependency fix (runtime tests 4/4; rug-oracle tests 6/6; baseline + strict-feature Verus each report `89 verified, 0 errors`; verified-count floor/parity gates pass).
+- Completed verification attempt (GitHub-hosted CI): workflow run `https://github.com/Phylliida/verus-bigint/actions/runs/22168502710` on commit `01bc4db91fffe7565a8b009ed062633ae37a0f5b` (`fix workflow for ripgrep`) completed successfully on 2026-02-19 (`status: completed`, `conclusion: success`), satisfying the end-to-end CI exit criterion.
