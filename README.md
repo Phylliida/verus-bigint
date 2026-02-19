@@ -19,6 +19,10 @@ This crate currently mirrors the bigint witness implementation from VerusCAD.
   - `./scripts/check.sh`
 - Run runtime tests only:
   - `./scripts/check.sh --runtime-only`
+- Run strict checks (fail if Verus tools are unavailable, and fail on normal-dependency `rug`):
+  - `./scripts/check.sh --require-verus --forbid-rug-normal-deps`
+- Run checks in offline mode where possible:
+  - `./scripts/check.sh --offline`
 
 ## Roadmaps
 

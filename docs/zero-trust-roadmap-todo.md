@@ -48,9 +48,9 @@
 ## Phase 5: CI and Check Gates
 
 - [x] Keep `./scripts/check.sh` as the main local gate
-- [ ] Make CI fail if Verus verification fails
-- [ ] Make CI fail if `rug` appears in non-test dependency graph
-- [ ] Add offline-friendly check mode where practical
+- [x] Make CI fail if Verus verification fails
+- [x] Make CI fail if `rug` appears in non-test dependency graph
+- [x] Add offline-friendly check mode where practical
 
 ## Phase 6: Trusted Surface Reduction
 
@@ -91,3 +91,12 @@
 - Completed: Added verified-path API methods `add`, `mul`, `is_zero`, and `limbs_le` in `src/runtime_bigint_witness/verified_impl.rs`, delegating `add`/`mul` to the proven limbwise totals and proving model-level semantic alignment (`out.model@`).
 - Completed verification attempt: `./scripts/check.sh` passes end-to-end after API alignment updates (runtime tests pass and Verus reports `89 verified, 0 errors`).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes (6/6 tests) after the verified API-alignment additions.
+- Completed: Extended `scripts/check.sh` with `--require-verus`, `--forbid-rug-normal-deps`, and `--offline` flags to support strict CI gating and offline-friendly checks.
+- Completed: Added `.github/workflows/check.yml` to build Verus in CI and run `./scripts/check.sh --require-verus --forbid-rug-normal-deps`.
+- Completed verification attempt: `./scripts/check.sh --runtime-only --forbid-rug-normal-deps` passes (4/4 tests; dependency graph gate passes).
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps` passes (4/4 tests; Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `./scripts/check.sh --runtime-only --offline --forbid-rug-normal-deps` passes (4/4 tests in offline mode; dependency graph gate passes).
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --offline` passes (4/4 tests in offline mode; Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes (6/6 tests) after the Phase 5 gate changes.
+- Failed attempt (intentional guardrail test): `VERUS_ROOT=/tmp/does-not-exist ./scripts/check.sh --require-verus --forbid-rug-normal-deps` fails with missing `cargo-verus`, confirming strict-mode failure behavior.
+- Failed/blocked attempt: the new GitHub Actions workflow cannot be executed inside this sandbox, so CI execution results are not directly validated here.

@@ -1,1 +1,1 @@
-Added verified API-alignment methods (`add`, `mul`, `is_zero`, `limbs_le`) for `RuntimeBigNatWitness`, validated with `./scripts/check.sh` and oracle tests, and updated the zero-trust burndown; 15 tasks remain.
+Hardened check gating with strict Verus/dependency/offline modes, added CI verification wiring, and updated the zero-trust burndown roadmap; 12 tasks remain.
