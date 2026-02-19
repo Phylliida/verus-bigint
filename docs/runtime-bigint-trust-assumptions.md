@@ -49,6 +49,9 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   tools` must run first in `verus/source` (with `./tools/get-z3.sh` + `vargo
   build --release`), and `Run strict checks` must run in `verus-bigint` with
   `VERUS_ROOT` pointed at the checked-out Verus tree.
+- The CI workflow also installs strict-check shell dependencies (`ripgrep`)
+  before running `./scripts/check.sh`, and `scripts/check.sh` now fails early
+  with an explicit error if `rg` is missing from `PATH`.
 - The CI workflow preflight also enforces fail-fast behavior in those critical
   steps (`set -euo pipefail`, no step-level `if:` gating, no
   `continue-on-error: true`, and no `|| true` failure masking in step
