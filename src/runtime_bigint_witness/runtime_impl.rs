@@ -222,6 +222,13 @@ impl RuntimeBigNatWitness {
         a.rem_limbwise_small_total(d)
     }
 
+    pub fn lemma_model_mul_div_rem_cancel_pos_ops(a: &Self, d: &Self) -> (Self, Self, Self) {
+        let prod = a.mul_limbwise_small_total(d);
+        let q = prod.div_limbwise_small_total(d);
+        let r = prod.rem_limbwise_small_total(d);
+        (prod, q, r)
+    }
+
     pub fn lemma_model_div_rem_recompose_pos_ops(a: &Self, d: &Self) -> (Self, Self) {
         a.div_rem_limbwise_small_total(d)
     }
