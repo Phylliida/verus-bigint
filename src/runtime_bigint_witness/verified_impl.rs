@@ -2,6 +2,16 @@
 
 use super::RuntimeBigNatWitness;
 use vstd::prelude::*;
+use vstd::arithmetic::div_mod::{
+    lemma_add_mod_noop,
+    lemma_basic_div,
+    lemma_fundamental_div_mod,
+    lemma_fundamental_div_mod_converse,
+    lemma_mul_mod_noop,
+    lemma_mod_self_0,
+    lemma_mod_pos_bound,
+    lemma_small_mod,
+};
 use vstd::seq::Seq;
 
 verus! {
@@ -1024,6 +1034,149 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    proof fn lemma_div_rem_unique_nat(x: nat, d: nat, q1: nat, r1: nat, q2: nat, r2: nat)
+        requires
+            d > 0,
+            x == q1 * d + r1,
+            r1 < d,
+            x == q2 * d + r2,
+            r2 < d,
+        ensures
+            q1 == q2,
+            r1 == r2,
+    {
+        let xi = x as int;
+        let di = d as int;
+        let q1i = q1 as int;
+        let r1i = r1 as int;
+        let q2i = q2 as int;
+        let r2i = r2 as int;
+
+        assert(di != 0);
+        assert(0 <= r1i < di);
+        assert(0 <= r2i < di);
+        assert(xi == q1i * di + r1i);
+        assert(xi == q2i * di + r2i);
+
+        lemma_fundamental_div_mod_converse(xi, di, q1i, r1i);
+        lemma_fundamental_div_mod_converse(xi, di, q2i, r2i);
+        assert(q1i == xi / di);
+        assert(q2i == xi / di);
+        assert(q1i == q2i);
+        assert(r1i == xi % di);
+        assert(r2i == xi % di);
+        assert(r1i == r2i);
+        assert(q1 == q2);
+        assert(r1 == r2);
+    }
+
+    proof fn lemma_mod_zero_implies_multiple_nat(x: nat, d: nat) -> (k: nat)
+        requires
+            d > 0,
+            x % d == 0,
+        ensures
+            x == k * d,
+    {
+        let xi = x as int;
+        let di = d as int;
+        lemma_fundamental_div_mod(xi, di);
+        assert((x % d) as int == xi % di);
+        assert(xi % di == 0);
+        assert(xi == di * (xi / di) + xi % di);
+        assert(xi == di * (xi / di));
+        assert((x / d) as int == xi / di);
+        assert(xi == di * ((x / d) as int));
+        assert(di * ((x / d) as int) == ((x / d) as int) * di) by (nonlinear_arith);
+        assert(xi == ((x / d) as int) * di);
+        assert(x == (x / d) * d);
+        let k = x / d;
+        assert(x == k * d);
+        k
+    }
+
+    proof fn lemma_multiple_implies_mod_zero_nat(x: nat, d: nat, k: nat)
+        requires
+            d > 0,
+            x == k * d,
+        ensures
+            x % d == 0,
+    {
+        let xi = x as int;
+        let di = d as int;
+        let ki = k as int;
+        assert(di != 0);
+        assert(0 <= 0 < di);
+        assert(xi == ki * di + 0);
+        lemma_fundamental_div_mod_converse(xi, di, ki, 0);
+        assert(xi % di == 0);
+        assert((x % d) as int == xi % di);
+        assert(x % d == 0);
+    }
+
+    proof fn lemma_mod_add_compat_nat(x: nat, y: nat, m: nat)
+        requires
+            m > 0,
+        ensures
+            (x + y) % m == ((x % m) + (y % m)) % m,
+    {
+        let xi = x as int;
+        let yi = y as int;
+        let mi = m as int;
+        lemma_add_mod_noop(xi, yi, mi);
+        assert((x % m) as int == xi % mi);
+        assert((y % m) as int == yi % mi);
+        assert(((x + y) % m) as int == (xi + yi) % mi);
+        assert((((x % m) + (y % m)) % m) as int == ((xi % mi) + (yi % mi)) % mi);
+        assert(((xi % mi) + (yi % mi)) % mi == (xi + yi) % mi);
+        assert((((x % m) + (y % m)) % m) as int == ((x + y) % m) as int);
+        assert((x + y) % m == ((x % m) + (y % m)) % m);
+    }
+
+    pub proof fn lemma_model_add_mod_compat(a: &Self, b: &Self, m: &Self)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            m.wf_spec(),
+            m.model@ > 0,
+        ensures
+            (a.model@ + b.model@) % m.model@
+                == ((a.model@ % m.model@) + (b.model@ % m.model@)) % m.model@,
+    {
+        Self::lemma_mod_add_compat_nat(a.model@, b.model@, m.model@);
+    }
+
+    proof fn lemma_mod_mul_compat_nat(x: nat, y: nat, m: nat)
+        requires
+            m > 0,
+        ensures
+            (x * y) % m == ((x % m) * (y % m)) % m,
+    {
+        let xi = x as int;
+        let yi = y as int;
+        let mi = m as int;
+        lemma_mul_mod_noop(xi, yi, mi);
+        assert((x % m) as int == xi % mi);
+        assert((y % m) as int == yi % mi);
+        assert(((x * y) % m) as int == (xi * yi) % mi);
+        assert((((x % m) * (y % m)) % m) as int == (((xi % mi) * (yi % mi)) % mi));
+        assert((((xi % mi) * (yi % mi)) % mi) == (xi * yi) % mi);
+        assert((((x % m) * (y % m)) % m) as int == ((x * y) % m) as int);
+        assert((x * y) % m == ((x % m) * (y % m)) % m);
+    }
+
+    pub proof fn lemma_model_mul_mod_compat(a: &Self, b: &Self, m: &Self)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            m.wf_spec(),
+            m.model@ > 0,
+        ensures
+            (a.model@ * b.model@) % m.model@
+                == ((a.model@ % m.model@) * (b.model@ % m.model@)) % m.model@,
+    {
+        Self::lemma_mod_mul_compat_nat(a.model@, b.model@, m.model@);
+    }
+
     fn from_parts(limbs_le: Vec<u32>, Ghost(model): Ghost<nat>) -> (out: Self)
         requires
             model == Self::limbs_value_spec(limbs_le@),
@@ -1173,6 +1326,194 @@ impl RuntimeBigNatWitness {
                         * Self::limbs_value_spec(rhs.limbs_le@)
             );
             assert(out.model@ == self.model@ * rhs.model@);
+        }
+        out
+    }
+
+    pub fn div(&self, rhs: &Self) -> (out: Self)
+        requires
+            self.wf_spec(),
+            rhs.wf_spec(),
+        ensures
+            out.wf_spec(),
+            rhs.model@ == 0 ==> out.model@ == 0,
+            rhs.model@ > 0 ==> out.model@ * rhs.model@ <= self.model@,
+            rhs.model@ > 0 ==> self.model@ < (out.model@ + 1) * rhs.model@,
+            rhs.model@ > 0 ==> out.model@ == self.model@ / rhs.model@,
+            rhs.model@ > 0 && rhs.model@ == 1 ==> out.model@ == self.model@,
+            rhs.model@ > 0 && self.model@ < rhs.model@ ==> out.model@ == 0,
+            rhs.model@ > 0 && self.model@ == rhs.model@ ==> out.model@ == 1,
+    {
+        let out = self.div_limbwise_small_total(rhs);
+        proof {
+            assert(self.model@ == Self::limbs_value_spec(self.limbs_le@));
+            assert(rhs.model@ == Self::limbs_value_spec(rhs.limbs_le@));
+            if rhs.model@ == 0 {
+                assert(Self::limbs_value_spec(rhs.limbs_le@) == 0);
+                assert(out.model@ == 0);
+            }
+            if rhs.model@ > 0 {
+                assert(Self::limbs_value_spec(rhs.limbs_le@) > 0);
+                assert(
+                    out.model@ * Self::limbs_value_spec(rhs.limbs_le@)
+                        <= Self::limbs_value_spec(self.limbs_le@)
+                );
+                assert(
+                    Self::limbs_value_spec(self.limbs_le@)
+                        < (out.model@ + 1) * Self::limbs_value_spec(rhs.limbs_le@)
+                );
+                assert(
+                    out.model@
+                        == Self::limbs_value_spec(self.limbs_le@)
+                            / Self::limbs_value_spec(rhs.limbs_le@)
+                );
+                assert(out.model@ * rhs.model@ <= self.model@);
+                assert(self.model@ < (out.model@ + 1) * rhs.model@);
+                assert(out.model@ == self.model@ / rhs.model@);
+
+                if rhs.model@ == 1 {
+                    assert(self.model@ / rhs.model@ == self.model@);
+                    assert(out.model@ == self.model@);
+                }
+                if self.model@ < rhs.model@ {
+                    let xi = self.model@ as int;
+                    let di = rhs.model@ as int;
+                    assert(0 <= xi < di);
+                    lemma_basic_div(xi, di);
+                    assert(xi / di == 0);
+                    assert((self.model@ / rhs.model@) as int == xi / di);
+                    assert(self.model@ / rhs.model@ == 0);
+                    assert(out.model@ == 0);
+                }
+                if self.model@ == rhs.model@ {
+                    assert(self.model@ / rhs.model@ == rhs.model@ / rhs.model@);
+                    assert(rhs.model@ / rhs.model@ == 1);
+                    assert(out.model@ == 1);
+                }
+            }
+        }
+        out
+    }
+
+    pub fn rem(&self, rhs: &Self) -> (out: Self)
+        requires
+            self.wf_spec(),
+            rhs.wf_spec(),
+        ensures
+            out.wf_spec(),
+            rhs.model@ == 0 ==> out.model@ == 0,
+            rhs.model@ > 0 ==> out.model@ < rhs.model@,
+            rhs.model@ > 0 ==> out.model@ == self.model@ % rhs.model@,
+            rhs.model@ > 0
+                ==> (out.model@ == 0 <==> exists|k: nat| #[trigger] (k * rhs.model@) == self.model@),
+            rhs.model@ > 0 && rhs.model@ == 1 ==> out.model@ == 0,
+            rhs.model@ > 0 && self.model@ < rhs.model@ ==> out.model@ == self.model@,
+            rhs.model@ > 0 && self.model@ == rhs.model@ ==> out.model@ == 0,
+    {
+        let out = self.rem_limbwise_small_total(rhs);
+        proof {
+            assert(self.model@ == Self::limbs_value_spec(self.limbs_le@));
+            assert(rhs.model@ == Self::limbs_value_spec(rhs.limbs_le@));
+            if rhs.model@ == 0 {
+                assert(Self::limbs_value_spec(rhs.limbs_le@) == 0);
+                assert(out.model@ == 0);
+            }
+            if rhs.model@ > 0 {
+                assert(Self::limbs_value_spec(rhs.limbs_le@) > 0);
+                assert(out.model@ < Self::limbs_value_spec(rhs.limbs_le@));
+                assert(
+                    out.model@
+                        == Self::limbs_value_spec(self.limbs_le@)
+                            % Self::limbs_value_spec(rhs.limbs_le@)
+                );
+                assert(out.model@ < rhs.model@);
+                assert(out.model@ == self.model@ % rhs.model@);
+
+                if out.model@ == 0 {
+                    assert(self.model@ % rhs.model@ == 0);
+                    let k = Self::lemma_mod_zero_implies_multiple_nat(self.model@, rhs.model@);
+                    assert(self.model@ == k * rhs.model@);
+                    assert(exists|kw: nat| #[trigger] (kw * rhs.model@) == self.model@) by {
+                        let kw = k;
+                        assert(kw * rhs.model@ == self.model@);
+                    };
+                }
+                if exists|kw: nat| #[trigger] (kw * rhs.model@) == self.model@ {
+                    let k = choose|kw: nat| #[trigger] (kw * rhs.model@) == self.model@;
+                    assert(k * rhs.model@ == self.model@);
+                    assert(self.model@ == k * rhs.model@);
+                    Self::lemma_multiple_implies_mod_zero_nat(self.model@, rhs.model@, k);
+                    assert(self.model@ % rhs.model@ == 0);
+                    assert(out.model@ == 0);
+                }
+
+                if rhs.model@ == 1 {
+                    assert(out.model@ < 1);
+                    assert(out.model@ == 0);
+                }
+                if self.model@ < rhs.model@ {
+                    lemma_small_mod(self.model@, rhs.model@);
+                    assert(self.model@ % rhs.model@ == self.model@);
+                    assert(out.model@ == self.model@);
+                }
+                if self.model@ == rhs.model@ {
+                    let di = rhs.model@ as int;
+                    lemma_mod_self_0(di);
+                    assert(di % di == 0);
+                    assert((rhs.model@ % rhs.model@) as int == di % di);
+                    assert(rhs.model@ % rhs.model@ == 0);
+                    assert(self.model@ % rhs.model@ == 0);
+                    assert(out.model@ == 0);
+                }
+            }
+        }
+        out
+    }
+
+    pub fn div_rem(&self, rhs: &Self) -> (out: (Self, Self))
+        requires
+            self.wf_spec(),
+            rhs.wf_spec(),
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            rhs.model@ == 0 ==> out.0.model@ == 0 && out.1.model@ == 0,
+            rhs.model@ > 0 ==> self.model@ == out.0.model@ * rhs.model@ + out.1.model@,
+            rhs.model@ > 0 ==> out.1.model@ < rhs.model@,
+            rhs.model@ > 0 ==> out.0.model@ == self.model@ / rhs.model@,
+            rhs.model@ > 0 ==> out.1.model@ == self.model@ % rhs.model@,
+    {
+        let out = self.div_rem_limbwise_small_total(rhs);
+        proof {
+            assert(self.model@ == Self::limbs_value_spec(self.limbs_le@));
+            assert(rhs.model@ == Self::limbs_value_spec(rhs.limbs_le@));
+            if rhs.model@ == 0 {
+                assert(Self::limbs_value_spec(rhs.limbs_le@) == 0);
+                assert(out.0.model@ == 0);
+                assert(out.1.model@ == 0);
+            }
+            if rhs.model@ > 0 {
+                assert(Self::limbs_value_spec(rhs.limbs_le@) > 0);
+                assert(
+                    Self::limbs_value_spec(self.limbs_le@)
+                        == out.0.model@ * Self::limbs_value_spec(rhs.limbs_le@) + out.1.model@
+                );
+                assert(out.1.model@ < Self::limbs_value_spec(rhs.limbs_le@));
+                assert(
+                    out.0.model@
+                        == Self::limbs_value_spec(self.limbs_le@)
+                            / Self::limbs_value_spec(rhs.limbs_le@)
+                );
+                assert(
+                    out.1.model@
+                        == Self::limbs_value_spec(self.limbs_le@)
+                            % Self::limbs_value_spec(rhs.limbs_le@)
+                );
+                assert(self.model@ == out.0.model@ * rhs.model@ + out.1.model@);
+                assert(out.1.model@ < rhs.model@);
+                assert(out.0.model@ == self.model@ / rhs.model@);
+                assert(out.1.model@ == self.model@ % rhs.model@);
+            }
         }
         out
     }
@@ -1954,6 +2295,350 @@ impl RuntimeBigNatWitness {
         acc
     }
 
+    /// Total small-limb division helper used by scalar witness plumbing.
+    ///
+    /// Computes the floor quotient of `self / rhs` using monotone
+    /// multiplication-by-addition accumulation. Returns `0` when `rhs == 0`.
+    pub fn div_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
+        requires
+            self.wf_spec(),
+            rhs.wf_spec(),
+        ensures
+            out.wf_spec(),
+            Self::limbs_value_spec(rhs.limbs_le@) == 0 ==> out.model@ == 0,
+            Self::limbs_value_spec(rhs.limbs_le@) > 0
+                ==> out.model@ * Self::limbs_value_spec(rhs.limbs_le@)
+                    <= Self::limbs_value_spec(self.limbs_le@),
+            Self::limbs_value_spec(rhs.limbs_le@) > 0
+                ==> Self::limbs_value_spec(self.limbs_le@)
+                    < (out.model@ + 1) * Self::limbs_value_spec(rhs.limbs_le@),
+            Self::limbs_value_spec(rhs.limbs_le@) > 0
+                ==> out.model@
+                    == Self::limbs_value_spec(self.limbs_le@)
+                        / Self::limbs_value_spec(rhs.limbs_le@),
+    {
+        let ghost self_val = Self::limbs_value_spec(self.limbs_le@);
+        let ghost rhs_val = Self::limbs_value_spec(rhs.limbs_le@);
+        if rhs.is_zero() {
+            let out = Self::zero();
+            proof {
+                assert(rhs.model@ == rhs_val);
+                assert(rhs.model@ == 0);
+                assert(rhs_val == 0);
+                assert(out.model@ == 0);
+            }
+            out
+        } else {
+            let one = Self::from_u32(1);
+            let mut q = Self::zero();
+            let mut accum = Self::zero();
+            let mut next_accum = accum.add_limbwise_small_total(rhs);
+            let mut cmp = next_accum.cmp_limbwise_small_total(self);
+            proof {
+                assert(rhs.model@ == rhs_val);
+                assert(rhs.model@ != 0);
+                assert(rhs_val > 0);
+                assert(self.model@ == self_val);
+                assert(q.model@ == 0);
+                assert(accum.model@ == 0);
+                assert(one.model@ == 1);
+                assert(accum.model@ == q.model@ * rhs_val);
+                assert(next_accum.model@ == accum.model@ + rhs_val);
+                assert(cmp == -1 || cmp == 0 || cmp == 1);
+                assert(accum.model@ <= self_val);
+                assert(q.model@ <= self_val);
+                if cmp == -1 {
+                    assert(Self::limbs_value_spec(next_accum.limbs_le@) < Self::limbs_value_spec(self.limbs_le@));
+                    assert(next_accum.model@ < self_val);
+                    assert(next_accum.model@ <= self_val);
+                }
+                if cmp == 0 {
+                    assert(Self::limbs_value_spec(next_accum.limbs_le@) == Self::limbs_value_spec(self.limbs_le@));
+                    assert(next_accum.model@ == self_val);
+                    assert(next_accum.model@ <= self_val);
+                }
+                if cmp == 1 {
+                    assert(Self::limbs_value_spec(next_accum.limbs_le@) > Self::limbs_value_spec(self.limbs_le@));
+                    assert(self_val < next_accum.model@);
+                }
+            }
+
+            while cmp <= 0
+                invariant
+                    q.wf_spec(),
+                    accum.wf_spec(),
+                    next_accum.wf_spec(),
+                    self.wf_spec(),
+                    rhs.wf_spec(),
+                    one.wf_spec(),
+                    one.model@ == 1,
+                    rhs_val == rhs.model@,
+                    rhs_val > 0,
+                    self_val == self.model@,
+                    cmp == -1 || cmp == 0 || cmp == 1,
+                    cmp <= 0 ==> next_accum.model@ <= self_val,
+                    cmp == 1 ==> self_val < next_accum.model@,
+                    accum.model@ == q.model@ * rhs_val,
+                    next_accum.model@ == accum.model@ + rhs_val,
+                    accum.model@ <= self_val,
+                    q.model@ <= self_val,
+                decreases self_val - q.model@,
+            {
+                let new_q = q.add_limbwise_small_total(&one);
+                let new_accum = next_accum;
+                let new_next_accum = new_accum.add_limbwise_small_total(rhs);
+                proof {
+                    assert(cmp != 1);
+                    assert(next_accum.model@ <= self_val);
+                    assert(Self::limbs_value_spec(q.limbs_le@) == q.model@);
+                    assert(Self::limbs_value_spec(one.limbs_le@) == one.model@);
+                    assert(new_q.model@ == q.model@ + one.model@);
+                    assert(new_q.model@ == q.model@ + 1);
+                    assert(new_accum.model@ == next_accum.model@);
+                    assert(new_accum.model@ == accum.model@ + rhs_val);
+                    assert(accum.model@ == q.model@ * rhs_val);
+                    assert(new_accum.model@ == q.model@ * rhs_val + rhs_val);
+                    assert(q.model@ * rhs_val + rhs_val == (q.model@ + 1) * rhs_val)
+                        by (nonlinear_arith);
+                    assert(new_accum.model@ == (q.model@ + 1) * rhs_val);
+                    assert(new_accum.model@ == new_q.model@ * rhs_val);
+                    assert(new_accum.model@ <= self_val);
+                    assert(rhs_val >= 1);
+                    if rhs_val == 1 {
+                        assert((q.model@ + 1) * rhs_val == q.model@ + 1);
+                    } else {
+                        assert(rhs_val > 1);
+                        assert(rhs_val == 1 + (rhs_val - 1));
+                        assert(
+                            (q.model@ + 1) * rhs_val
+                                == (q.model@ + 1) * 1 + (q.model@ + 1) * (rhs_val - 1)
+                        ) by (nonlinear_arith);
+                        assert((q.model@ + 1) * (rhs_val - 1) >= 0);
+                        assert((q.model@ + 1) * rhs_val >= q.model@ + 1);
+                    }
+                    assert((q.model@ + 1) * rhs_val >= q.model@ + 1);
+                    assert(q.model@ + 1 <= self_val);
+                    assert(new_q.model@ <= self_val);
+                    assert(self_val - new_q.model@ < self_val - q.model@);
+                    assert(new_next_accum.model@ == new_accum.model@ + rhs_val);
+                }
+                q = new_q;
+                accum = new_accum;
+                next_accum = new_next_accum;
+                cmp = next_accum.cmp_limbwise_small_total(self);
+                proof {
+                    assert(cmp == -1 || cmp == 0 || cmp == 1);
+                    if cmp == -1 {
+                        assert(Self::limbs_value_spec(next_accum.limbs_le@) < Self::limbs_value_spec(self.limbs_le@));
+                        assert(next_accum.model@ < self_val);
+                        assert(next_accum.model@ <= self_val);
+                    }
+                    if cmp == 0 {
+                        assert(Self::limbs_value_spec(next_accum.limbs_le@) == Self::limbs_value_spec(self.limbs_le@));
+                        assert(next_accum.model@ == self_val);
+                        assert(next_accum.model@ <= self_val);
+                    }
+                    if cmp == 1 {
+                        assert(Self::limbs_value_spec(next_accum.limbs_le@) > Self::limbs_value_spec(self.limbs_le@));
+                        assert(self_val < next_accum.model@);
+                    }
+                }
+            }
+            proof {
+                assert(!(cmp <= 0));
+                assert(cmp == -1 || cmp == 0 || cmp == 1);
+                assert(cmp == 1);
+                assert(self_val < next_accum.model@);
+                assert(accum.model@ == q.model@ * rhs_val);
+                assert(next_accum.model@ == accum.model@ + rhs_val);
+                assert(q.model@ * rhs_val <= self_val);
+                assert(next_accum.model@ == q.model@ * rhs_val + rhs_val);
+                assert(q.model@ * rhs_val + rhs_val == (q.model@ + 1) * rhs_val)
+                    by (nonlinear_arith);
+                assert(next_accum.model@ == (q.model@ + 1) * rhs_val);
+                assert(self_val < (q.model@ + 1) * rhs_val);
+
+                assert(q.model@ * rhs_val <= self_val);
+                let r = (self_val - q.model@ * rhs_val) as nat;
+                assert(r == self_val - q.model@ * rhs_val);
+                assert(q.model@ * rhs_val + r == self_val);
+                assert(self_val == q.model@ * rhs_val + r);
+                assert(q.model@ * rhs_val + r < q.model@ * rhs_val + rhs_val);
+                assert(r < rhs_val);
+
+                let xi = self_val as int;
+                let di = rhs_val as int;
+                lemma_fundamental_div_mod(xi, di);
+                lemma_mod_pos_bound(xi, di);
+                assert((self_val / rhs_val) as int == xi / di);
+                assert((self_val % rhs_val) as int == xi % di);
+                let xi = self_val as int;
+                let di = rhs_val as int;
+                lemma_fundamental_div_mod(xi, di);
+                lemma_mod_pos_bound(xi, di);
+                assert((self_val / rhs_val) as int == xi / di);
+                assert((self_val % rhs_val) as int == xi % di);
+                assert(self_val == (self_val / rhs_val) * rhs_val + self_val % rhs_val);
+                assert(self_val % rhs_val < rhs_val);
+                Self::lemma_div_rem_unique_nat(
+                    self_val,
+                    rhs_val,
+                    q.model@,
+                    r,
+                    self_val / rhs_val,
+                    self_val % rhs_val,
+                );
+                assert(q.model@ == self_val / rhs_val);
+            }
+            q
+        }
+    }
+
+    /// Total small-limb remainder helper used by scalar witness plumbing.
+    ///
+    /// Computes `self % rhs` with total semantics, returning `0` when `rhs == 0`.
+    pub fn rem_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
+        requires
+            self.wf_spec(),
+            rhs.wf_spec(),
+        ensures
+            out.wf_spec(),
+            Self::limbs_value_spec(rhs.limbs_le@) == 0 ==> out.model@ == 0,
+            Self::limbs_value_spec(rhs.limbs_le@) > 0 ==> out.model@ < Self::limbs_value_spec(rhs.limbs_le@),
+            Self::limbs_value_spec(rhs.limbs_le@) > 0
+                ==> out.model@
+                    == Self::limbs_value_spec(self.limbs_le@)
+                        % Self::limbs_value_spec(rhs.limbs_le@),
+    {
+        let pair = self.div_rem_limbwise_small_total(rhs);
+        let out = pair.1;
+        proof {
+            let ghost rhs_val = Self::limbs_value_spec(rhs.limbs_le@);
+            assert(out.wf_spec());
+            if rhs_val == 0 {
+                assert(pair.1.model@ == 0);
+                assert(out.model@ == 0);
+            }
+            if rhs_val > 0 {
+                assert(pair.1.model@ < rhs_val);
+                assert(out.model@ < rhs_val);
+                assert(pair.1.model@ == Self::limbs_value_spec(self.limbs_le@) % rhs_val);
+                assert(out.model@ == Self::limbs_value_spec(self.limbs_le@) % rhs_val);
+            }
+        }
+        out
+    }
+
+    /// Total small-limb quotient/remainder helper used by scalar witness plumbing.
+    ///
+    /// Returns `(q, r)` where `q = floor(self / rhs)` and `r = self % rhs`.
+    /// Uses total semantics `(0, 0)` when `rhs == 0`.
+    pub fn div_rem_limbwise_small_total(&self, rhs: &Self) -> (out: (Self, Self))
+        requires
+            self.wf_spec(),
+            rhs.wf_spec(),
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            Self::limbs_value_spec(rhs.limbs_le@) == 0 ==> out.0.model@ == 0 && out.1.model@ == 0,
+            Self::limbs_value_spec(rhs.limbs_le@) > 0
+                ==> Self::limbs_value_spec(self.limbs_le@)
+                    == out.0.model@ * Self::limbs_value_spec(rhs.limbs_le@) + out.1.model@,
+            Self::limbs_value_spec(rhs.limbs_le@) > 0
+                ==> out.1.model@ < Self::limbs_value_spec(rhs.limbs_le@),
+            Self::limbs_value_spec(rhs.limbs_le@) > 0
+                ==> out.0.model@
+                    == Self::limbs_value_spec(self.limbs_le@)
+                        / Self::limbs_value_spec(rhs.limbs_le@),
+            Self::limbs_value_spec(rhs.limbs_le@) > 0
+                ==> out.1.model@
+                    == Self::limbs_value_spec(self.limbs_le@)
+                        % Self::limbs_value_spec(rhs.limbs_le@),
+    {
+        let ghost self_val = Self::limbs_value_spec(self.limbs_le@);
+        let ghost rhs_val = Self::limbs_value_spec(rhs.limbs_le@);
+        if rhs.is_zero() {
+            let q = Self::zero();
+            let r = Self::zero();
+            proof {
+                assert(rhs.model@ == rhs_val);
+                assert(rhs.model@ == 0);
+                assert(rhs_val == 0);
+                assert(q.model@ == 0);
+                assert(r.model@ == 0);
+            }
+            (q, r)
+        } else {
+            let q = self.div_limbwise_small_total(rhs);
+            let prod = q.mul_limbwise_small_total(rhs);
+            let r = self.sub_limbwise_small_total(&prod);
+            proof {
+                assert(rhs.model@ == rhs_val);
+                assert(rhs.model@ > 0);
+                assert(rhs_val > 0);
+                assert(self.model@ == self_val);
+                assert(q.model@ * rhs_val <= self_val);
+                assert(self_val < (q.model@ + 1) * rhs_val);
+                assert(prod.model@ == q.model@ * rhs_val);
+                assert(prod.model@ <= self_val);
+
+                assert(Self::limbs_value_spec(self.limbs_le@) == self_val);
+                assert(Self::limbs_value_spec(prod.limbs_le@) == prod.model@);
+
+                if self_val <= prod.model@ {
+                    assert(self_val == prod.model@);
+                    assert(Self::limbs_value_spec(self.limbs_le@) <= Self::limbs_value_spec(prod.limbs_le@));
+                    assert(r.model@ == 0);
+                    assert(self_val == q.model@ * rhs_val);
+                    assert(self_val == q.model@ * rhs_val + r.model@);
+                    assert(r.model@ < rhs_val);
+                } else {
+                    assert(prod.model@ < self_val);
+                    assert(Self::limbs_value_spec(prod.limbs_le@) < Self::limbs_value_spec(self.limbs_le@));
+                    assert(
+                        r.model@
+                            == Self::limbs_value_spec(self.limbs_le@)
+                                - Self::limbs_value_spec(prod.limbs_le@)
+                    );
+                    assert(r.model@ == self_val - prod.model@);
+                    assert((self_val - prod.model@) + prod.model@ == self_val);
+                    assert(r.model@ + prod.model@ == self_val);
+                    assert(r.model@ + q.model@ * rhs_val == self_val);
+                    assert(self_val == q.model@ * rhs_val + r.model@);
+                    assert((q.model@ + 1) * rhs_val == q.model@ * rhs_val + rhs_val)
+                        by (nonlinear_arith);
+                    assert(self_val < q.model@ * rhs_val + rhs_val);
+                    assert(q.model@ * rhs_val + r.model@ < q.model@ * rhs_val + rhs_val);
+                    assert(r.model@ < rhs_val);
+                }
+
+                if self_val <= prod.model@ {
+                    assert(self_val == q.model@ * rhs_val + r.model@);
+                } else {
+                    assert(self_val == q.model@ * rhs_val + r.model@);
+                }
+
+                let xi = self_val as int;
+                let di = rhs_val as int;
+                let qi = q.model@ as int;
+                let ri = r.model@ as int;
+                assert(di != 0);
+                assert(0 <= ri < di);
+                assert(xi == qi * di + ri);
+                lemma_fundamental_div_mod_converse(xi, di, qi, ri);
+                assert(qi == xi / di);
+                assert(ri == xi % di);
+                assert((self_val / rhs_val) as int == xi / di);
+                assert((self_val % rhs_val) as int == xi % di);
+                assert(q.model@ as int == (self_val / rhs_val) as int);
+                assert(r.model@ as int == (self_val % rhs_val) as int);
+                assert(q.model@ == self_val / rhs_val);
+                assert(r.model@ == self_val % rhs_val);
+            }
+            (q, r)
+        }
+    }
+
     /// Total small-limb compare helper used by scalar witness plumbing.
     ///
     /// Returns the exact sign of `(self - rhs)` as `-1/0/1` using full
@@ -1965,6 +2650,7 @@ impl RuntimeBigNatWitness {
             out == 0 ==> Self::limbs_value_spec(self.limbs_le@) == Self::limbs_value_spec(rhs.limbs_le@),
             out == 1 ==> Self::limbs_value_spec(self.limbs_le@) > Self::limbs_value_spec(rhs.limbs_le@),
             self.limbs_le@ == rhs.limbs_le@ ==> out == 0,
+            self.wf_spec() && rhs.wf_spec() && out == 0 ==> self.limbs_le@ == rhs.limbs_le@,
     {
         let alen = Self::trimmed_len_exec(&self.limbs_le);
         let blen = Self::trimmed_len_exec(&rhs.limbs_le);
@@ -2133,6 +2819,36 @@ impl RuntimeBigNatWitness {
                     Self::limbs_value_spec(self.limbs_le@)
                         == Self::limbs_value_spec(rhs.limbs_le@)
                 );
+                assert(self.wf_spec() && rhs.wf_spec() ==> self.limbs_le@ == rhs.limbs_le@) by {
+                    if self.wf_spec() && rhs.wf_spec() {
+                        assert(Self::canonical_limbs_spec(self.limbs_le@));
+                        assert(Self::canonical_limbs_spec(rhs.limbs_le@));
+
+                        if alen_nat < self.limbs_le@.len() {
+                            assert(self.limbs_le@.len() > 0);
+                            let last = self.limbs_le@.len() - 1;
+                            assert(alen_nat <= last);
+                            assert(last < self.limbs_le@.len());
+                            assert(self.limbs_le@[last as int] == 0u32);
+                            assert(self.limbs_le@[last as int] != 0u32);
+                        }
+                        assert(alen_nat == self.limbs_le@.len());
+
+                        if blen_nat < rhs.limbs_le@.len() {
+                            assert(rhs.limbs_le@.len() > 0);
+                            let last = rhs.limbs_le@.len() - 1;
+                            assert(blen_nat <= last);
+                            assert(last < rhs.limbs_le@.len());
+                            assert(rhs.limbs_le@[last as int] == 0u32);
+                            assert(rhs.limbs_le@[last as int] != 0u32);
+                        }
+                        assert(blen_nat == rhs.limbs_le@.len());
+                        assert(self.limbs_le@.len() == rhs.limbs_le@.len());
+                        assert(self.limbs_le@.subrange(0, alen as int) == self.limbs_le@);
+                        assert(rhs.limbs_le@.subrange(0, blen as int) == rhs.limbs_le@);
+                        assert(self.limbs_le@ == rhs.limbs_le@);
+                    }
+                };
             }
             0i8
         }

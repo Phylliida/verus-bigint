@@ -112,6 +112,18 @@ impl RuntimeBigNatWitness {
         self.mul_limbwise_small_total(rhs)
     }
 
+    pub fn div(&self, rhs: &Self) -> Self {
+        self.div_limbwise_small_total(rhs)
+    }
+
+    pub fn rem(&self, rhs: &Self) -> Self {
+        self.rem_limbwise_small_total(rhs)
+    }
+
+    pub fn div_rem(&self, rhs: &Self) -> (Self, Self) {
+        self.div_rem_limbwise_small_total(rhs)
+    }
+
     pub fn mul_limbwise_small_total(&self, rhs: &Self) -> Self {
         let mut acc = Self::zero();
         let mut shifted = self.copy_small_total();
@@ -121,6 +133,57 @@ impl RuntimeBigNatWitness {
             shifted = shifted.shift_base_once_total();
         }
         acc
+    }
+
+    pub fn div_limbwise_small_total(&self, rhs: &Self) -> Self {
+        if rhs.is_zero() {
+            return Self::zero();
+        }
+        if self.cmp_limbwise_small_total(rhs) < 0 {
+            return Self::zero();
+        }
+
+        let one = Self::from_u32(1);
+        let mut quotient = Self::zero();
+        let mut remainder = self.copy_small_total();
+
+        while remainder.cmp_limbwise_small_total(rhs) >= 0 {
+            let mut chunk = rhs.copy_small_total();
+            let mut chunk_q = one.copy_small_total();
+
+            loop {
+                let doubled_chunk = chunk.add_limbwise_small_total(&chunk);
+                if remainder.cmp_limbwise_small_total(&doubled_chunk) < 0 {
+                    break;
+                }
+                chunk = doubled_chunk;
+                chunk_q = chunk_q.add_limbwise_small_total(&chunk_q);
+            }
+
+            remainder = remainder.sub_limbwise_small_total(&chunk);
+            quotient = quotient.add_limbwise_small_total(&chunk_q);
+        }
+
+        quotient
+    }
+
+    pub fn rem_limbwise_small_total(&self, rhs: &Self) -> Self {
+        if rhs.is_zero() {
+            return Self::zero();
+        }
+        let quotient = self.div_limbwise_small_total(rhs);
+        let product = quotient.mul_limbwise_small_total(rhs);
+        self.sub_limbwise_small_total(&product)
+    }
+
+    pub fn div_rem_limbwise_small_total(&self, rhs: &Self) -> (Self, Self) {
+        if rhs.is_zero() {
+            return (Self::zero(), Self::zero());
+        }
+        let quotient = self.div_limbwise_small_total(rhs);
+        let product = quotient.mul_limbwise_small_total(rhs);
+        let remainder = self.sub_limbwise_small_total(&product);
+        (quotient, remainder)
     }
 
     pub fn cmp_limbwise_small_total(&self, rhs: &Self) -> i8 {
