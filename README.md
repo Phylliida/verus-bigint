@@ -26,7 +26,7 @@ This crate currently mirrors the bigint witness implementation from VerusCAD.
   - `./scripts/check.sh --target-a-strict-smoke --forbid-rug-normal-deps --forbid-trusted-escapes`
 - Run the CI-equivalent strict gate locally (kept aligned with `.github/workflows/check.yml` by `check.sh`, including strict command flags and Verus toolchain pin):
   - `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89`
-  - This also preflights workflow structure so CI keeps the required end-to-end wiring (`Build Verus tools` before strict checks, expected working directories, and `VERUS_ROOT` env wiring) and enforces fail-fast step behavior (`set -euo pipefail`, no `continue-on-error: true`, no `|| true` masking).
+  - This also preflights workflow checkout + structure wiring so CI keeps the required end-to-end setup (`Checkout verus-bigint` path, `Checkout Verus` repository/path, `Build Verus tools` before strict checks, expected working directories, and `VERUS_ROOT` env wiring) and enforces fail-fast step behavior (`set -euo pipefail`, no `continue-on-error: true`, no `|| true` masking).
 - Run checks in offline mode where possible:
   - `./scripts/check.sh --offline`
 - Run runtime tests directly (outside `check.sh`) in local non-Verus mode:
