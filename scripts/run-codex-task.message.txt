@@ -1,1 +1,1 @@
-Added a trusted-escape source gate to `check.sh` (`--forbid-trusted-escapes`), wired strict CI/docs to use it, and revalidated runtime, Verus, and rug-oracle checks; 3 roadmap tasks remain.
+Added an opt-in target-a-strict compile guard plus check.sh --target-a-strict-smoke (wired into CI/docs) and revalidated strict and rug-oracle checks; 3 roadmap tasks remain.
