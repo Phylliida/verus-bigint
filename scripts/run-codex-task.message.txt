@@ -1,1 +1,1 @@
-Added a CI checkout-wiring preflight to `scripts/check.sh` with README/trust-doc updates and full strict revalidation (`89 verified, 0 errors`; oracle tests 6/6), and 2 roadmap tasks remain.
+Hardened CI workflow token-permission and checkout-credential preflights in `check.sh` and `.github/workflows/check.yml`, revalidated strict checks (`89 verified, 0 errors`; rug-oracle tests 6/6), and 2 roadmap tasks remain.

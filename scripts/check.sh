@@ -176,6 +176,26 @@ extract_named_workflow_step_block() {
   ' "$workflow_file"
 }
 
+extract_top_level_permissions_block() {
+  local workflow_file="$1"
+
+  awk '
+    /^permissions:[[:space:]]*$/ {
+      in_permissions = 1
+      print $0
+      next
+    }
+
+    in_permissions && /^[^[:space:]]/ {
+      exit
+    }
+
+    in_permissions {
+      print $0
+    }
+  ' "$workflow_file"
+}
+
 check_workflow_step_fail_fast() {
   local step_name="$1"
   local step_block="$2"
@@ -192,6 +212,43 @@ check_workflow_step_fail_fast() {
 
   if printf '%s\n' "$step_block" | rg -q '\|\|[[:space:]]*true'; then
     echo "error: workflow step '$step_name' must not mask failures with '|| true'"
+    exit 1
+  fi
+}
+
+check_ci_workflow_permissions_hardening() {
+  local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
+  local permissions_block=""
+
+  if [[ ! -f "$workflow_file" ]]; then
+    echo "error: workflow file not found: $workflow_file"
+    exit 1
+  fi
+
+  permissions_block="$(extract_top_level_permissions_block "$workflow_file")"
+  if [[ -z "$permissions_block" ]]; then
+    echo "error: workflow must declare a top-level permissions block"
+    echo "expected:"
+    echo "permissions:"
+    echo "  contents: read"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$permissions_block" | rg -q '^[[:space:]]+contents:[[:space:]]*read[[:space:]]*$'; then
+    echo "error: workflow permissions must include 'contents: read'"
+    printf '%s\n' "$permissions_block"
+    exit 1
+  fi
+
+  if printf '%s\n' "$permissions_block" | rg -q ':[[:space:]]*write([[:space:]]|$)'; then
+    echo "error: workflow permissions block must not grant write permissions"
+    printf '%s\n' "$permissions_block"
+    exit 1
+  fi
+
+  if printf '%s\n' "$permissions_block" | rg -q ':[[:space:]]*(read-all|write-all)([[:space:]]|$)'; then
+    echo "error: workflow permissions must avoid broad read-all/write-all grants"
+    printf '%s\n' "$permissions_block"
     exit 1
   fi
 }
@@ -251,6 +308,10 @@ check_ci_workflow_checkout_wiring() {
     echo "error: workflow 'Checkout verus-bigint' step must set path: verus-bigint"
     exit 1
   fi
+  if ! printf '%s\n' "$checkout_bigint_step" | rg -q 'persist-credentials:[[:space:]]*false'; then
+    echo "error: workflow 'Checkout verus-bigint' step must set persist-credentials: false"
+    exit 1
+  fi
 
   if ! printf '%s\n' "$checkout_verus_step" | rg -q 'uses:[[:space:]]*actions/checkout@v4'; then
     echo "error: workflow 'Checkout Verus' step must use actions/checkout@v4"
@@ -262,6 +323,10 @@ check_ci_workflow_checkout_wiring() {
   fi
   if ! printf '%s\n' "$checkout_verus_step" | rg -q 'path:[[:space:]]*verus'; then
     echo "error: workflow 'Checkout Verus' step must set path: verus"
+    exit 1
+  fi
+  if ! printf '%s\n' "$checkout_verus_step" | rg -q 'persist-credentials:[[:space:]]*false'; then
+    echo "error: workflow 'Checkout Verus' step must set persist-credentials: false"
     exit 1
   fi
 }
@@ -746,6 +811,9 @@ check_runtime_verified_api_parity
 
 echo "[check] Verifying CI toolchain alignment (workflow vs check.sh)"
 check_ci_toolchain_alignment
+
+echo "[check] Verifying CI workflow permissions hardening"
+check_ci_workflow_permissions_hardening
 
 echo "[check] Verifying CI workflow checkout wiring"
 check_ci_workflow_checkout_wiring

@@ -54,6 +54,7 @@
 - [x] Harden runtime/verified API drift gate to compare normalized public method signatures (args + return types), not just method names
 - [x] In strict-smoke mode, require baseline and `target-a-strict` Verus runs to report matching verified-item counts
 - [x] Add CI workflow structure preflight so strict checks fail on workflow wiring drift (required step order, working directories, and `VERUS_ROOT` env)
+- [x] Enforce least-privilege CI workflow token posture (`permissions: contents: read`, checkout `persist-credentials: false`) and gate it in local strict preflight checks
 
 ## Phase 6: Trusted Surface Reduction
 
@@ -202,3 +203,6 @@
 - Completed: Updated `README.md` and `docs/runtime-bigint-trust-assumptions.md` to document that strict local checks now enforce CI checkout wiring in addition to workflow structure, toolchain pinning, and strict-command alignment.
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89` passes after checkout-wiring hardening (runtime tests 4/4; rug-oracle tests 6/6; baseline + strict-feature Verus each report `89 verified, 0 errors`; verified-count floor/parity gates pass).
 - Failed/blocked attempt: direct GitHub-hosted CI execution remains unobservable in this sandbox (`gh` and `act` are still unavailable in PATH), so the `in CI` exit criterion still cannot be directly witnessed here despite the stricter workflow preflights.
+- Completed: Hardened `.github/workflows/check.yml` token posture with top-level `permissions: contents: read` and `persist-credentials: false` on both checkout steps (`Checkout verus-bigint`, `Checkout Verus`).
+- Completed: Added `scripts/check.sh` CI permissions/token preflight (`check_ci_workflow_permissions_hardening`) and checkout-step assertions so strict checks fail if workflow permissions drift to broader grants (`write`, `read-all`, `write-all`) or if checkout steps re-enable persisted credentials.
+- Completed: Updated `README.md` and `docs/runtime-bigint-trust-assumptions.md` to document the new workflow permission + checkout credential preflights.
