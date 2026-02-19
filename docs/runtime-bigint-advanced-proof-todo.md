@@ -52,3 +52,5 @@ Properties that are useful for downstream protocol work and API ergonomics.
 
 - Ongoing wrapper expansion is tracked in
   `docs/runtime-bigint-wrapper-proof-todo.md`.
+- Length-bound proof work is tracked in
+  `docs/runtime-bigint-length-bound-proof-todo.md`.

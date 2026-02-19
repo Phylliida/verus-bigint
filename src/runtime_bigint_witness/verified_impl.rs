@@ -781,6 +781,31 @@ impl RuntimeBigNatWitness {
         assert(Self::pow_base_spec(n) <= Self::limbs_value_spec(limbs));
     }
 
+    proof fn lemma_len_bound_from_value_upper_pow(limbs: Seq<u32>, upper_exp: nat)
+        requires
+            Self::canonical_limbs_spec(limbs),
+            Self::limbs_value_spec(limbs) < Self::pow_base_spec(upper_exp),
+        ensures
+            limbs.len() <= upper_exp,
+    {
+        if limbs.len() > upper_exp {
+            assert(limbs.len() > 0);
+            assert(Self::canonical_limbs_spec(limbs));
+            assert(limbs[(limbs.len() - 1) as int] != 0u32);
+            let n = (limbs.len() - 1) as nat;
+            assert(upper_exp + 1 <= limbs.len());
+            assert(upper_exp + 1 <= n + 1);
+            assert(upper_exp <= n);
+            Self::lemma_pow_monotonic(upper_exp, n);
+            Self::lemma_limbs_value_ge_pow_last_nonzero(limbs);
+            assert(Self::pow_base_spec(upper_exp) <= Self::pow_base_spec(n));
+            assert(Self::pow_base_spec(n) <= Self::limbs_value_spec(limbs));
+            assert(Self::pow_base_spec(upper_exp) <= Self::limbs_value_spec(limbs));
+            assert(Self::limbs_value_spec(limbs) < Self::pow_base_spec(upper_exp));
+            assert(false);
+        }
+    }
+
     proof fn lemma_cmp_prefix_last_digit_gt(a: Seq<u32>, b: Seq<u32>)
         requires
             a.len() == b.len(),
@@ -3943,6 +3968,104 @@ impl RuntimeBigNatWitness {
         (add_ac, add_bc)
     }
 
+    /// Operation-level wrapper: computes sum and proves canonical length upper bounds.
+    pub fn lemma_model_add_len_bound_ops(a: &Self, b: &Self) -> (out: Self)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.wf_spec(),
+            out.model@ == a.model@ + b.model@,
+            a.limbs_le@.len() >= b.limbs_le@.len() ==> out.limbs_le@.len() <= a.limbs_le@.len() + 1,
+            b.limbs_le@.len() >= a.limbs_le@.len() ==> out.limbs_le@.len() <= b.limbs_le@.len() + 1,
+    {
+        let out_sum = a.add_limbwise_small_total(b);
+        proof {
+            let alen = a.limbs_le@.len();
+            let blen = b.limbs_le@.len();
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(out_sum.model@ == a.model@ + b.model@);
+            assert(out_sum.wf_spec());
+            assert(Self::canonical_limbs_spec(out_sum.limbs_le@));
+            Self::lemma_limbs_value_lt_pow_len(a.limbs_le@);
+            Self::lemma_limbs_value_lt_pow_len(b.limbs_le@);
+            assert(a.model@ < Self::pow_base_spec(alen));
+            assert(b.model@ < Self::pow_base_spec(blen));
+
+            if alen >= blen {
+                Self::lemma_pow_monotonic(blen, alen);
+                assert(Self::pow_base_spec(blen) <= Self::pow_base_spec(alen));
+                assert(b.model@ < Self::pow_base_spec(alen));
+                let p = Self::pow_base_spec(alen);
+                let ai = a.model@ as int;
+                let bi = b.model@ as int;
+                let pi = p as int;
+                assert(ai < pi);
+                assert(bi < pi);
+                assert(ai + bi < pi + pi);
+                assert((a.model@ + b.model@) as int == ai + bi);
+                assert((p + p) as int == pi + pi);
+                let sum_i = (a.model@ + b.model@) as int;
+                let two_p_i = (p + p) as int;
+                assert(sum_i < two_p_i);
+                assert(a.model@ + b.model@ < p + p);
+                assert(
+                    Self::pow_base_spec(alen) + Self::pow_base_spec(alen)
+                        == 2 * Self::pow_base_spec(alen)
+                ) by (nonlinear_arith);
+                Self::lemma_pow_base_succ(alen);
+                assert(Self::limb_base_spec() == 4_294_967_296);
+                assert(2 <= Self::limb_base_spec());
+                assert(
+                    2 * Self::pow_base_spec(alen)
+                        <= Self::limb_base_spec() * Self::pow_base_spec(alen)
+                ) by (nonlinear_arith);
+                assert(Self::pow_base_spec(alen + 1) == Self::limb_base_spec() * Self::pow_base_spec(alen));
+                assert(a.model@ + b.model@ < Self::pow_base_spec(alen + 1));
+                assert(out_sum.model@ < Self::pow_base_spec(alen + 1));
+                Self::lemma_len_bound_from_value_upper_pow(out_sum.limbs_le@, alen + 1);
+                assert(out_sum.limbs_le@.len() <= alen + 1);
+            }
+
+            if blen >= alen {
+                Self::lemma_pow_monotonic(alen, blen);
+                assert(Self::pow_base_spec(alen) <= Self::pow_base_spec(blen));
+                assert(a.model@ < Self::pow_base_spec(blen));
+                let p = Self::pow_base_spec(blen);
+                let ai = a.model@ as int;
+                let bi = b.model@ as int;
+                let pi = p as int;
+                assert(ai < pi);
+                assert(bi < pi);
+                assert(ai + bi < pi + pi);
+                assert((a.model@ + b.model@) as int == ai + bi);
+                assert((p + p) as int == pi + pi);
+                let sum_i = (a.model@ + b.model@) as int;
+                let two_p_i = (p + p) as int;
+                assert(sum_i < two_p_i);
+                assert(a.model@ + b.model@ < p + p);
+                assert(
+                    Self::pow_base_spec(blen) + Self::pow_base_spec(blen)
+                        == 2 * Self::pow_base_spec(blen)
+                ) by (nonlinear_arith);
+                Self::lemma_pow_base_succ(blen);
+                assert(Self::limb_base_spec() == 4_294_967_296);
+                assert(2 <= Self::limb_base_spec());
+                assert(
+                    2 * Self::pow_base_spec(blen)
+                        <= Self::limb_base_spec() * Self::pow_base_spec(blen)
+                ) by (nonlinear_arith);
+                assert(Self::pow_base_spec(blen + 1) == Self::limb_base_spec() * Self::pow_base_spec(blen));
+                assert(a.model@ + b.model@ < Self::pow_base_spec(blen + 1));
+                assert(out_sum.model@ < Self::pow_base_spec(blen + 1));
+                Self::lemma_len_bound_from_value_upper_pow(out_sum.limbs_le@, blen + 1);
+                assert(out_sum.limbs_le@.len() <= blen + 1);
+            }
+        }
+        out_sum
+    }
+
     /// Operation-level wrapper: computes both products and proves multiplicative commutativity.
     pub fn lemma_model_mul_commutative_ops(a: &Self, b: &Self) -> (out: (Self, Self))
         requires
@@ -4210,6 +4333,46 @@ impl RuntimeBigNatWitness {
         (div_a, div_b)
     }
 
+    /// Operation-level wrapper: computes quotient and proves quotient limb-length bound.
+    pub fn lemma_model_div_len_bound_pos_ops(a: &Self, d: &Self) -> (out: Self)
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ > 0,
+        ensures
+            out.wf_spec(),
+            out.model@ == a.model@ / d.model@,
+            out.limbs_le@.len() <= a.limbs_le@.len(),
+    {
+        let div_a = a.div_limbwise_small_total(d);
+        proof {
+            let alen = a.limbs_le@.len();
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(d.model@ == Self::limbs_value_spec(d.limbs_le@));
+            assert(d.model@ > 0);
+            assert(1 <= d.model@);
+            assert(div_a.wf_spec());
+            assert(Self::canonical_limbs_spec(div_a.limbs_le@));
+            assert(div_a.model@ * d.model@ <= a.model@);
+            assert(d.model@ == 1 + (d.model@ - 1));
+            assert(
+                div_a.model@ * d.model@
+                    == div_a.model@ + div_a.model@ * (d.model@ - 1)
+            ) by (nonlinear_arith);
+            assert(0 <= div_a.model@ * (d.model@ - 1));
+            assert(div_a.model@ <= div_a.model@ + div_a.model@ * (d.model@ - 1));
+            assert(div_a.model@ <= div_a.model@ * d.model@);
+            assert(div_a.model@ <= a.model@);
+            Self::lemma_limbs_value_lt_pow_len(a.limbs_le@);
+            assert(a.model@ < Self::pow_base_spec(alen));
+            assert(div_a.model@ < Self::pow_base_spec(alen));
+            Self::lemma_len_bound_from_value_upper_pow(div_a.limbs_le@, alen);
+            assert(div_a.limbs_le@.len() <= alen);
+            assert(div_a.model@ == a.model@ / d.model@);
+        }
+        div_a
+    }
+
     /// Operation-level wrapper: computes remainder and proves positive-divisor upper bound.
     pub fn lemma_model_rem_upper_bound_pos_ops(a: &Self, d: &Self) -> (out: Self)
         requires
@@ -4231,6 +4394,36 @@ impl RuntimeBigNatWitness {
             Self::lemma_model_rem_upper_bound_pos_from_total_contracts(a, d, &rem_a);
             assert(rem_a.model@ == a.model@ % d.model@);
             assert(rem_a.model@ < d.model@);
+        }
+        rem_a
+    }
+
+    /// Operation-level wrapper: computes remainder and proves remainder limb-length bound.
+    pub fn lemma_model_rem_len_bound_pos_ops(a: &Self, d: &Self) -> (out: Self)
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ > 0,
+        ensures
+            out.wf_spec(),
+            out.model@ == a.model@ % d.model@,
+            out.limbs_le@.len() <= d.limbs_le@.len(),
+    {
+        let rem_a = a.rem_limbwise_small_total(d);
+        proof {
+            let dlen = d.limbs_le@.len();
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(d.model@ == Self::limbs_value_spec(d.limbs_le@));
+            assert(d.model@ > 0);
+            assert(rem_a.wf_spec());
+            assert(Self::canonical_limbs_spec(rem_a.limbs_le@));
+            assert(rem_a.model@ == a.model@ % d.model@);
+            assert(rem_a.model@ < d.model@);
+            Self::lemma_limbs_value_lt_pow_len(d.limbs_le@);
+            assert(d.model@ < Self::pow_base_spec(dlen));
+            assert(rem_a.model@ < Self::pow_base_spec(dlen));
+            Self::lemma_len_bound_from_value_upper_pow(rem_a.limbs_le@, dlen);
+            assert(rem_a.limbs_le@.len() <= dlen);
         }
         rem_a
     }
