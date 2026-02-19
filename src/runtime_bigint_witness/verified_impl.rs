@@ -3143,6 +3143,38 @@ impl RuntimeBigNatWitness {
         assert(add_ac.model@ <= add_bc.model@);
     }
 
+    pub proof fn lemma_model_mul_monotonic_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        mul_ac: &Self,
+        mul_bc: &Self,
+    )
+        requires
+            Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@),
+            mul_ac.model@
+                == Self::limbs_value_spec(a.limbs_le@) * Self::limbs_value_spec(c.limbs_le@),
+            mul_bc.model@
+                == Self::limbs_value_spec(b.limbs_le@) * Self::limbs_value_spec(c.limbs_le@),
+        ensures
+            mul_ac.model@ <= mul_bc.model@,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        let c_val = Self::limbs_value_spec(c.limbs_le@);
+
+        let d = b_val - a_val;
+        assert(b_val == a_val + d);
+        assert(b_val * c_val == (a_val + d) * c_val);
+        assert((a_val + d) * c_val == a_val * c_val + d * c_val) by (nonlinear_arith);
+        assert(0 <= d * c_val);
+        assert(a_val * c_val <= a_val * c_val + d * c_val);
+        assert(a_val * c_val <= b_val * c_val);
+        assert(mul_ac.model@ == a_val * c_val);
+        assert(mul_bc.model@ == b_val * c_val);
+        assert(mul_ac.model@ <= mul_bc.model@);
+    }
+
     /// Total small-limb subtraction helper used by scalar witness plumbing.
     ///
     /// Computes the exact nonnegative difference when `self >= rhs` using full
