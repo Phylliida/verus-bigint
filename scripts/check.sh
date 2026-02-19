@@ -367,6 +367,40 @@ check_ci_verify_job_execution_contract() {
   fi
 }
 
+check_ci_verify_runner_pinning() {
+  local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
+  local verify_job_block=""
+
+  if [[ ! -f "$workflow_file" ]]; then
+    echo "error: workflow file not found: $workflow_file"
+    exit 1
+  fi
+
+  verify_job_block="$(extract_verify_job_block "$workflow_file")"
+  if [[ -z "$verify_job_block" ]]; then
+    echo "error: workflow must define a 'verify' job"
+    exit 1
+  fi
+
+  if printf '%s\n' "$verify_job_block" | rg -q '^[[:space:]]{4}runs-on:[[:space:]]*\$\{\{'; then
+    echo "error: workflow 'verify' job runs-on must be statically pinned (no expression interpolation)"
+    printf '%s\n' "$verify_job_block"
+    exit 1
+  fi
+
+  if printf '%s\n' "$verify_job_block" | rg -q 'self-hosted'; then
+    echo "error: workflow 'verify' job must not target self-hosted runners"
+    printf '%s\n' "$verify_job_block"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$verify_job_block" | rg -q '^[[:space:]]{4}runs-on:[[:space:]]*ubuntu-22\.04[[:space:]]*$'; then
+    echo "error: workflow 'verify' job must pin runs-on to ubuntu-22.04"
+    printf '%s\n' "$verify_job_block"
+    exit 1
+  fi
+}
+
 check_ci_workflow_permissions_hardening() {
   local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
   local permissions_block=""
@@ -971,6 +1005,9 @@ check_ci_workflow_trigger_coverage
 
 echo "[check] Verifying CI verify-job execution contract"
 check_ci_verify_job_execution_contract
+
+echo "[check] Verifying CI verify-job runner pinning"
+check_ci_verify_runner_pinning
 
 echo "[check] Verifying CI workflow checkout wiring"
 check_ci_workflow_checkout_wiring

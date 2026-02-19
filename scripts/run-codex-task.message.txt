@@ -1,1 +1,1 @@
-Added CI trigger and verify-job execution preflights to `scripts/check.sh`, documented them, revalidated strict checks (`89 verified, 0 errors`; rug-oracle 6/6), and 2 roadmap tasks remain.
+Added a verify-runner pinning preflight to `scripts/check.sh` (requiring pinned `ubuntu-22.04` and rejecting dynamic/self-hosted runners), documented it, revalidated strict checks (`89 verified, 0 errors`; rug-oracle 6/6), and 2 roadmap tasks remain.

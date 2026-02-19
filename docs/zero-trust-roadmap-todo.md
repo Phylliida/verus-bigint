@@ -55,6 +55,7 @@
 - [x] In strict-smoke mode, require baseline and `target-a-strict` Verus runs to report matching verified-item counts
 - [x] Add CI workflow structure preflight so strict checks fail on workflow wiring drift (required step order, working directories, and `VERUS_ROOT` env)
 - [x] Enforce least-privilege CI workflow token posture (`permissions: contents: read`, checkout `persist-credentials: false`) and gate it in local strict preflight checks
+- [x] Pin CI `verify` runner image and reject self-hosted/dynamic runner drift in local strict preflight checks
 
 ## Phase 6: Trusted Surface Reduction
 
@@ -209,3 +210,6 @@
 - Completed: Added CI trigger and verify-job execution preflights in `scripts/check.sh` (`check_ci_workflow_trigger_coverage`, `check_ci_verify_job_execution_contract`) so strict checks fail if `.github/workflows/check.yml` drops `pull_request`/`push` (`main`) coverage, adds trigger filters (`paths*`, `branches-ignore`) that could skip enforcement, adds a job-level `if:` on `verify`, or removes `timeout-minutes`.
 - Completed: Updated `README.md` and `docs/runtime-bigint-trust-assumptions.md` to document the new CI trigger + verify-job preflight guarantees.
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89` passes after adding trigger/job preflights (runtime tests 4/4; rug-oracle tests 6/6; baseline + strict-feature Verus each report `89 verified, 0 errors`; verified-count floor/parity gates pass).
+- Completed: Added CI verify-runner preflight in `scripts/check.sh` (`check_ci_verify_runner_pinning`) so strict checks fail if the `verify` job stops pinning `runs-on: ubuntu-22.04`, starts using dynamic `${{ ... }}` runner expressions, or includes `self-hosted` labels.
+- Completed: Updated `README.md` and `docs/runtime-bigint-trust-assumptions.md` to document the new verify-runner pinning preflight.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89` passes after adding verify-runner pinning preflight (runtime tests 4/4; rug-oracle tests 6/6; baseline + strict-feature Verus each report `89 verified, 0 errors`; verified-count floor/parity gates pass).

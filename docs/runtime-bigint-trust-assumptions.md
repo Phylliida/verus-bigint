@@ -53,6 +53,9 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   trigger filters that can silently skip enforcement (`paths*`,
   `branches-ignore`) are rejected, and the `verify` job must remain
   unconditional (no job-level `if:`) with an explicit `timeout-minutes`.
+- `scripts/check.sh` also enforces pinned CI runner posture for the `verify`
+  job: `runs-on` must remain `ubuntu-22.04`, with no dynamic runner
+  expressions and no `self-hosted` labels.
 
 ## Irreducible Trusted Assumptions
 
