@@ -3071,6 +3071,139 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    pub proof fn lemma_cmp_le_zero_iff_le_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        ab: i8,
+    )
+        requires
+            ab == -1 || ab == 0 || ab == 1,
+            ab == -1 ==> Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@),
+            ab == 0 ==> Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@),
+            ab == 1 ==> Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(b.limbs_le@),
+        ensures
+            (ab <= 0i8) <==> (Self::limbs_value_spec(a.limbs_le@) <= Self::limbs_value_spec(b.limbs_le@)),
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+
+        if ab <= 0i8 {
+            if ab == -1 {
+                assert(a_val < b_val);
+                assert(a_val <= b_val);
+            } else {
+                assert(ab == 0);
+                assert(a_val == b_val);
+                assert(a_val <= b_val);
+            }
+        }
+
+        if a_val <= b_val {
+            assert(ab != 1) by {
+                if ab == 1 {
+                    assert(a_val > b_val);
+                    assert(!(a_val > b_val));
+                }
+            };
+            if ab == -1 {
+            } else if ab == 0 {
+            } else {
+                assert(ab == 1);
+                assert(false);
+            }
+            assert(ab <= 0i8);
+        }
+    }
+
+    pub proof fn lemma_cmp_lt_zero_iff_lt_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        ab: i8,
+    )
+        requires
+            ab == -1 || ab == 0 || ab == 1,
+            ab == -1 ==> Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@),
+            ab == 0 ==> Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@),
+            ab == 1 ==> Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(b.limbs_le@),
+        ensures
+            (ab < 0i8) <==> (Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@)),
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+
+        if ab < 0i8 {
+            assert(ab == -1);
+            assert(a_val < b_val);
+        }
+
+        if a_val < b_val {
+            assert(ab != 0) by {
+                if ab == 0 {
+                    assert(a_val == b_val);
+                    assert(!(a_val == b_val));
+                }
+            };
+            assert(ab != 1) by {
+                if ab == 1 {
+                    assert(a_val > b_val);
+                    assert(!(a_val > b_val));
+                }
+            };
+            if ab == -1 {
+            } else if ab == 0 {
+                assert(false);
+            } else {
+                assert(ab == 1);
+                assert(false);
+            }
+            assert(ab < 0i8);
+        }
+    }
+
+    pub proof fn lemma_cmp_eq_zero_iff_eq_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        ab: i8,
+    )
+        requires
+            ab == -1 || ab == 0 || ab == 1,
+            ab == -1 ==> Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@),
+            ab == 0 ==> Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@),
+            ab == 1 ==> Self::limbs_value_spec(a.limbs_le@) > Self::limbs_value_spec(b.limbs_le@),
+        ensures
+            (ab == 0i8) <==> (Self::limbs_value_spec(a.limbs_le@) == Self::limbs_value_spec(b.limbs_le@)),
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+
+        if ab == 0i8 {
+            assert(a_val == b_val);
+        }
+
+        if a_val == b_val {
+            assert(ab != -1) by {
+                if ab == -1 {
+                    assert(a_val < b_val);
+                    assert(!(a_val < b_val));
+                }
+            };
+            assert(ab != 1) by {
+                if ab == 1 {
+                    assert(a_val > b_val);
+                    assert(!(a_val > b_val));
+                }
+            };
+            if ab == 0 {
+            } else if ab == -1 {
+                assert(false);
+            } else {
+                assert(ab == 1);
+                assert(false);
+            }
+            assert(ab == 0i8);
+        }
+    }
+
     pub proof fn lemma_model_add_sub_inverse_from_total_contracts(
         self_in: &Self,
         rhs: &Self,

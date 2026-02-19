@@ -44,3 +44,7 @@ Additional formal properties worth proving after `runtime-bigint-next-proof-todo
 
 - [x] Prove reusable remainder upper bound lemma:
   - [x] `d > 0 ==> rem(a, d) < d`
+
+## Next
+
+- Further properties now live in `docs/runtime-bigint-advanced-proof-todo.md`.
