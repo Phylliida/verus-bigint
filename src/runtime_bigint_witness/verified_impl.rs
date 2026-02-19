@@ -4276,6 +4276,31 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Operation-level wrapper: zero value implies empty canonical limb vector.
+    pub fn lemma_model_zero_implies_len_zero_ops(a: &Self)
+        requires
+            a.wf_spec(),
+            a.model@ == 0,
+        ensures
+            a.limbs_le@.len() == 0,
+    {
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            if a.limbs_le@.len() > 0 {
+                assert(Self::canonical_limbs_spec(a.limbs_le@));
+                assert(a.limbs_le@[(a.limbs_le@.len() - 1) as int] != 0u32);
+                Self::lemma_limbs_value_ge_pow_last_nonzero(a.limbs_le@);
+                assert(Self::pow_base_spec((a.limbs_le@.len() - 1) as nat) <= a.model@);
+                Self::lemma_pow_ge_one((a.limbs_le@.len() - 1) as nat);
+                assert(1 <= Self::pow_base_spec((a.limbs_le@.len() - 1) as nat));
+                assert(1 <= a.model@);
+                assert(a.model@ == 0);
+                assert(false);
+            }
+            assert(a.limbs_le@.len() == 0);
+        }
+    }
+
     /// Operation-level wrapper: computes compare output and proves `cmp <= 0 <==> a <= b`.
     pub fn lemma_cmp_le_zero_iff_le_ops(a: &Self, b: &Self) -> (out: i8)
         requires
@@ -4495,6 +4520,38 @@ impl RuntimeBigNatWitness {
                 assert(b.model@ <= a.model@);
                 assert(sub_ab.model@ == 0);
                 assert(sub_ba.model@ == 0);
+            }
+        }
+        (cmp, sub_ab, sub_ba)
+    }
+
+    /// Operation-level wrapper: negative compare implies one-sided zero/positive trunc-sub split.
+    pub fn lemma_cmp_neg_implies_asym_sub_ops(a: &Self, b: &Self) -> (out: (i8, Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.0 == -1 || out.0 == 0 || out.0 == 1,
+            out.1.wf_spec(),
+            out.2.wf_spec(),
+            out.0 == -1 ==> out.1.model@ == 0 && out.2.model@ > 0,
+    {
+        let cmp = Self::lemma_cmp_eq_zero_iff_eq_ops(a, b);
+        let sub_ab = Self::lemma_model_sub_zero_iff_le_ops(a, b);
+        let sub_ba = Self::lemma_model_sub_zero_iff_le_ops(b, a);
+        proof {
+            if cmp == -1 {
+                assert(a.model@ < b.model@);
+                assert(a.model@ <= b.model@);
+                assert(!(b.model@ <= a.model@));
+                assert(sub_ab.model@ == 0);
+                assert(sub_ba.model@ != 0) by {
+                    if sub_ba.model@ == 0 {
+                        assert(b.model@ <= a.model@);
+                        assert(false);
+                    }
+                };
+                assert(sub_ba.model@ > 0);
             }
         }
         (cmp, sub_ab, sub_ba)

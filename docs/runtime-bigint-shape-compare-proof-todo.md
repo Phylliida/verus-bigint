@@ -9,8 +9,8 @@ comparison outcomes to truncated-subtraction behavior.
   - [x] `lemma_model_len_window_nonzero_ops(a)`
   - [x] prove `a != 0 ==> pow_base(len(a)-1) <= a < pow_base(len(a))`
 
-- [ ] Add zero-window characterization wrapper:
-  - [ ] `a == 0 ==> len(a) == 0`
+- [x] Add zero-window characterization wrapper:
+  - [x] `a == 0 ==> len(a) == 0`
 
 ## Compare/Sub Linkage
 
@@ -22,5 +22,5 @@ comparison outcomes to truncated-subtraction behavior.
   - [x] `lemma_cmp_eq_implies_bi_sub_zero_ops(a, b) -> (cmp, sub_ab, sub_ba)`
   - [x] prove `cmp == 0 ==> sub_ab == 0 && sub_ba == 0`
 
-- [ ] Add negative-compare asymmetric subtraction wrapper:
-  - [ ] `cmp == -1 ==> sub(a, b) == 0 && sub(b, a) > 0`
+- [x] Add negative-compare asymmetric subtraction wrapper:
+  - [x] `cmp == -1 ==> sub(a, b) == 0 && sub(b, a) > 0`
