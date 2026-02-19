@@ -40,8 +40,10 @@ Properties that are useful for downstream protocol work and API ergonomics.
 
 ## API-Level Wrapper Lemmas
 
-- [ ] Add direct operation-level wrapper lemmas so callers do not need
+- [x] Add direct operation-level wrapper lemmas so callers do not need
       precomputed result witnesses to use the core algebra/order laws.
-  - [ ] Design around Verus mode split (`proof fn` cannot invoke `exec` ops);
-        likely options are exec wrappers with strong ensures or spec-level
-        operator shims used by proof lemmas.
+  - [x] Implement exec wrappers with strong ensures (Verus mode-split safe):
+        `lemma_model_add_commutative_ops`,
+        `lemma_model_add_monotonic_ops`,
+        `lemma_model_mul_commutative_ops`,
+        `lemma_model_mul_monotonic_ops`.
