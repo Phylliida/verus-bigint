@@ -56,6 +56,7 @@
 - [x] Add CI workflow structure preflight so strict checks fail on workflow wiring drift (required step order, working directories, and `VERUS_ROOT` env)
 - [x] Enforce least-privilege CI workflow token posture (`permissions: contents: read`, checkout `persist-credentials: false`) and gate it in local strict preflight checks
 - [x] Pin CI `verify` runner image and reject self-hosted/dynamic runner drift in local strict preflight checks
+- [x] Pin CI checkout action refs to an explicit version and reject checkout-action drift in local strict preflight checks
 
 ## Phase 6: Trusted Surface Reduction
 
@@ -224,3 +225,7 @@
 - Completed: Updated strict-check docs in `README.md` and `docs/runtime-bigint-trust-assumptions.md` to reflect the new `unsafe` rejection policy in non-test sources.
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89` passes after the `unsafe` gate hardening (runtime tests 4/4; rug-oracle tests 6/6; baseline + strict-feature Verus each report `89 verified, 0 errors`; verified-count floor/parity gates pass).
 - Failed/blocked attempt: direct GitHub workflow status lookup remains unavailable in this sandbox (`curl -I https://api.github.com` fails with DNS resolution error), so the `in CI` exit criterion still cannot be directly observed from this environment.
+- Completed: Pinned both checkout steps in `.github/workflows/check.yml` to `actions/checkout@v4.2.2` and tightened `scripts/check.sh` (`check_ci_workflow_checkout_wiring`) to require that exact checkout action ref.
+- Completed: Updated `README.md` and `docs/runtime-bigint-trust-assumptions.md` so strict-check documentation explicitly includes checkout-action pinning as part of CI wiring guarantees.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --rug-oracle-tests --target-a-strict-smoke --min-verified 89` passes after checkout-action pinning hardening (runtime tests 4/4; rug-oracle tests 6/6; baseline + strict-feature Verus each report `89 verified, 0 errors`; verified-count floor/parity gates pass).
+- Failed/blocked attempt: direct GitHub-hosted CI execution remains unobservable in this sandbox (no outbound network access to inspect Actions results), so the `in CI` exit criterion remains unverified from this environment.

@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERUS_ROOT="${VERUS_ROOT:-$ROOT_DIR/../verus}"
 VERUS_SOURCE="$VERUS_ROOT/source"
 TOOLCHAIN="${VERUS_TOOLCHAIN:-1.93.0-x86_64-unknown-linux-gnu}"
+CHECKOUT_ACTION_REF="${CHECKOUT_ACTION_REF:-actions/checkout@v4.2.2}"
 
 usage() {
   cat <<'USAGE'
@@ -496,8 +497,8 @@ check_ci_workflow_checkout_wiring() {
     exit 1
   fi
 
-  if ! printf '%s\n' "$checkout_bigint_step" | rg -q 'uses:[[:space:]]*actions/checkout@v4'; then
-    echo "error: workflow 'Checkout verus-bigint' step must use actions/checkout@v4"
+  if ! printf '%s\n' "$checkout_bigint_step" | rg -Fq "uses: $CHECKOUT_ACTION_REF"; then
+    echo "error: workflow 'Checkout verus-bigint' step must pin uses: $CHECKOUT_ACTION_REF"
     exit 1
   fi
   if ! printf '%s\n' "$checkout_bigint_step" | rg -q 'path:[[:space:]]*verus-bigint'; then
@@ -509,8 +510,8 @@ check_ci_workflow_checkout_wiring() {
     exit 1
   fi
 
-  if ! printf '%s\n' "$checkout_verus_step" | rg -q 'uses:[[:space:]]*actions/checkout@v4'; then
-    echo "error: workflow 'Checkout Verus' step must use actions/checkout@v4"
+  if ! printf '%s\n' "$checkout_verus_step" | rg -Fq "uses: $CHECKOUT_ACTION_REF"; then
+    echo "error: workflow 'Checkout Verus' step must pin uses: $CHECKOUT_ACTION_REF"
     exit 1
   fi
   if ! printf '%s\n' "$checkout_verus_step" | rg -q 'repository:[[:space:]]*verus-lang/verus'; then

@@ -15,13 +15,13 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout verus-bigint
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           path: verus-bigint
           persist-credentials: false
 
       - name: Checkout Verus
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           repository: verus-lang/verus
           path: verus

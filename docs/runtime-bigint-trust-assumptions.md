@@ -45,9 +45,10 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
 - `scripts/check.sh` now also validates CI workflow checkout + step wiring for
   end-to-end strict checks: checkout steps must include `Checkout verus-bigint`
   (`path: verus-bigint`) and `Checkout Verus` (`repository: verus-lang/verus`,
-  `path: verus`), `Build Verus tools` must run first in `verus/source` (with
-  `./tools/get-z3.sh` + `vargo build --release`), and `Run strict checks` must
-  run in `verus-bigint` with `VERUS_ROOT` pointed at the checked-out Verus tree.
+  `path: verus`), both must pin `uses: actions/checkout@v4.2.2`, `Build Verus
+  tools` must run first in `verus/source` (with `./tools/get-z3.sh` + `vargo
+  build --release`), and `Run strict checks` must run in `verus-bigint` with
+  `VERUS_ROOT` pointed at the checked-out Verus tree.
 - The CI workflow preflight also enforces fail-fast behavior in those critical
   steps (`set -euo pipefail`, no step-level `if:` gating, no
   `continue-on-error: true`, and no `|| true` failure masking in step
