@@ -17,6 +17,8 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   builds at compile time unless `runtime-compat` is explicitly enabled for local
   runtime/testing workflows, and `runtime-compat` is rejected for non-Verus
   `--release` builds.
+- `scripts/check.sh` supports `--min-verified N` so CI can fail fast if Verus
+  verification coverage regresses below an expected floor.
 
 ## Irreducible Trusted Assumptions
 

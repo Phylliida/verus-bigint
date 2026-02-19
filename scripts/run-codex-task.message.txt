@@ -1,1 +1,1 @@
-Closed the Target A strict roadmap task by re-running strict smoke and oracle checks, documented the results and a runtime-compat gating investigation, and 2 roadmap tasks remain.
+Added a Verus verified-count regression gate (`--min-verified`) to strict checks, wired it into CI/docs with passing and intentional-failure validation, and 2 roadmap tasks remain.
