@@ -124,6 +124,30 @@ impl RuntimeBigNatWitness {
         self.div_rem_limbwise_small_total(rhs)
     }
 
+    pub fn lemma_model_add_commutative_ops(a: &Self, b: &Self) -> (Self, Self) {
+        let add_ab = a.add_limbwise_small_total(b);
+        let add_ba = b.add_limbwise_small_total(a);
+        (add_ab, add_ba)
+    }
+
+    pub fn lemma_model_add_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (Self, Self) {
+        let add_ac = a.add_limbwise_small_total(c);
+        let add_bc = b.add_limbwise_small_total(c);
+        (add_ac, add_bc)
+    }
+
+    pub fn lemma_model_mul_commutative_ops(a: &Self, b: &Self) -> (Self, Self) {
+        let mul_ab = a.mul_limbwise_small_total(b);
+        let mul_ba = b.mul_limbwise_small_total(a);
+        (mul_ab, mul_ba)
+    }
+
+    pub fn lemma_model_mul_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (Self, Self) {
+        let mul_ac = a.mul_limbwise_small_total(c);
+        let mul_bc = b.mul_limbwise_small_total(c);
+        (mul_ac, mul_bc)
+    }
+
     pub fn mul_limbwise_small_total(&self, rhs: &Self) -> Self {
         let mut acc = Self::zero();
         let mut shifted = self.copy_small_total();

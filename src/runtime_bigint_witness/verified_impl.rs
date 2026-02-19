@@ -3879,6 +3879,134 @@ impl RuntimeBigNatWitness {
         assert(mul_a_b_plus_c.model@ == add_mul_ab_mul_ac.model@);
     }
 
+    /// Operation-level wrapper: computes both sums and proves additive commutativity.
+    pub fn lemma_model_add_commutative_ops(a: &Self, b: &Self) -> (out: (Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.0.model@ == a.model@ + b.model@,
+            out.1.model@ == b.model@ + a.model@,
+            out.0.model@ == out.1.model@,
+    {
+        let add_ab = a.add_limbwise_small_total(b);
+        let add_ba = b.add_limbwise_small_total(a);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(add_ab.model@ == a.model@ + b.model@);
+            assert(add_ba.model@ == b.model@ + a.model@);
+            assert(add_ab.model@
+                == Self::limbs_value_spec(a.limbs_le@) + Self::limbs_value_spec(b.limbs_le@));
+            assert(add_ba.model@
+                == Self::limbs_value_spec(b.limbs_le@) + Self::limbs_value_spec(a.limbs_le@));
+            Self::lemma_model_add_commutative_from_total_contracts(a, b, &add_ab, &add_ba);
+        }
+        (add_ab, add_ba)
+    }
+
+    /// Operation-level wrapper: computes both sums and proves additive monotonicity.
+    pub fn lemma_model_add_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            c.wf_spec(),
+            a.model@ <= b.model@,
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.0.model@ == a.model@ + c.model@,
+            out.1.model@ == b.model@ + c.model@,
+            out.0.model@ <= out.1.model@,
+    {
+        let add_ac = a.add_limbwise_small_total(c);
+        let add_bc = b.add_limbwise_small_total(c);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(c.model@ == Self::limbs_value_spec(c.limbs_le@));
+            assert(a.model@ <= b.model@);
+            assert(
+                Self::limbs_value_spec(a.limbs_le@)
+                    <= Self::limbs_value_spec(b.limbs_le@)
+            );
+            assert(add_ac.model@ == a.model@ + c.model@);
+            assert(add_bc.model@ == b.model@ + c.model@);
+            assert(add_ac.model@
+                == Self::limbs_value_spec(a.limbs_le@) + Self::limbs_value_spec(c.limbs_le@));
+            assert(add_bc.model@
+                == Self::limbs_value_spec(b.limbs_le@) + Self::limbs_value_spec(c.limbs_le@));
+            Self::lemma_model_add_monotonic_from_total_contracts(a, b, c, &add_ac, &add_bc);
+        }
+        (add_ac, add_bc)
+    }
+
+    /// Operation-level wrapper: computes both products and proves multiplicative commutativity.
+    pub fn lemma_model_mul_commutative_ops(a: &Self, b: &Self) -> (out: (Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.0.model@ == a.model@ * b.model@,
+            out.1.model@ == b.model@ * a.model@,
+            out.0.model@ == out.1.model@,
+    {
+        let mul_ab = a.mul_limbwise_small_total(b);
+        let mul_ba = b.mul_limbwise_small_total(a);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(mul_ab.model@ == a.model@ * b.model@);
+            assert(mul_ba.model@ == b.model@ * a.model@);
+            assert(mul_ab.model@
+                == Self::limbs_value_spec(a.limbs_le@) * Self::limbs_value_spec(b.limbs_le@));
+            assert(mul_ba.model@
+                == Self::limbs_value_spec(b.limbs_le@) * Self::limbs_value_spec(a.limbs_le@));
+            Self::lemma_model_mul_commutative_from_total_contracts(a, b, &mul_ab, &mul_ba);
+        }
+        (mul_ab, mul_ba)
+    }
+
+    /// Operation-level wrapper: computes both products and proves multiplicative monotonicity.
+    pub fn lemma_model_mul_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            c.wf_spec(),
+            a.model@ <= b.model@,
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.0.model@ == a.model@ * c.model@,
+            out.1.model@ == b.model@ * c.model@,
+            out.0.model@ <= out.1.model@,
+    {
+        let mul_ac = a.mul_limbwise_small_total(c);
+        let mul_bc = b.mul_limbwise_small_total(c);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(c.model@ == Self::limbs_value_spec(c.limbs_le@));
+            assert(a.model@ <= b.model@);
+            assert(
+                Self::limbs_value_spec(a.limbs_le@)
+                    <= Self::limbs_value_spec(b.limbs_le@)
+            );
+            assert(mul_ac.model@ == a.model@ * c.model@);
+            assert(mul_bc.model@ == b.model@ * c.model@);
+            assert(mul_ac.model@
+                == Self::limbs_value_spec(a.limbs_le@) * Self::limbs_value_spec(c.limbs_le@));
+            assert(mul_bc.model@
+                == Self::limbs_value_spec(b.limbs_le@) * Self::limbs_value_spec(c.limbs_le@));
+            Self::lemma_model_mul_monotonic_from_total_contracts(a, b, c, &mul_ac, &mul_bc);
+        }
+        (mul_ac, mul_bc)
+    }
+
     /// Total small-limb subtraction helper used by scalar witness plumbing.
     ///
     /// Computes the exact nonnegative difference when `self >= rhs` using full
