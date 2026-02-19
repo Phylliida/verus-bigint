@@ -135,6 +135,51 @@ extract_min_verified_arg() {
     | head -n 1 || true
 }
 
+extract_ci_toolchain_install_from_workflow() {
+  local workflow_file="$1"
+  rg -No 'rustup\s+toolchain\s+install\s+([[:graph:]]+)' -r '$1' "$workflow_file" \
+    | head -n 1 || true
+}
+
+extract_ci_toolchain_default_from_workflow() {
+  local workflow_file="$1"
+  rg -No 'rustup\s+default\s+([[:graph:]]+)' -r '$1' "$workflow_file" \
+    | head -n 1 || true
+}
+
+check_ci_toolchain_alignment() {
+  local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
+  local workflow_install_toolchain=""
+  local workflow_default_toolchain=""
+
+  if [[ ! -f "$workflow_file" ]]; then
+    echo "error: workflow file not found: $workflow_file"
+    exit 1
+  fi
+
+  workflow_install_toolchain="$(extract_ci_toolchain_install_from_workflow "$workflow_file")"
+  workflow_default_toolchain="$(extract_ci_toolchain_default_from_workflow "$workflow_file")"
+  if [[ -z "$workflow_install_toolchain" || -z "$workflow_default_toolchain" ]]; then
+    echo "error: failed to parse rustup toolchain from $workflow_file"
+    echo "expected both \`rustup toolchain install <toolchain>\` and \`rustup default <toolchain>\`"
+    exit 1
+  fi
+
+  if [[ "$workflow_install_toolchain" != "$workflow_default_toolchain" ]]; then
+    echo "error: workflow rustup install/default toolchains drifted"
+    echo "install: $workflow_install_toolchain"
+    echo "default: $workflow_default_toolchain"
+    exit 1
+  fi
+
+  if [[ "$workflow_install_toolchain" != "$TOOLCHAIN" ]]; then
+    echo "error: workflow/check.sh toolchain mismatch"
+    echo "check.sh TOOLCHAIN: $TOOLCHAIN"
+    echo "workflow toolchain: $workflow_install_toolchain"
+    exit 1
+  fi
+}
+
 check_ci_strict_gate_alignment() {
   local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
   local readme_file="$ROOT_DIR/README.md"
@@ -502,6 +547,9 @@ run_cargo_verus_verify_with_threshold() {
 
 echo "[check] Verifying runtime/verified API parity"
 check_runtime_verified_api_parity
+
+echo "[check] Verifying CI toolchain alignment (workflow vs check.sh)"
+check_ci_toolchain_alignment
 
 echo "[check] Verifying CI strict-gate command alignment (workflow vs README)"
 check_ci_strict_gate_alignment
