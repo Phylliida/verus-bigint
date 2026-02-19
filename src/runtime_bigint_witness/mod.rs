@@ -5,12 +5,18 @@ use vstd::prelude::*;
 ///
 /// Phase 2 intentionally starts with minimal verified constructors and representation
 /// predicates. Arithmetic over limb vectors is added in subsequent steps.
-#[cfg_attr(not(verus_keep_ghost), derive(Clone, Debug, Eq, PartialEq))]
-#[cfg_attr(verus_keep_ghost, derive(Clone))]
+#[cfg(not(verus_keep_ghost))]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RuntimeBigNatWitness {
     pub limbs_le: Vec<u32>,
-    #[cfg(verus_keep_ghost)]
+}
+
+#[cfg(verus_keep_ghost)]
+verus! {
+pub struct RuntimeBigNatWitness {
+    pub limbs_le: Vec<u32>,
     pub model: Ghost<nat>,
+}
 }
 
 mod runtime_impl;

@@ -11,7 +11,7 @@
 
 - [x] Replace `rug`-backed runtime path in `src/runtime_bigint_witness/runtime_impl.rs`
 - [x] Remove `cfg` split that swaps between `rug` runtime and verified code in `src/runtime_bigint_witness/mod.rs`
-- [x] Minimize trusted glue in `src/runtime_bigint_witness_refinement.rs` (`external_type_specification`)
+- [x] Remove trusted refinement bridge (`external_type_specification`) by declaring `RuntimeBigNatWitness` in Verus under `cfg(verus_keep_ghost)`
 
 ## Target Mode Decision
 
@@ -54,7 +54,7 @@
 
 ## Phase 6: Trusted Surface Reduction
 
-- [x] Review/refactor refinement glue to reduce reliance on `external_type_specification`
+- [x] Eliminate refinement-bridge reliance on `external_type_specification`
 - [x] Prefer internal, explicit view/model alignment where possible
 - [x] Document any irreducible trust assumptions
 
@@ -114,3 +114,8 @@
 - Completed verification attempt: `./scripts/check.sh --forbid-rug-normal-deps` passes after the source-tree `rug` guard was added (runtime tests 4/4; dependency and source-tree gates pass; Verus reports `89 verified, 0 errors`).
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps` passes after the source-tree `rug` guard was added (runtime tests 4/4; strict Verus gate passes; Verus reports `89 verified, 0 errors`).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` still passes after the strict-gate hardening (6/6 tests).
+- Completed: Refactored `RuntimeBigNatWitness` declaration in `src/runtime_bigint_witness/mod.rs` so the Verus build (`cfg(verus_keep_ghost)`) declares the datatype inside `verus!`, while the Rust runtime build keeps the plain struct.
+- Completed: Removed `src/runtime_bigint_witness_refinement.rs` and its `lib.rs` wiring; Verus no longer needs an `external_type_specification` bridge for `RuntimeBigNatWitness`.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps` passes after refinement-bridge removal (runtime tests 4/4; Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after refinement-bridge removal (6/6 tests).
+- Failed/blocked attempt: tried to run the GitHub Actions workflow directly from this sandbox, but both `act` and `gh` are unavailable in PATH, so CI execution still cannot be validated from this environment.
