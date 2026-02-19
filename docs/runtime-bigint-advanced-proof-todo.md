@@ -19,11 +19,11 @@ Properties that are useful for downstream protocol work and API ergonomics.
 
 ## Division Shift Laws
 
-- [ ] Prove quotient shift law for positive divisors:
-  - [ ] `d > 0 ==> div(a + k*d, d) == div(a, d) + k`
+- [x] Prove quotient shift law for positive divisors:
+  - [x] `d > 0 ==> div(a + k*d, d) == div(a, d) + k`
 
-- [ ] Prove remainder shift law for positive divisors:
-  - [ ] `d > 0 ==> rem(a + k*d, d) == rem(a, d)`
+- [x] Prove remainder shift law for positive divisors:
+  - [x] `d > 0 ==> rem(a + k*d, d) == rem(a, d)`
 
 ## Divisor Monotonicity
 
