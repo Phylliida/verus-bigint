@@ -1,1 +1,1 @@
-Added a check.sh CI toolchain-alignment preflight (workflow rustup install/default must match TOOLCHAIN), revalidated strict and rug-oracle checks locally, and 2 roadmap tasks remain.
+Added strict-smoke verified-count parity gating in check.sh (baseline vs target-a-strict), updated roadmap/trust docs, revalidated strict and rug-oracle checks, and 2 roadmap tasks remain.

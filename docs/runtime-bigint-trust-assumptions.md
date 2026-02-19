@@ -22,6 +22,9 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   `--release` builds.
 - `scripts/check.sh` supports `--min-verified N` so CI can fail fast if Verus
   verification coverage regresses below an expected floor.
+- In strict-smoke mode (`--target-a-strict-smoke`), `scripts/check.sh` also
+  enforces verified-count parity between baseline Verus verification and
+  `--features target-a-strict`, preventing feature-gated proof-coverage drift.
 - `scripts/check.sh` includes a source gate (`check_runtime_big_nat_field_privacy`)
   that fails if non-Verus `RuntimeBigNatWitness` field visibility regresses.
 - `scripts/check.sh` also validates that `.github/workflows/check.yml` keeps the
