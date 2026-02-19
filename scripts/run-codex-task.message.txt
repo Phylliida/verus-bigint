@@ -1,1 +1,1 @@
-Hardened strict zero-trust checks to forbid `rug` in non-test source files, marked the production limb-only exit criterion complete, and revalidated checks/tests with 3 roadmap tasks remaining.
+Hardened check.sh with signature-level runtime/verified API parity checks and revalidated strict plus rug-oracle verification runs; 3 roadmap tasks remain.
