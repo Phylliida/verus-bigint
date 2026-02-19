@@ -23,11 +23,11 @@ Additional formal properties worth proving after `runtime-bigint-next-proof-todo
 
 ## Strict Order Compatibility
 
-- [ ] Prove strict monotonicity of addition:
-  - [ ] `a < b ==> a + c < b + c`
+- [x] Prove strict monotonicity of addition:
+  - [x] `a < b ==> a + c < b + c`
 
-- [ ] Prove strict monotonicity of multiplication for positive multipliers:
-  - [ ] `c > 0 && a < b ==> a * c < b * c`
+- [x] Prove strict monotonicity of multiplication for positive multipliers:
+  - [x] `c > 0 && a < b ==> a * c < b * c`
 
 ## Cancellation Laws
 

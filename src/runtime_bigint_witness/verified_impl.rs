@@ -3175,6 +3175,79 @@ impl RuntimeBigNatWitness {
         assert(mul_ac.model@ <= mul_bc.model@);
     }
 
+    pub proof fn lemma_model_add_strict_monotonic_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        add_ac: &Self,
+        add_bc: &Self,
+    )
+        requires
+            Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@),
+            add_ac.model@
+                == Self::limbs_value_spec(a.limbs_le@) + Self::limbs_value_spec(c.limbs_le@),
+            add_bc.model@
+                == Self::limbs_value_spec(b.limbs_le@) + Self::limbs_value_spec(c.limbs_le@),
+        ensures
+            add_ac.model@ < add_bc.model@,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        let c_val = Self::limbs_value_spec(c.limbs_le@);
+
+        let d = b_val - a_val;
+        assert(0 < d);
+        assert(b_val == a_val + d);
+        assert(b_val + c_val == a_val + c_val + d);
+        assert(a_val + c_val < a_val + c_val + d);
+        assert(a_val + c_val < b_val + c_val);
+        assert(add_ac.model@ == a_val + c_val);
+        assert(add_bc.model@ == b_val + c_val);
+        assert(add_ac.model@ < add_bc.model@);
+    }
+
+    pub proof fn lemma_model_mul_strict_monotonic_pos_from_total_contracts(
+        a: &Self,
+        b: &Self,
+        c: &Self,
+        mul_ac: &Self,
+        mul_bc: &Self,
+    )
+        requires
+            Self::limbs_value_spec(c.limbs_le@) > 0,
+            Self::limbs_value_spec(a.limbs_le@) < Self::limbs_value_spec(b.limbs_le@),
+            mul_ac.model@
+                == Self::limbs_value_spec(a.limbs_le@) * Self::limbs_value_spec(c.limbs_le@),
+            mul_bc.model@
+                == Self::limbs_value_spec(b.limbs_le@) * Self::limbs_value_spec(c.limbs_le@),
+        ensures
+            mul_ac.model@ < mul_bc.model@,
+    {
+        let a_val = Self::limbs_value_spec(a.limbs_le@);
+        let b_val = Self::limbs_value_spec(b.limbs_le@);
+        let c_val = Self::limbs_value_spec(c.limbs_le@);
+
+        let d = b_val - a_val;
+        assert(0 < d);
+        assert(b_val == a_val + d);
+        assert(b_val * c_val == (a_val + d) * c_val);
+        assert((a_val + d) * c_val == a_val * c_val + d * c_val) by (nonlinear_arith);
+        assert(1 <= d);
+        assert(d == 1 + (d - 1));
+        assert(d * c_val == (1 + (d - 1)) * c_val);
+        assert((1 + (d - 1)) * c_val == c_val + (d - 1) * c_val) by (nonlinear_arith);
+        assert(0 <= (d - 1) * c_val);
+        assert(c_val <= c_val + (d - 1) * c_val);
+        assert(c_val <= d * c_val);
+        assert(0 < c_val);
+        assert(0 < d * c_val);
+        assert(a_val * c_val < a_val * c_val + d * c_val);
+        assert(a_val * c_val < b_val * c_val);
+        assert(mul_ac.model@ == a_val * c_val);
+        assert(mul_bc.model@ == b_val * c_val);
+        assert(mul_ac.model@ < mul_bc.model@);
+    }
+
     pub proof fn lemma_model_add_commutative_from_total_contracts(
         a: &Self,
         b: &Self,
