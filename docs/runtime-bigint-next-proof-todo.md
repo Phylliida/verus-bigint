@@ -9,8 +9,8 @@ Follow-on properties beyond the completed div/rem checklist.
 
 ## Order Laws
 
-- [ ] Prove compare antisymmetry:
-  - [ ] `cmp(a, b) == -cmp(b, a)` (for all `a`, `b`)
+- [x] Prove compare antisymmetry:
+  - [x] `cmp(a, b) == -cmp(b, a)` (for all `a`, `b`)
 
 - [ ] Prove compare transitivity:
   - [ ] `cmp(a, b) <= 0 && cmp(b, c) <= 0 ==> cmp(a, c) <= 0`
