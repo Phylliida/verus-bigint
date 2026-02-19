@@ -21,8 +21,8 @@ Follow-on properties beyond the completed div/rem checklist.
 - [x] Prove subtraction/addition inverse law:
   - [x] `rhs <= self ==> add(sub(self, rhs), rhs) == self` (model-level equality)
 
-- [ ] Prove monotonicity of addition:
-  - [ ] `a <= b ==> a + c <= b + c`
+- [x] Prove monotonicity of addition:
+  - [x] `a <= b ==> a + c <= b + c`
 
 - [ ] Prove multiplication-zero and one-sided monotonicity:
   - [x] `a * 0 == 0`, `a * 1 == a`
