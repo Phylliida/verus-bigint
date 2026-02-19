@@ -1,3 +1,5 @@
+#![cfg(not(verus_keep_ghost))]
+
 use super::RuntimeBigNatWitness;
 
 const LIMB_BASE: u64 = 1u64 << 32;
