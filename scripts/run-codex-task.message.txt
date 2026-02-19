@@ -1,1 +1,1 @@
-Removed all non-test #[verifier::truncate] casts, added a non-Verus release guard for runtime-compat plus smoke-gate enforcement, and updated docs/burndown with verification results; 3 roadmap tasks remain.
+Closed the Target A strict roadmap task by re-running strict smoke and oracle checks, documented the results and a runtime-compat gating investigation, and 2 roadmap tasks remain.

@@ -16,7 +16,7 @@
 ## Target Mode Decision
 
 - [x] Choose Target A or Target B
-- [ ] Target A (strict): require Verus build for production, remove non-verified backend (in progress: `target-a-strict` strict-by-default + `runtime-compat` local-test escape hatch + non-Verus release guard)
+- [x] Target A (strict): require Verus build for production and keep non-verified backend out of production artifacts (`target-a-strict` strict-by-default + `runtime-compat` local-test escape hatch + non-Verus release guard)
 - [x] Target B (compat): keep Rust-only build, but runtime is limb-based; keep `rug` only as optional test oracle
 
 ## Phase 1: Representation Unification
@@ -151,3 +151,7 @@
 - Completed: Updated strict-mode documentation in `README.md` and trust-boundary notes in `docs/runtime-bigint-trust-assumptions.md` to reflect the new production guard and truncate-elimination status.
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke` passes after these changes (runtime tests 4/4; baseline + strict-feature Verus `89 verified, 0 errors`; strict non-Verus and `runtime-compat` release guards both fail as expected).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after these changes (6/6 tests).
+- Completed: Closed the `Target A (strict)` roadmap item after re-validating that strict mode is default, non-Verus default builds are rejected, and `runtime-compat` remains debug/test-only for local workflows.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke` passes again (runtime tests 4/4; rug/trusted-escape gates pass; baseline and strict-feature Verus each report `89 verified, 0 errors`; strict non-Verus and `runtime-compat --release` guards fail as expected).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after the Target A closeout pass (6/6 tests).
+- Completed investigation: `cargo test --manifest-path Cargo.toml --features runtime-compat --no-run -vv` confirms Cargo builds both a normal lib target and a `--test` target, so a pure `cfg(test)` compile-gate for `runtime-compat` would currently break local test workflows.
