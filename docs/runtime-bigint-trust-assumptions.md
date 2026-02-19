@@ -48,6 +48,11 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   top-level `permissions` must stay least-privilege (`contents: read`, no
   `write`/`read-all`/`write-all` grants), and both checkout steps must keep
   `persist-credentials: false`.
+- `scripts/check.sh` now also enforces CI trigger + job-execution wiring:
+  strict checks must stay bound to both `pull_request` and `push` on `main`,
+  trigger filters that can silently skip enforcement (`paths*`,
+  `branches-ignore`) are rejected, and the `verify` job must remain
+  unconditional (no job-level `if:`) with an explicit `timeout-minutes`.
 
 ## Irreducible Trusted Assumptions
 

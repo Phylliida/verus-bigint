@@ -196,6 +196,74 @@ extract_top_level_permissions_block() {
   ' "$workflow_file"
 }
 
+extract_top_level_on_block() {
+  local workflow_file="$1"
+
+  awk '
+    /^on:[[:space:]]*$/ {
+      in_on = 1
+      print $0
+      next
+    }
+
+    in_on && /^[^[:space:]]/ {
+      exit
+    }
+
+    in_on {
+      print $0
+    }
+  ' "$workflow_file"
+}
+
+extract_on_event_block() {
+  local on_block="$1"
+  local event_name="$2"
+
+  awk -v event_name="$event_name" '
+    {
+      if (in_event && $0 ~ /^[[:space:]]{2}[A-Za-z0-9_-]+:[[:space:]]*$/) {
+        exit
+      }
+
+      line = $0
+      sub(/^[[:space:]]+/, "", line)
+      if (!in_event && line == event_name ":") {
+        in_event = 1
+      }
+
+      if (in_event) {
+        print $0
+      }
+    }
+  ' <<<"$on_block"
+}
+
+extract_verify_job_block() {
+  local workflow_file="$1"
+
+  awk '
+    /^jobs:[[:space:]]*$/ {
+      in_jobs = 1
+      next
+    }
+
+    in_jobs && /^[[:space:]]{2}verify:[[:space:]]*$/ {
+      in_verify = 1
+      print $0
+      next
+    }
+
+    in_verify && /^[[:space:]]{2}[A-Za-z0-9_-]+:[[:space:]]*$/ {
+      exit
+    }
+
+    in_verify {
+      print $0
+    }
+  ' "$workflow_file"
+}
+
 check_workflow_step_fail_fast() {
   local step_name="$1"
   local step_block="$2"
@@ -212,6 +280,89 @@ check_workflow_step_fail_fast() {
 
   if printf '%s\n' "$step_block" | rg -q '\|\|[[:space:]]*true'; then
     echo "error: workflow step '$step_name' must not mask failures with '|| true'"
+    exit 1
+  fi
+}
+
+check_ci_workflow_trigger_coverage() {
+  local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
+  local on_block=""
+  local pull_request_block=""
+  local push_block=""
+
+  if [[ ! -f "$workflow_file" ]]; then
+    echo "error: workflow file not found: $workflow_file"
+    exit 1
+  fi
+
+  on_block="$(extract_top_level_on_block "$workflow_file")"
+  if [[ -z "$on_block" ]]; then
+    echo "error: workflow must declare a top-level on: block"
+    echo "expected triggers: pull_request and push (branches: [main])"
+    exit 1
+  fi
+
+  pull_request_block="$(extract_on_event_block "$on_block" "pull_request")"
+  if [[ -z "$pull_request_block" ]]; then
+    echo "error: workflow must include an unconditional pull_request trigger"
+    exit 1
+  fi
+
+  push_block="$(extract_on_event_block "$on_block" "push")"
+  if [[ -z "$push_block" ]]; then
+    echo "error: workflow must include a push trigger"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$push_block" | rg -q '^[[:space:]]+branches:[[:space:]]*$'; then
+    echo "error: workflow push trigger must explicitly pin branches"
+    printf '%s\n' "$push_block"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$push_block" | rg -q '^[[:space:]]*-[[:space:]]*main[[:space:]]*$'; then
+    echo "error: workflow push trigger must include branch 'main'"
+    printf '%s\n' "$push_block"
+    exit 1
+  fi
+
+  if printf '%s\n' "$on_block" | rg -q '^[[:space:]]+paths(-ignore)?:[[:space:]]*$'; then
+    echo "error: workflow triggers must not use paths/paths-ignore filters that can skip strict checks"
+    printf '%s\n' "$on_block"
+    exit 1
+  fi
+
+  if printf '%s\n' "$on_block" | rg -q '^[[:space:]]+branches-ignore:[[:space:]]*$'; then
+    echo "error: workflow triggers must not use branches-ignore filters"
+    printf '%s\n' "$on_block"
+    exit 1
+  fi
+}
+
+check_ci_verify_job_execution_contract() {
+  local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
+  local verify_job_block=""
+
+  if [[ ! -f "$workflow_file" ]]; then
+    echo "error: workflow file not found: $workflow_file"
+    exit 1
+  fi
+
+  verify_job_block="$(extract_verify_job_block "$workflow_file")"
+  if [[ -z "$verify_job_block" ]]; then
+    echo "error: workflow must define a 'verify' job"
+    exit 1
+  fi
+
+  if printf '%s\n' "$verify_job_block" | rg -q '^[[:space:]]{4}if:[[:space:]]'; then
+    echo "error: workflow 'verify' job must not be conditionally gated with a job-level if"
+    printf '%s\n' "$verify_job_block"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$verify_job_block" | rg -q '^[[:space:]]{4}timeout-minutes:[[:space:]]*[0-9]+[[:space:]]*$'; then
+    echo "error: workflow 'verify' job must declare an explicit timeout-minutes"
+    printf '%s\n' "$verify_job_block"
     exit 1
   fi
 }
@@ -814,6 +965,12 @@ check_ci_toolchain_alignment
 
 echo "[check] Verifying CI workflow permissions hardening"
 check_ci_workflow_permissions_hardening
+
+echo "[check] Verifying CI workflow trigger coverage"
+check_ci_workflow_trigger_coverage
+
+echo "[check] Verifying CI verify-job execution contract"
+check_ci_verify_job_execution_contract
 
 echo "[check] Verifying CI workflow checkout wiring"
 check_ci_workflow_checkout_wiring
