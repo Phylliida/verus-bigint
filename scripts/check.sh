@@ -111,6 +111,18 @@ if [[ "$OFFLINE" == "1" ]]; then
   CARGO_CMD+=(--offline)
 fi
 
+require_command() {
+  local cmd="$1"
+  local hint="${2:-}"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "error: required command '$cmd' not found in PATH"
+    if [[ -n "$hint" ]]; then
+      echo "hint: $hint"
+    fi
+    exit 1
+  fi
+}
+
 normalize_inline_command() {
   local cmd="$1"
   cmd="$(printf '%s' "$cmd" | tr '\t' ' ')"
@@ -1070,6 +1082,8 @@ run_cargo_verus_verify_with_threshold() {
 
   rm -f "$verus_log"
 }
+
+require_command rg "install ripgrep (binary: rg) before running strict checks"
 
 echo "[check] Verifying runtime/verified API parity"
 check_runtime_verified_api_parity
