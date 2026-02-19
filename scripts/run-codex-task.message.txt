@@ -1,1 +1,1 @@
-Added CI toolchain-install wiring preflights to `scripts/check.sh`, updated trust docs and burndown notes, revalidated strict checks (runtime 4/4, rug-oracle 6/6, Verus 89 verified/0 errors), and 2 roadmap tasks remain.
+Pinned CI checkout steps to actions/checkout@v4.2.2 with strict preflight enforcement and updated roadmap/docs evidence, and 2 roadmap tasks remain.
