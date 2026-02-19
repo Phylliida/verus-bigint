@@ -1226,6 +1226,29 @@ impl RuntimeBigNatWitness {
         assert(x_shift % d == x % d);
     }
 
+    proof fn lemma_mul_div_rem_cancel_nat(a: nat, d: nat)
+        requires
+            d > 0,
+        ensures
+            (a * d) / d == a,
+            (a * d) % d == 0,
+    {
+        let xi = (a * d) as int;
+        let di = d as int;
+        let ai = a as int;
+        assert(di != 0);
+        assert(0 <= 0 < di);
+        assert(xi == ai * di + 0);
+        lemma_fundamental_div_mod_converse(xi, di, ai, 0);
+        assert(xi / di == ai);
+        assert(xi % di == 0);
+        assert(((a * d) / d) as int == xi / di);
+        assert(((a * d) % d) as int == xi % di);
+        assert(((a * d) / d) as int == a as int);
+        assert((a * d) / d == a);
+        assert((a * d) % d == 0);
+    }
+
     pub proof fn lemma_model_div_shift_by_multiple_pos(a: &Self, d: &Self, k: nat)
         requires
             a.wf_spec(),
@@ -4685,6 +4708,42 @@ impl RuntimeBigNatWitness {
             assert(rem_a.limbs_le@.len() <= dlen);
         }
         rem_a
+    }
+
+    /// Operation-level wrapper: computes product/quotient/remainder and proves
+    /// exact cancellation for positive divisors.
+    pub fn lemma_model_mul_div_rem_cancel_pos_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ > 0,
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.2.wf_spec(),
+            out.0.model@ == a.model@ * d.model@,
+            out.1.model@ == out.0.model@ / d.model@,
+            out.2.model@ == out.0.model@ % d.model@,
+            out.1.model@ == a.model@,
+            out.2.model@ == 0,
+    {
+        let prod = a.mul_limbwise_small_total(d);
+        let q = prod.div_limbwise_small_total(d);
+        let r = prod.rem_limbwise_small_total(d);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(d.model@ == Self::limbs_value_spec(d.limbs_le@));
+            assert(d.model@ > 0);
+            assert(prod.model@ == a.model@ * d.model@);
+            assert(q.model@ == prod.model@ / d.model@);
+            assert(r.model@ == prod.model@ % d.model@);
+            Self::lemma_mul_div_rem_cancel_nat(a.model@, d.model@);
+            assert((a.model@ * d.model@) / d.model@ == a.model@);
+            assert((a.model@ * d.model@) % d.model@ == 0);
+            assert(q.model@ == a.model@);
+            assert(r.model@ == 0);
+        }
+        (prod, q, r)
     }
 
     /// Operation-level wrapper: computes `(q, r)` and proves recomposition for `d > 0`.
