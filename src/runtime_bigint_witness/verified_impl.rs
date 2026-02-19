@@ -1113,6 +1113,70 @@ impl RuntimeBigNatWitness {
         assert(x % d == 0);
     }
 
+    proof fn lemma_div_rem_shift_by_multiple_nat(x: nat, d: nat, k: nat)
+        requires
+            d > 0,
+        ensures
+            (x + k * d) / d == x / d + k,
+            (x + k * d) % d == x % d,
+    {
+        let xi = x as int;
+        let di = d as int;
+        let ki = k as int;
+        let x_shift = x + k * d;
+        let x_shift_i = x_shift as int;
+
+        lemma_fundamental_div_mod(xi, di);
+        let qi = xi / di;
+        let ri = xi % di;
+        assert((x / d) as int == qi);
+        assert((x % d) as int == ri);
+        assert(0 <= ri < di);
+
+        assert(x_shift_i == xi + ki * di);
+        assert(xi == di * (xi / di) + xi % di);
+        assert(di * qi + ri == di * (xi / di) + xi % di);
+        assert(di * qi == qi * di) by (nonlinear_arith);
+        assert(xi == qi * di + ri);
+        assert(x_shift_i == (qi * di + ri) + ki * di);
+        assert((qi * di + ri) + ki * di == (qi + ki) * di + ri) by (nonlinear_arith);
+        assert(x_shift_i == (qi + ki) * di + ri);
+        lemma_fundamental_div_mod_converse(x_shift_i, di, qi + ki, ri);
+        assert(x_shift_i / di == qi + ki);
+        assert(x_shift_i % di == ri);
+
+        assert((x_shift / d) as int == x_shift_i / di);
+        assert((x_shift % d) as int == x_shift_i % di);
+        assert((x / d + k) as int == (x / d) as int + k as int);
+        assert((x / d + k) as int == qi + ki);
+        assert((x_shift / d) as int == (x / d + k) as int);
+        assert((x_shift % d) as int == (x % d) as int);
+        assert(x_shift / d == x / d + k);
+        assert(x_shift % d == x % d);
+    }
+
+    pub proof fn lemma_model_div_shift_by_multiple_pos(a: &Self, d: &Self, k: nat)
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ > 0,
+        ensures
+            (a.model@ + k * d.model@) / d.model@ == a.model@ / d.model@ + k,
+    {
+        Self::lemma_div_rem_shift_by_multiple_nat(a.model@, d.model@, k);
+    }
+
+    pub proof fn lemma_model_rem_shift_by_multiple_pos(a: &Self, d: &Self, k: nat)
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ > 0,
+        ensures
+            (a.model@ + k * d.model@) % d.model@ == a.model@ % d.model@,
+    {
+        Self::lemma_div_rem_shift_by_multiple_nat(a.model@, d.model@, k);
+    }
+
     proof fn lemma_mod_add_compat_nat(x: nat, y: nat, m: nat)
         requires
             m > 0,
