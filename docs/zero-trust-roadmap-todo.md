@@ -184,3 +184,7 @@
 - Completed: Updated `README.md` and `docs/runtime-bigint-trust-assumptions.md` to document the new workflow-structure preflight gate.
 - Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke --min-verified 89` passes after CI-structure preflight hardening (runtime tests 4/4; rug/trusted-escape/source gates pass; baseline + strict-feature Verus each report `89 verified, 0 errors`; strict-smoke verified-count parity passes).
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after CI-structure preflight hardening (6/6 tests).
+- Completed: Hardened CI workflow preflight in `scripts/check.sh` so `Build Verus tools` and `Run strict checks` must be fail-fast (`set -euo pipefail`), and cannot silently ignore failures via `continue-on-error: true` or `|| true`.
+- Completed: Updated `README.md` and `docs/runtime-bigint-trust-assumptions.md` to document the new CI fail-fast preflight guarantees.
+- Completed verification attempt: `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes --target-a-strict-smoke --min-verified 89` passes after CI fail-fast preflight hardening (runtime tests 4/4; baseline + strict-feature Verus each report `89 verified, 0 errors`; verified-count floor/parity gates pass).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after CI fail-fast preflight hardening (6/6 tests).

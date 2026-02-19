@@ -1,1 +1,1 @@
-Added a CI workflow-structure drift gate in scripts/check.sh (step order, working directories, Verus tool build commands, and VERUS_ROOT wiring), updated docs/roadmap, revalidated strict + rug-oracle checks, and 2 roadmap tasks remain.
+Hardened `scripts/check.sh` CI preflight to enforce fail-fast workflow steps (`set -euo pipefail`, no `continue-on-error: true`, no `|| true`), documented the guardrails, revalidated strict and rug-oracle checks, and 2 roadmap tasks remain.

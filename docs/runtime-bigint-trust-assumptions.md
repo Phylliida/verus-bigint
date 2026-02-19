@@ -34,6 +34,9 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   strict checks: `Build Verus tools` must run first in `verus/source` (with
   `./tools/get-z3.sh` + `vargo build --release`), and `Run strict checks` must
   run in `verus-bigint` with `VERUS_ROOT` pointed at the checked-out Verus tree.
+- The CI workflow preflight also enforces fail-fast behavior in those critical
+  steps (`set -euo pipefail`, no `continue-on-error: true`, and no `|| true`
+  failure masking in step commands).
 
 ## Irreducible Trusted Assumptions
 
