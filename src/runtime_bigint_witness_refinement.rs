@@ -1,18 +1,11 @@
 use crate::runtime_bigint_witness::RuntimeBigNatWitness;
 use vstd::prelude::*;
-use vstd::view::View;
 
 verus! {
 
+/// Minimal trusted bridge allowing Verus to reason about an externally-declared
+/// runtime witness type.
 #[verifier::external_type_specification]
 pub struct ExRuntimeBigNatWitness(RuntimeBigNatWitness);
-
-impl View for RuntimeBigNatWitness {
-    type V = nat;
-
-    open spec fn view(&self) -> nat {
-        self.model@
-    }
-}
 
 } // verus!

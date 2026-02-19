@@ -8,8 +8,8 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   `RuntimeBigNatWitness::wf_spec()` in `src/runtime_bigint_witness/verified_impl.rs`.
 - The runtime representation is canonical little-endian limbs (`Vec<u32>` with no
   trailing zero limbs), and both runtime/verified constructors normalize to that form.
-- The refinement bridge in `src/runtime_bigint_witness_refinement.rs` ties
-  `RuntimeBigNatWitness::view()` to `self.model@`.
+- The refinement bridge in `src/runtime_bigint_witness_refinement.rs` is reduced to
+  a minimal `external_type_specification` marker; trusted `View` mapping is not used.
 
 ## Irreducible Trusted Assumptions
 

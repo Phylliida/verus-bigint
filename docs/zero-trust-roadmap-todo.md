@@ -11,7 +11,7 @@
 
 - [x] Replace `rug`-backed runtime path in `src/runtime_bigint_witness/runtime_impl.rs`
 - [x] Remove `cfg` split that swaps between `rug` runtime and verified code in `src/runtime_bigint_witness/mod.rs`
-- [ ] Minimize trusted glue in `src/runtime_bigint_witness_refinement.rs` (`external_type_specification`)
+- [x] Minimize trusted glue in `src/runtime_bigint_witness_refinement.rs` (`external_type_specification`)
 
 ## Target Mode Decision
 
@@ -54,8 +54,8 @@
 
 ## Phase 6: Trusted Surface Reduction
 
-- [ ] Review/refactor refinement glue to reduce reliance on `external_type_specification`
-- [ ] Prefer internal, explicit view/model alignment where possible
+- [x] Review/refactor refinement glue to reduce reliance on `external_type_specification`
+- [x] Prefer internal, explicit view/model alignment where possible
 - [x] Document any irreducible trust assumptions
 
 ## Exit Criteria
@@ -100,3 +100,7 @@
 - Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes (6/6 tests) after the Phase 5 gate changes.
 - Failed attempt (intentional guardrail test): `VERUS_ROOT=/tmp/does-not-exist ./scripts/check.sh --require-verus --forbid-rug-normal-deps` fails with missing `cargo-verus`, confirming strict-mode failure behavior.
 - Failed/blocked attempt: the new GitHub Actions workflow cannot be executed inside this sandbox, so CI execution results are not directly validated here.
+- Completed: Reduced trusted refinement glue in `src/runtime_bigint_witness_refinement.rs` by removing the unused trusted `View` implementation and keeping only the minimal `external_type_specification` bridge required for Verus to reason about `RuntimeBigNatWitness`.
+- Completed cleanup: Removed unreferenced duplicate proof files under `src/runtime_bigint_witness/verified_sections/` to reduce dead/unverified surface area.
+- Completed verification attempt: `./scripts/check.sh` passes after trust-bridge minimization and cleanup (runtime tests 4/4; Verus reports `89 verified, 0 errors`).
+- Completed verification attempt: `cargo test --manifest-path Cargo.toml --features rug-oracle` passes after trust-bridge minimization and cleanup (6/6 tests).
