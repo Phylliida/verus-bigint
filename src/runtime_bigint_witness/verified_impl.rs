@@ -1300,7 +1300,6 @@ impl RuntimeBigNatWitness {
     ///
     /// Computes carry-propagating multi-limb addition over little-endian limbs,
     /// then canonicalizes the output by trimming trailing zero limbs.
-    #[verifier::exec_allows_no_decreases_clause]
     pub fn add_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -1330,6 +1329,7 @@ impl RuntimeBigNatWitness {
                 Self::limbs_value_spec(out_limbs@) + carry as nat * Self::pow_base_spec(i as nat)
                     == Self::prefix_sum_spec(self.limbs_le@, alen as nat, i as nat)
                         + Self::prefix_sum_spec(rhs.limbs_le@, blen as nat, i as nat),
+            decreases n - i,
         {
             let i_old = i;
             let carry_in = carry;
@@ -1569,7 +1569,6 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    #[verifier::exec_allows_no_decreases_clause]
     fn trimmed_len_exec(limbs: &Vec<u32>) -> (out: usize)
         ensures
             out <= limbs.len(),
@@ -1581,6 +1580,7 @@ impl RuntimeBigNatWitness {
             invariant
                 n <= limbs.len(),
                 forall|i: int| n <= i < limbs.len() ==> limbs@[i] == 0u32,
+            decreases n,
         {
             assert(n > 0);
             assert(limbs[(n - 1) as int] == 0u32);
@@ -1595,7 +1595,6 @@ impl RuntimeBigNatWitness {
         n
     }
 
-    #[verifier::exec_allows_no_decreases_clause]
     fn trim_trailing_zero_limbs(limbs: Vec<u32>) -> (out: Vec<u32>)
         ensures
             Self::canonical_limbs_spec(out@),
@@ -1610,6 +1609,7 @@ impl RuntimeBigNatWitness {
                 i <= n,
                 n <= limbs.len(),
                 out@ == limbs@.subrange(0, i as int),
+            decreases n - i,
         {
             assert(i < limbs.len());
             out.push(limbs[i]);
@@ -1649,7 +1649,6 @@ impl RuntimeBigNatWitness {
     }
 
     /// Multiplies by one base limb (`2^32`) by prepending a zero low limb.
-    #[verifier::exec_allows_no_decreases_clause]
     fn shift_base_once_total(&self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -1681,6 +1680,7 @@ impl RuntimeBigNatWitness {
                     i <= n,
                     n <= self.limbs_le.len(),
                     out_limbs@ == Seq::<u32>::empty().push(0u32) + self.limbs_le@.subrange(0, i as int),
+                decreases n - i,
             {
                 assert(i < self.limbs_le.len());
                 out_limbs.push(self.limbs_le[i]);
@@ -1743,7 +1743,6 @@ impl RuntimeBigNatWitness {
     }
 
     /// Multiplies by one `u32` limb via repeated semantic addition.
-    #[verifier::exec_allows_no_decreases_clause]
     fn mul_by_u32_total(&self, rhs_limb: u32) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -1756,6 +1755,7 @@ impl RuntimeBigNatWitness {
                 acc.wf_spec(),
                 acc.model@ + Self::limbs_value_spec(self.limbs_le@) * (remaining as nat)
                     == Self::limbs_value_spec(self.limbs_le@) * rhs_limb as nat,
+            decreases remaining,
         {
             let prev_remaining = remaining;
             let next = acc.add_limbwise_small_total(self);
@@ -1812,7 +1812,6 @@ impl RuntimeBigNatWitness {
     /// - per-limb scalar multiplication (`mul_by_u32_total`)
     /// - base shifting (`shift_base_once_total`)
     /// - semantic accumulation (`add_limbwise_small_total`)
-    #[verifier::exec_allows_no_decreases_clause]
     pub fn mul_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -1852,6 +1851,7 @@ impl RuntimeBigNatWitness {
                 acc.model@ == Self::limbs_value_spec(self.limbs_le@)
                     * Self::prefix_sum_spec(rhs.limbs_le@, blen as nat, i as nat),
                 shifted.model@ == Self::limbs_value_spec(self.limbs_le@) * Self::pow_base_spec(i as nat),
+            decreases blen - i,
         {
             assert(i < rhs.limbs_le.len());
             let limb = rhs.limbs_le[i];
@@ -1958,7 +1958,6 @@ impl RuntimeBigNatWitness {
     ///
     /// Returns the exact sign of `(self - rhs)` as `-1/0/1` using full
     /// multi-limb comparison with trailing-zero normalization.
-    #[verifier::exec_allows_no_decreases_clause]
     pub fn cmp_limbwise_small_total(&self, rhs: &Self) -> (out: i8)
         ensures
             out == -1 || out == 0 || out == 1,
@@ -2023,6 +2022,7 @@ impl RuntimeBigNatWitness {
                     forall|j: int| alen <= j < self.limbs_le@.len() ==> self.limbs_le@[j] == 0u32,
                     forall|j: int| blen <= j < rhs.limbs_le@.len() ==> rhs.limbs_le@[j] == 0u32,
                     forall|j: int| i <= j < alen ==> self.limbs_le@[j] == rhs.limbs_le@[j],
+                decreases i,
             {
                 let idx = i - 1;
                 assert(idx < self.limbs_le.len());
@@ -2142,7 +2142,6 @@ impl RuntimeBigNatWitness {
     /// Computes the exact nonnegative difference when `self >= rhs` using full
     /// multi-limb borrow propagation (with trailing-zero normalization).
     /// Returns `0` when `self < rhs`.
-    #[verifier::exec_allows_no_decreases_clause]
     pub fn sub_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -2217,6 +2216,7 @@ impl RuntimeBigNatWitness {
                         + Self::prefix_sum_spec(rhs.limbs_le@, blen as nat, i as nat)
                         == Self::prefix_sum_spec(self.limbs_le@, alen as nat, i as nat)
                             + borrow as nat * Self::pow_base_spec(i as nat),
+                decreases alen - i,
             {
                 assert(i < self.limbs_le.len());
                 let a = self.limbs_le[i] as u64;
@@ -2458,7 +2458,6 @@ impl RuntimeBigNatWitness {
     /// Total witness copy helper for scalar witness plumbing.
     ///
     /// Preserves all limbs exactly (after trailing-zero normalization).
-    #[verifier::exec_allows_no_decreases_clause]
     pub fn copy_small_total(&self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -2473,6 +2472,7 @@ impl RuntimeBigNatWitness {
                 i <= n,
                 n <= self.limbs_le.len(),
                 out_limbs@ == self.limbs_le@.subrange(0, i as int),
+            decreases n - i,
         {
             assert(i < self.limbs_le.len());
             out_limbs.push(self.limbs_le[i]);
