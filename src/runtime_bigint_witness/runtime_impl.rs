@@ -159,6 +159,9 @@ impl RuntimeBigNatWitness {
     pub fn lemma_model_len_window_nonzero_ops(_a: &Self) {
     }
 
+    pub fn lemma_model_zero_implies_len_zero_ops(_a: &Self) {
+    }
+
     pub fn lemma_cmp_le_zero_iff_le_ops(a: &Self, b: &Self) -> i8 {
         a.cmp_limbwise_small_total(b)
     }
@@ -188,6 +191,13 @@ impl RuntimeBigNatWitness {
     }
 
     pub fn lemma_cmp_eq_implies_bi_sub_zero_ops(a: &Self, b: &Self) -> (i8, Self, Self) {
+        let cmp = a.cmp_limbwise_small_total(b);
+        let sub_ab = a.sub_limbwise_small_total(b);
+        let sub_ba = b.sub_limbwise_small_total(a);
+        (cmp, sub_ab, sub_ba)
+    }
+
+    pub fn lemma_cmp_neg_implies_asym_sub_ops(a: &Self, b: &Self) -> (i8, Self, Self) {
         let cmp = a.cmp_limbwise_small_total(b);
         let sub_ab = a.sub_limbwise_small_total(b);
         let sub_ba = b.sub_limbwise_small_total(a);
