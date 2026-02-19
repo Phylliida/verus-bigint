@@ -18,6 +18,8 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   remaining `#[verifier::truncate]` casts in non-test sources.
 - Verified loops now carry explicit `decreases` measures; non-test sources no
   longer rely on `#[verifier::exec_allows_no_decreases_clause]`.
+- Non-test source files are also kept `unsafe`-free; strict source gates fail
+  if `unsafe` appears outside test code.
 - The feature `target-a-strict` is enabled by default and rejects non-Verus Rust
   builds at compile time unless `runtime-compat` is explicitly enabled for local
   runtime/testing workflows, and `runtime-compat` is rejected for non-Verus

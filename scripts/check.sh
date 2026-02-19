@@ -14,7 +14,7 @@ options:
   --runtime-only            run only cargo runtime tests; skip Verus verification
   --require-verus           fail instead of skipping when Verus verification cannot run
   --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
-  --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals, `#[verifier::truncate]`, or `#[verifier::exec_allows_no_decreases_clause]`)
+  --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals, `#[verifier::truncate]`, `#[verifier::exec_allows_no_decreases_clause]`, or `unsafe`)
   --rug-oracle-tests        run extra differential tests (`cargo test --features rug-oracle`)
   --target-a-strict-smoke   verify strict-mode guards (default non-Verus build fails; non-Verus `--release --features runtime-compat` fails; Verus verify with `target-a-strict` passes and preserves verified-count parity)
   --min-verified N          fail if any Verus run reports fewer than N verified items
@@ -927,6 +927,7 @@ check_no_trusted_escapes_in_non_test_sources() {
       -e '#\s*\[\s*verifier::external(_body|_fn_specification|_type_specification)?\b' \
       -e '#\s*\[\s*verifier::truncate\b' \
       -e '#\s*\[\s*verifier::exec_allows_no_decreases_clause\b' \
+      -e '\bunsafe\b' \
       "$ROOT_DIR/src" || true
   )"
 
