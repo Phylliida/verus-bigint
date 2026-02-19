@@ -5,9 +5,11 @@ use vstd::prelude::*;
 use vstd::arithmetic::div_mod::{
     lemma_add_mod_noop,
     lemma_basic_div,
+    lemma_div_is_ordered,
     lemma_div_is_ordered_by_denominator,
     lemma_fundamental_div_mod,
     lemma_fundamental_div_mod_converse,
+    lemma_multiply_divide_lt,
     lemma_mul_mod_noop,
     lemma_mod_self_0,
     lemma_mod_pos_bound,
@@ -1247,6 +1249,89 @@ impl RuntimeBigNatWitness {
         assert(((a * d) / d) as int == a as int);
         assert((a * d) / d == a);
         assert((a * d) % d == 0);
+    }
+
+    proof fn lemma_div_add_bounds_nat(a: nat, b: nat, d: nat)
+        requires
+            d > 0,
+        ensures
+            a / d + b / d <= (a + b) / d,
+            (a + b) / d <= a / d + b / d + 1,
+    {
+        let qa = a / d;
+        let qb = b / d;
+        let qsum = (a + b) / d;
+        let ra = a % d;
+        let rb = b % d;
+
+        let ai = a as int;
+        let bi = b as int;
+        let di = d as int;
+        let qai = qa as int;
+        let qbi = qb as int;
+        let qsi = qsum as int;
+        let rai = ra as int;
+        let rbi = rb as int;
+
+        lemma_fundamental_div_mod(ai, di);
+        lemma_fundamental_div_mod(bi, di);
+        lemma_fundamental_div_mod((a + b) as int, di);
+
+        assert(di > 0);
+        assert(ai == di * qai + rai);
+        assert(bi == di * qbi + rbi);
+        assert(0 <= rai < di);
+        assert(0 <= rbi < di);
+
+        assert(a == qa * d + ra);
+        assert(b == qb * d + rb);
+        assert(a + b == (qa * d + ra) + (qb * d + rb));
+        assert((qa * d + ra) + (qb * d + rb) == (qa + qb) * d + (ra + rb)) by (nonlinear_arith);
+        assert(a + b == (qa + qb) * d + (ra + rb));
+
+        assert(0 <= ra + rb);
+        assert(ra + rb < d + d);
+        let base = (qa + qb) * d;
+        let li = (ra + rb) as int;
+        let ri = (d + d) as int;
+        let bi = base as int;
+        assert(li < ri);
+        assert(bi + li < bi + ri);
+        assert((base + (ra + rb)) as int == bi + li);
+        assert((base + (d + d)) as int == bi + ri);
+        let lhs_i = (base + (ra + rb)) as int;
+        let rhs_i = (base + (d + d)) as int;
+        assert(lhs_i < rhs_i);
+        assert(base + (ra + rb) < base + (d + d));
+        assert(a + b < (qa + qb) * d + (d + d));
+        assert((qa + qb) * d + (d + d) == (qa + qb + 2) * d) by (nonlinear_arith);
+        assert(a + b < (qa + qb + 2) * d);
+
+        assert(d * (qa + qb) == (qa + qb) * d) by (nonlinear_arith);
+        assert((qa + qb) * d <= (qa + qb) * d + (ra + rb));
+        assert((qa + qb) * d <= a + b);
+        lemma_div_is_ordered((d * (qa + qb)) as int, (a + b) as int, di);
+        assert(((d * (qa + qb)) as int) / di <= ((a + b) as int) / di);
+        Self::lemma_mul_div_rem_cancel_nat(qa + qb, d);
+        assert((d * (qa + qb)) / d == ((qa + qb) * d) / d);
+        assert((d * (qa + qb)) / d == qa + qb);
+        assert(((d * (qa + qb)) / d) as int == ((d * (qa + qb)) as int) / di);
+        assert(((a + b) / d) as int == ((a + b) as int) / di);
+        assert((qa + qb) as int <= ((a + b) / d) as int);
+        assert(qa + qb <= (a + b) / d);
+
+        lemma_multiply_divide_lt((a + b) as int, di, (qa + qb + 2) as int);
+        assert(((a + b) as int) / di < (qa + qb + 2) as int);
+        let qsum_i = ((a + b) / d) as int;
+        let qbound_i = (qa + qb + 2) as int;
+        assert(qsum_i < qbound_i);
+        assert((a + b) / d < qa + qb + 2);
+        if (a + b) / d > qa + qb + 1 {
+            assert((a + b) / d >= qa + qb + 2);
+            assert((a + b) / d < qa + qb + 2);
+            assert(false);
+        }
+        assert((a + b) / d <= qa + qb + 1);
     }
 
     pub proof fn lemma_model_div_shift_by_multiple_pos(a: &Self, d: &Self, k: nat)
@@ -4614,6 +4699,45 @@ impl RuntimeBigNatWitness {
             assert(sub_sum_a.model@ == b.model@);
         }
         (sum, sub_sum_b, sub_sum_a)
+    }
+
+    /// Operation-level wrapper: computes quotients and proves floor-division add bounds.
+    pub fn lemma_model_div_add_bounds_pos_ops(a: &Self, b: &Self, d: &Self) -> (out: (Self, Self, Self))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            d.wf_spec(),
+            d.model@ > 0,
+        ensures
+            out.0.wf_spec(),
+            out.1.wf_spec(),
+            out.2.wf_spec(),
+            out.0.model@ == a.model@ / d.model@,
+            out.1.model@ == b.model@ / d.model@,
+            out.2.model@ == (a.model@ + b.model@) / d.model@,
+            out.0.model@ + out.1.model@ <= out.2.model@,
+            out.2.model@ <= out.0.model@ + out.1.model@ + 1,
+    {
+        let sum = a.add_limbwise_small_total(b);
+        let q_a = a.div_limbwise_small_total(d);
+        let q_b = b.div_limbwise_small_total(d);
+        let q_sum = sum.div_limbwise_small_total(d);
+        proof {
+            assert(a.model@ == Self::limbs_value_spec(a.limbs_le@));
+            assert(b.model@ == Self::limbs_value_spec(b.limbs_le@));
+            assert(d.model@ == Self::limbs_value_spec(d.limbs_le@));
+            assert(sum.model@ == a.model@ + b.model@);
+            assert(q_a.model@ == a.model@ / d.model@);
+            assert(q_b.model@ == b.model@ / d.model@);
+            assert(q_sum.model@ == sum.model@ / d.model@);
+            assert(q_sum.model@ == (a.model@ + b.model@) / d.model@);
+            Self::lemma_div_add_bounds_nat(a.model@, b.model@, d.model@);
+            assert(a.model@ / d.model@ + b.model@ / d.model@ <= (a.model@ + b.model@) / d.model@);
+            assert((a.model@ + b.model@) / d.model@ <= a.model@ / d.model@ + b.model@ / d.model@ + 1);
+            assert(q_a.model@ + q_b.model@ <= q_sum.model@);
+            assert(q_sum.model@ <= q_a.model@ + q_b.model@ + 1);
+        }
+        (q_a, q_b, q_sum)
     }
 
     /// Operation-level wrapper: computes both quotients and proves quotient monotonicity.

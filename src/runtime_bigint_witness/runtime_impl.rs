@@ -211,6 +211,14 @@ impl RuntimeBigNatWitness {
         (sum, sub_sum_b, sub_sum_a)
     }
 
+    pub fn lemma_model_div_add_bounds_pos_ops(a: &Self, b: &Self, d: &Self) -> (Self, Self, Self) {
+        let sum = a.add_limbwise_small_total(b);
+        let q_a = a.div_limbwise_small_total(d);
+        let q_b = b.div_limbwise_small_total(d);
+        let q_sum = sum.div_limbwise_small_total(d);
+        (q_a, q_b, q_sum)
+    }
+
     pub fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (Self, Self) {
         let div_a = a.div_limbwise_small_total(d);
         let div_b = b.div_limbwise_small_total(d);
