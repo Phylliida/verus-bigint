@@ -31,11 +31,11 @@ Additional formal properties worth proving after `runtime-bigint-next-proof-todo
 
 ## Cancellation Laws
 
-- [ ] Prove additive cancellation:
-  - [ ] `add(a, c) == add(b, c) ==> a == b`
+- [x] Prove additive cancellation:
+  - [x] `add(a, c) == add(b, c) ==> a == b`
 
-- [ ] Prove multiplicative cancellation for positive multipliers:
-  - [ ] `c > 0 && mul(a, c) == mul(b, c) ==> a == b`
+- [x] Prove multiplicative cancellation for positive multipliers:
+  - [x] `c > 0 && mul(a, c) == mul(b, c) ==> a == b`
 
 ## Div/Rem Order Coherence
 
