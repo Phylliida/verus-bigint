@@ -15,7 +15,7 @@ options:
   --require-verus           fail instead of skipping when Verus verification cannot run
   --forbid-rug-normal-deps  fail if `rug` appears in normal deps or non-test source files
   --forbid-trusted-escapes  fail if non-test source uses trusted proof escapes (`admit`, `assume`, verifier externals)
-  --target-a-strict-smoke   verify strict-mode transition guard (non-Verus build fails, Verus verify with `target-a-strict` passes)
+  --target-a-strict-smoke   verify strict-mode transition guard (default non-Verus build fails, Verus verify with `target-a-strict` passes)
   --offline                 run cargo commands in offline mode (`cargo --offline`)
   -h, --help                show this help
 USAGE
@@ -290,8 +290,8 @@ run_cargo_verus_verify() {
 echo "[check] Verifying runtime/verified API parity"
 check_runtime_verified_api_parity
 
-echo "[check] Running cargo tests"
-"${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml"
+echo "[check] Running cargo tests (runtime-compat)"
+"${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --features runtime-compat
 
 if [[ "$FORBID_RUG_NORMAL_DEPS" == "1" ]]; then
   echo "[check] Verifying normal dependency graph excludes rug"
@@ -335,12 +335,12 @@ if [[ "$TARGET_A_STRICT_SMOKE" == "1" ]]; then
   echo "[check] Verifying target-a-strict rejects non-Verus cargo builds"
   strict_smoke_log="$(mktemp)"
   set +e
-  "${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --features target-a-strict --no-run >"$strict_smoke_log" 2>&1
+  "${CARGO_CMD[@]}" test --manifest-path "$ROOT_DIR/Cargo.toml" --no-run >"$strict_smoke_log" 2>&1
   strict_smoke_status="$?"
   set -e
 
   if [[ "$strict_smoke_status" == "0" ]]; then
-    echo "error: expected non-Verus cargo build with --features target-a-strict to fail, but it succeeded"
+    echo "error: expected non-Verus cargo build (default strict mode) to fail, but it succeeded"
     cat "$strict_smoke_log"
     rm -f "$strict_smoke_log"
     exit 1

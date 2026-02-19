@@ -1,6 +1,11 @@
-#[cfg(all(feature = "target-a-strict", not(verus_keep_ghost)))]
+#[cfg(all(
+    feature = "target-a-strict",
+    not(feature = "runtime-compat"),
+    not(verus_keep_ghost)
+))]
 compile_error!(
-    "feature `target-a-strict` requires a Verus build (`cfg(verus_keep_ghost)`); non-verified runtime backend is disabled"
+    "feature `target-a-strict` requires a Verus build (`cfg(verus_keep_ghost)`); \
+     enable feature `runtime-compat` only for local non-Verus runtime/testing workflows"
 );
 
 #[cfg(verus_keep_ghost)]

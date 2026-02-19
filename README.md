@@ -21,15 +21,18 @@ This crate currently mirrors the bigint witness implementation from VerusCAD.
   - `./scripts/check.sh --runtime-only`
 - Run strict checks (fail if Verus tools are unavailable, and fail on `rug` in normal deps or non-test `src/` files):
   - `./scripts/check.sh --require-verus --forbid-rug-normal-deps --forbid-trusted-escapes`
-- Smoke-check Target A transition guard (`target-a-strict` must fail in non-Verus Rust builds and still verify under Verus):
+- Smoke-check strict guard (default non-Verus Rust build must fail and `target-a-strict` still verifies under Verus):
   - `./scripts/check.sh --target-a-strict-smoke --forbid-rug-normal-deps --forbid-trusted-escapes`
 - Run checks in offline mode where possible:
   - `./scripts/check.sh --offline`
+- Run runtime tests directly (outside `check.sh`) in local non-Verus mode:
+  - `cargo test --features runtime-compat`
 
 ## Strict Feature
 
-- Feature `target-a-strict` is an opt-in transition guard toward Target A.
-- In non-Verus builds it emits a compile error (disabling the non-verified runtime backend).
+- Feature `target-a-strict` is enabled by default.
+- In non-Verus builds it emits a compile error unless `runtime-compat` is enabled
+  explicitly for local runtime/testing workflows.
 - In Verus builds (`cfg(verus_keep_ghost)`), verification proceeds normally.
 
 ## Roadmaps
