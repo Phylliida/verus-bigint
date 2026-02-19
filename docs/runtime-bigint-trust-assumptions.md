@@ -35,8 +35,10 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
 - `scripts/check.sh` also validates that `.github/workflows/check.yml` keeps the
   same pinned Verus Rust toolchain for both `rustup toolchain install` and
   `rustup default`, and that this pin matches `scripts/check.sh`.
-- `scripts/check.sh` now also validates CI workflow step wiring for end-to-end
-  strict checks: `Build Verus tools` must run first in `verus/source` (with
+- `scripts/check.sh` now also validates CI workflow checkout + step wiring for
+  end-to-end strict checks: checkout steps must include `Checkout verus-bigint`
+  (`path: verus-bigint`) and `Checkout Verus` (`repository: verus-lang/verus`,
+  `path: verus`), `Build Verus tools` must run first in `verus/source` (with
   `./tools/get-z3.sh` + `vargo build --release`), and `Run strict checks` must
   run in `verus-bigint` with `VERUS_ROOT` pointed at the checked-out Verus tree.
 - The CI workflow preflight also enforces fail-fast behavior in those critical

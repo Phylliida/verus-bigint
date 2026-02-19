@@ -196,6 +196,76 @@ check_workflow_step_fail_fast() {
   fi
 }
 
+check_ci_workflow_checkout_wiring() {
+  local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
+  local checkout_bigint_step=""
+  local checkout_verus_step=""
+  local checkout_bigint_line=""
+  local checkout_verus_line=""
+  local build_line=""
+  local strict_line=""
+
+  if [[ ! -f "$workflow_file" ]]; then
+    echo "error: workflow file not found: $workflow_file"
+    exit 1
+  fi
+
+  checkout_bigint_line="$(rg -n '^[[:space:]]*- name:[[:space:]]*Checkout verus-bigint[[:space:]]*$' "$workflow_file" | head -n 1 | cut -d: -f1)"
+  checkout_verus_line="$(rg -n '^[[:space:]]*- name:[[:space:]]*Checkout Verus[[:space:]]*$' "$workflow_file" | head -n 1 | cut -d: -f1)"
+  build_line="$(rg -n '^[[:space:]]*- name:[[:space:]]*Build Verus tools[[:space:]]*$' "$workflow_file" | head -n 1 | cut -d: -f1)"
+  strict_line="$(rg -n '^[[:space:]]*- name:[[:space:]]*Run strict checks[[:space:]]*$' "$workflow_file" | head -n 1 | cut -d: -f1)"
+
+  if [[ -z "$checkout_bigint_line" || -z "$checkout_verus_line" ]]; then
+    echo "error: required checkout steps missing in $workflow_file"
+    echo "expected steps: 'Checkout verus-bigint' and 'Checkout Verus'"
+    exit 1
+  fi
+  if [[ -z "$build_line" || -z "$strict_line" ]]; then
+    echo "error: required workflow steps missing in $workflow_file"
+    echo "expected steps: 'Build Verus tools' and 'Run strict checks'"
+    exit 1
+  fi
+  if (( checkout_bigint_line >= build_line || checkout_bigint_line >= strict_line )); then
+    echo "error: workflow checkout step order invalid for 'Checkout verus-bigint'"
+    echo "expected it to run before 'Build Verus tools' and 'Run strict checks'"
+    exit 1
+  fi
+  if (( checkout_verus_line >= build_line || checkout_verus_line >= strict_line )); then
+    echo "error: workflow checkout step order invalid for 'Checkout Verus'"
+    echo "expected it to run before 'Build Verus tools' and 'Run strict checks'"
+    exit 1
+  fi
+
+  checkout_bigint_step="$(extract_named_workflow_step_block "$workflow_file" "Checkout verus-bigint")"
+  checkout_verus_step="$(extract_named_workflow_step_block "$workflow_file" "Checkout Verus")"
+  if [[ -z "$checkout_bigint_step" || -z "$checkout_verus_step" ]]; then
+    echo "error: failed to parse required checkout step block(s) in $workflow_file"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$checkout_bigint_step" | rg -q 'uses:[[:space:]]*actions/checkout@v4'; then
+    echo "error: workflow 'Checkout verus-bigint' step must use actions/checkout@v4"
+    exit 1
+  fi
+  if ! printf '%s\n' "$checkout_bigint_step" | rg -q 'path:[[:space:]]*verus-bigint'; then
+    echo "error: workflow 'Checkout verus-bigint' step must set path: verus-bigint"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$checkout_verus_step" | rg -q 'uses:[[:space:]]*actions/checkout@v4'; then
+    echo "error: workflow 'Checkout Verus' step must use actions/checkout@v4"
+    exit 1
+  fi
+  if ! printf '%s\n' "$checkout_verus_step" | rg -q 'repository:[[:space:]]*verus-lang/verus'; then
+    echo "error: workflow 'Checkout Verus' step must set repository: verus-lang/verus"
+    exit 1
+  fi
+  if ! printf '%s\n' "$checkout_verus_step" | rg -q 'path:[[:space:]]*verus'; then
+    echo "error: workflow 'Checkout Verus' step must set path: verus"
+    exit 1
+  fi
+}
+
 check_ci_workflow_end_to_end_structure() {
   local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
   local build_step=""
@@ -676,6 +746,9 @@ check_runtime_verified_api_parity
 
 echo "[check] Verifying CI toolchain alignment (workflow vs check.sh)"
 check_ci_toolchain_alignment
+
+echo "[check] Verifying CI workflow checkout wiring"
+check_ci_workflow_checkout_wiring
 
 echo "[check] Verifying CI workflow end-to-end structure"
 check_ci_workflow_end_to_end_structure
