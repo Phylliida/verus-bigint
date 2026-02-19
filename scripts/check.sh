@@ -171,6 +171,26 @@ extract_named_workflow_step_block() {
   ' "$workflow_file"
 }
 
+check_workflow_step_fail_fast() {
+  local step_name="$1"
+  local step_block="$2"
+
+  if printf '%s\n' "$step_block" | rg -q 'continue-on-error:[[:space:]]*true'; then
+    echo "error: workflow step '$step_name' must not set continue-on-error: true"
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$step_block" | rg -q 'set[[:space:]]+-euo[[:space:]]+pipefail'; then
+    echo "error: workflow step '$step_name' must set 'set -euo pipefail'"
+    exit 1
+  fi
+
+  if printf '%s\n' "$step_block" | rg -q '\|\|[[:space:]]*true'; then
+    echo "error: workflow step '$step_name' must not mask failures with '|| true'"
+    exit 1
+  fi
+}
+
 check_ci_workflow_end_to_end_structure() {
   local workflow_file="$ROOT_DIR/.github/workflows/check.yml"
   local build_step=""
@@ -207,6 +227,9 @@ check_ci_workflow_end_to_end_structure() {
     echo "error: failed to parse 'Run strict checks' step block in $workflow_file"
     exit 1
   fi
+
+  check_workflow_step_fail_fast "Build Verus tools" "$build_step"
+  check_workflow_step_fail_fast "Run strict checks" "$strict_step"
 
   if ! printf '%s\n' "$build_step" | rg -q 'working-directory:[[:space:]]*verus/source'; then
     echo "error: workflow 'Build Verus tools' step must run in verus/source"
