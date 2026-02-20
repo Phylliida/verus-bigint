@@ -4,8 +4,9 @@ Formally verified arbitrary-size integer witness code extracted from VerusCAD.
 
 ## Contents
 
-- `RuntimeBigNatWitness` exported from `src/runtime_bigint_witness/mod.rs`
+- `RuntimeBigNatWitness` and `RuntimeBigIntWitness` exported from `src/runtime_bigint_witness/mod.rs`
 - Verified/spec-heavy implementation in `src/runtime_bigint_witness/verified_impl.rs`
+- Signed verified/spec-heavy implementation in `src/runtime_bigint_witness/signed_verified_impl.rs`
 - Verus-path witness datatype declared directly in `src/runtime_bigint_witness/mod.rs` under `cfg(verus_keep_ghost)` (no external refinement bridge file)
 - Non-Verus builds fail at compile time; there is no runtime fallback backend
 - Trusted-surface notes in `docs/runtime-bigint-trust-assumptions.md`
@@ -25,7 +26,7 @@ verus-bigint = { path = "../verus-bigint" }
 vstd = { path = "../verus/source/vstd" }
 ```
 
-### 2) Import and use borrowed operators
+### 2) Unsigned witness (`RuntimeBigNatWitness`)
 
 ```rust
 use vstd::prelude::*;
@@ -59,7 +60,65 @@ Notes:
 - `-` uses the witness subtraction semantics: it floors at zero (`a - b == 0` when `a <= b`).
 - `/` and `%` use existing witness semantics for divisor zero (`a / 0 == 0`, `a % 0 == 0`).
 
-### 3) Inspect limbs
+### 3) Signed witness (`RuntimeBigIntWitness`)
+
+```rust
+use vstd::prelude::*;
+use verus_bigint::RuntimeBigIntWitness;
+
+verus! {
+pub fn signed_bigint_example() -> (out: (
+    RuntimeBigIntWitness,
+    RuntimeBigIntWitness,
+    RuntimeBigIntWitness,
+    RuntimeBigIntWitness,
+    RuntimeBigIntWitness,
+    RuntimeBigIntWitness,
+    RuntimeBigIntWitness,
+    i8,
+    i8
+))
+{
+    let a = RuntimeBigIntWitness::from_i64(-23);
+    let b = RuntimeBigIntWitness::from_i64(5);
+    let zero = RuntimeBigIntWitness::zero();
+
+    let sum = &a + &b;      // -18
+    let difference = &a - &b; // -28
+    let product = &a * &b;  // -115
+    let quotient = &a / &b; // -4 (truncates toward 0)
+    let remainder = &a % &b; // -3 (same sign as dividend when nonzero)
+    let quotient_by_zero = &a / &zero; // 0
+    let remainder_by_zero = &a % &zero; // 0
+    let negated = -&a; // 23
+
+    let ordering = a.cmp(&b); // -1, 0, or 1
+    let sign = remainder.signum(); // -1, 0, or 1
+
+    (
+        sum,
+        difference,
+        product,
+        quotient,
+        remainder,
+        quotient_by_zero,
+        negated,
+        ordering,
+        sign,
+    )
+}
+}
+```
+
+Signed semantics:
+- Operators are implemented only for borrowed operands (`&lhs op &rhs`, including unary `-&x`).
+- `sub` is true signed subtraction (`a - a == 0`, no floor-to-zero behavior).
+- `/` and `%` use truncating division/remainder (Rust-style, quotient truncates toward zero).
+- `%` has the same sign as the dividend when nonzero.
+- Division/remainder by zero are totalized to zero (`a / 0 == 0`, `a % 0 == 0`).
+- Checked conversion helpers are available (`from_u32`, `from_u64`, `try_to_i64`, `try_to_u64`), plus lightweight sign parse/format helpers (`sign_char`, `parse_sign_char_and_u64`).
+
+### 4) Inspect limbs
 
 ```rust
 use vstd::prelude::*;
@@ -74,7 +133,7 @@ pub fn limbs_example() -> (out: &[u32])
 }
 ```
 
-### 4) Verify
+### 5) Verify
 
 ```bash
 cargo verus verify
@@ -140,9 +199,9 @@ Notation used below: `B = 2^32`, `V(xs) = limbs_value_spec(xs)`, `|xs| = xs.len(
 - Run all checks:
   - `./scripts/check.sh`
 - Run strict checks (fail if Verus tools are unavailable, fail on trusted-escape patterns in non-test `src/` files including `#[verifier::exec_allows_no_decreases_clause]` and `unsafe`, and gate against verification-count regressions):
-  - `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 193`
+  - `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 259`
 - Run the CI-equivalent strict gate locally (kept aligned with `.github/workflows/check.yml` by `check.sh`, including strict command flags and Verus toolchain pin):
-  - `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 193`
+  - `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 259`
   - It also preflights CI trigger coverage so strict checks remain wired to both `pull_request` and `push` on `main`, and rejects trigger filters (`paths*`, `branches-ignore`) that could silently skip enforcement.
   - It also preflights the CI `verify` job execution contract (no job-level `if:` gating, no job-level `continue-on-error`, and explicit `timeout-minutes`).
   - It also preflights CI runner posture for `verify`: `runs-on` must stay pinned to `ubuntu-22.04`, with no dynamic runner expressions and no `self-hosted` labels.
