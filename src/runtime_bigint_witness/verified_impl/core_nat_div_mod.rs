@@ -1,6 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
-    proof fn lemma_div_rem_unique_nat(x: nat, d: nat, q1: nat, r1: nat, q2: nat, r2: nat)
+    pub proof fn lemma_div_rem_unique_nat(x: nat, d: nat, q1: nat, r1: nat, q2: nat, r2: nat)
         requires
             d > 0,
             x == q1 * d + r1,
@@ -36,7 +36,7 @@ impl RuntimeBigNatWitness {
         assert(r1 == r2);
     }
 
-    proof fn lemma_mod_zero_implies_multiple_nat(x: nat, d: nat) -> (k: nat)
+    pub proof fn lemma_mod_zero_implies_multiple_nat(x: nat, d: nat) -> (k: nat)
         requires
             d > 0,
             x % d == 0,
@@ -60,7 +60,7 @@ impl RuntimeBigNatWitness {
         k
     }
 
-    proof fn lemma_multiple_implies_mod_zero_nat(x: nat, d: nat, k: nat)
+    pub proof fn lemma_multiple_implies_mod_zero_nat(x: nat, d: nat, k: nat)
         requires
             d > 0,
             x == k * d,
@@ -79,7 +79,7 @@ impl RuntimeBigNatWitness {
         assert(x % d == 0);
     }
 
-    proof fn lemma_div_rem_shift_by_multiple_nat(x: nat, d: nat, k: nat)
+    pub proof fn lemma_div_rem_shift_by_multiple_nat(x: nat, d: nat, k: nat)
         requires
             d > 0,
         ensures
@@ -121,7 +121,7 @@ impl RuntimeBigNatWitness {
         assert(x_shift % d == x % d);
     }
 
-    proof fn lemma_mul_div_rem_cancel_nat(a: nat, d: nat)
+    pub proof fn lemma_mul_div_rem_cancel_nat(a: nat, d: nat)
         requires
             d > 0,
         ensures
@@ -144,7 +144,7 @@ impl RuntimeBigNatWitness {
         assert((a * d) % d == 0);
     }
 
-    proof fn lemma_div_add_bounds_nat(a: nat, b: nat, d: nat)
+    pub proof fn lemma_div_add_bounds_nat(a: nat, b: nat, d: nat)
         requires
             d > 0,
         ensures
@@ -249,7 +249,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_div_rem_shift_by_multiple_nat(a.model@, d.model@, k);
     }
 
-    proof fn lemma_div_monotonic_in_divisor_nat(x: nat, d1: nat, d2: nat)
+    pub proof fn lemma_div_monotonic_in_divisor_nat(x: nat, d1: nat, d2: nat)
         requires
             d1 > 0,
             d1 <= d2,
@@ -284,7 +284,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_div_monotonic_in_divisor_nat(a.model@, d1.model@, d2.model@);
     }
 
-    proof fn lemma_mod_add_compat_nat(x: nat, y: nat, m: nat)
+    pub proof fn lemma_mod_add_compat_nat(x: nat, y: nat, m: nat)
         requires
             m > 0,
         ensures
@@ -316,7 +316,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_mod_add_compat_nat(a.model@, b.model@, m.model@);
     }
 
-    proof fn lemma_mod_mul_compat_nat(x: nat, y: nat, m: nat)
+    pub proof fn lemma_mod_mul_compat_nat(x: nat, y: nat, m: nat)
         requires
             m > 0,
         ensures
@@ -348,7 +348,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_mod_mul_compat_nat(a.model@, b.model@, m.model@);
     }
 
-    proof fn lemma_mod_congruence_add_nat(a: nat, b: nat, c: nat, m: nat)
+    pub proof fn lemma_mod_congruence_add_nat(a: nat, b: nat, c: nat, m: nat)
         requires
             m > 0,
             a % m == b % m,
@@ -377,7 +377,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_mod_congruence_add_nat(a.model@, b.model@, c.model@, m.model@);
     }
 
-    proof fn lemma_mod_congruence_mul_nat(a: nat, b: nat, c: nat, m: nat)
+    pub proof fn lemma_mod_congruence_mul_nat(a: nat, b: nat, c: nat, m: nat)
         requires
             m > 0,
             a % m == b % m,

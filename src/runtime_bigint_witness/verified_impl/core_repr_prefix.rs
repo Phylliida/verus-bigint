@@ -35,14 +35,14 @@ impl RuntimeBigNatWitness {
         &&& Self::canonical_limbs_spec(self.limbs_le@)
     }
 
-    proof fn lemma_pow_base_succ(exp: nat)
+    pub proof fn lemma_pow_base_succ(exp: nat)
         ensures
             Self::pow_base_spec(exp + 1) == Self::limb_base_spec() * Self::pow_base_spec(exp),
     {
     }
 
     /// Value update law for appending a high limb in little-endian representation.
-    proof fn lemma_limbs_value_push(limbs: Seq<u32>, digit: u32)
+    pub proof fn lemma_limbs_value_push(limbs: Seq<u32>, digit: u32)
         ensures
             Self::limbs_value_spec(limbs.push(digit))
                 == Self::limbs_value_spec(limbs) + digit as nat * Self::pow_base_spec(limbs.len()),
@@ -88,7 +88,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_limbs_value_drop_last_zero(limbs: Seq<u32>)
+    pub proof fn lemma_limbs_value_drop_last_zero(limbs: Seq<u32>)
         requires
             limbs.len() > 0,
             limbs[(limbs.len() - 1) as int] == 0u32,
@@ -129,7 +129,7 @@ impl RuntimeBigNatWitness {
         );
     }
 
-    proof fn lemma_limbs_value_trim_suffix_zeros(limbs: Seq<u32>, n: nat)
+    pub proof fn lemma_limbs_value_trim_suffix_zeros(limbs: Seq<u32>, n: nat)
         requires
             n <= limbs.len(),
             forall|i: int| n <= i < limbs.len() ==> limbs[i] == 0u32,
@@ -216,7 +216,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_add_digit_carry_decompose(a: nat, b: nat, carry_in: nat)
+    pub proof fn lemma_add_digit_carry_decompose(a: nat, b: nat, carry_in: nat)
         requires
             a < Self::limb_base_spec(),
             b < Self::limb_base_spec(),
@@ -252,7 +252,7 @@ impl RuntimeBigNatWitness {
         assert(sum == Self::add_sum_spec(a, b, carry_in));
     }
 
-    proof fn lemma_add_prefix_step(
+    pub proof fn lemma_add_prefix_step(
         psr: nat,
         psa: nat,
         psb: nat,
@@ -299,7 +299,7 @@ impl RuntimeBigNatWitness {
             by (nonlinear_arith);
     }
 
-    proof fn lemma_sub_prefix_step(
+    pub proof fn lemma_sub_prefix_step(
         psr: nat,
         psa: nat,
         psb: nat,
@@ -353,7 +353,7 @@ impl RuntimeBigNatWitness {
         );
     }
 
-    proof fn lemma_limb_or_zero_past_logical_len(limbs: Seq<u32>, logical_len: nat, idx: nat)
+    pub proof fn lemma_limb_or_zero_past_logical_len(limbs: Seq<u32>, logical_len: nat, idx: nat)
         requires
             logical_len <= idx,
         ensures
@@ -363,7 +363,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limb_or_zero_spec(limbs, logical_len, idx) == 0);
     }
 
-    proof fn lemma_prefix_sum_step(limbs: Seq<u32>, logical_len: nat, count: nat)
+    pub proof fn lemma_prefix_sum_step(limbs: Seq<u32>, logical_len: nat, count: nat)
         ensures
             Self::prefix_sum_spec(limbs, logical_len, count + 1)
                 == Self::prefix_sum_spec(limbs, logical_len, count)
@@ -376,7 +376,7 @@ impl RuntimeBigNatWitness {
         );
     }
 
-    proof fn lemma_prefix_sum_constant_from_extra(limbs: Seq<u32>, logical_len: nat, extra: nat)
+    pub proof fn lemma_prefix_sum_constant_from_extra(limbs: Seq<u32>, logical_len: nat, extra: nat)
         ensures
             Self::prefix_sum_spec(limbs, logical_len, logical_len + extra)
                 == Self::prefix_sum_spec(limbs, logical_len, logical_len),
@@ -408,7 +408,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_prefix_sum_constant_past_logical_len(limbs: Seq<u32>, logical_len: nat, count: nat)
+    pub proof fn lemma_prefix_sum_constant_past_logical_len(limbs: Seq<u32>, logical_len: nat, count: nat)
         requires
             logical_len <= count,
         ensures
@@ -424,7 +424,7 @@ impl RuntimeBigNatWitness {
         );
     }
 
-    proof fn lemma_prefix_sum_matches_subrange(limbs: Seq<u32>, logical_len: nat, count: nat)
+    pub proof fn lemma_prefix_sum_matches_subrange(limbs: Seq<u32>, logical_len: nat, count: nat)
         requires
             count <= logical_len,
             count <= limbs.len(),
@@ -483,7 +483,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_prefix_sum_eq_subrange_value(limbs: Seq<u32>, logical_len: nat)
+    pub proof fn lemma_prefix_sum_eq_subrange_value(limbs: Seq<u32>, logical_len: nat)
         requires
             logical_len <= limbs.len(),
         ensures

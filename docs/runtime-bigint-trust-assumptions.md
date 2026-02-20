@@ -1,6 +1,7 @@
 # Runtime BigInt Trust Assumptions
 
-This document tracks what remains trusted for `RuntimeBigNatWitness`.
+This document tracks what remains trusted for `RuntimeBigNatWitness` and
+`RuntimeBigIntWitness`.
 
 ## Internal Alignment
 
@@ -13,6 +14,12 @@ This document tracks what remains trusted for `RuntimeBigNatWitness`.
   `external_type_specification` bridge is needed.
 - Non-Verus builds are compile-time rejected; there is no alternate runtime
   backend.
+- Signed witness semantics are defined and maintained in
+  `src/runtime_bigint_witness/signed_verified_impl.rs`, using `RuntimeBigNatWitness`
+  as the magnitude core (`sign + magnitude` with canonical `-0` normalization).
+- Signed division/remainder semantics are explicit and verified:
+  truncating division/remainder (`trunc_div_spec` / `trunc_rem_spec`) and
+  totalized zero-divisor behavior (`a / 0 == 0`, `a % 0 == 0`).
 - Verified numeric narrowing now uses explicit bounds reasoning; there are no
   remaining `#[verifier::truncate]` casts in non-test sources.
 - Verified loops now carry explicit `decreases` measures; non-test sources no

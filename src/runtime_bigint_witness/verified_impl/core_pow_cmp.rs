@@ -1,6 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
-    proof fn lemma_pow_ge_one(exp: nat)
+    pub proof fn lemma_pow_ge_one(exp: nat)
         ensures
             Self::pow_base_spec(exp) >= 1,
         decreases exp
@@ -22,7 +22,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_pow_monotonic(lo: nat, hi: nat)
+    pub proof fn lemma_pow_monotonic(lo: nat, hi: nat)
         requires
             lo <= hi,
         ensures
@@ -48,7 +48,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_pow_add(lhs: nat, rhs: nat)
+    pub proof fn lemma_pow_add(lhs: nat, rhs: nat)
         ensures
             Self::pow_base_spec(lhs + rhs) == Self::pow_base_spec(lhs) * Self::pow_base_spec(rhs),
         decreases rhs
@@ -93,7 +93,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_limbs_value_unfold_nonempty(limbs: Seq<u32>)
+    pub proof fn lemma_limbs_value_unfold_nonempty(limbs: Seq<u32>)
         requires
             limbs.len() > 0,
         ensures
@@ -120,7 +120,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_limbs_value_append(left: Seq<u32>, right: Seq<u32>)
+    pub proof fn lemma_limbs_value_append(left: Seq<u32>, right: Seq<u32>)
         ensures
             Self::limbs_value_spec(left + right)
                 == Self::limbs_value_spec(left)
@@ -196,7 +196,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_limbs_value_lt_pow_len(limbs: Seq<u32>)
+    pub proof fn lemma_limbs_value_lt_pow_len(limbs: Seq<u32>)
         ensures
             Self::limbs_value_spec(limbs) < Self::pow_base_spec(limbs.len()),
         decreases limbs.len()
@@ -276,7 +276,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_limbs_value_ge_pow_last_nonzero(limbs: Seq<u32>)
+    pub proof fn lemma_limbs_value_ge_pow_last_nonzero(limbs: Seq<u32>)
         requires
             limbs.len() > 0,
             limbs[(limbs.len() - 1) as int] != 0u32,
@@ -316,7 +316,7 @@ impl RuntimeBigNatWitness {
         assert(Self::pow_base_spec(n) <= Self::limbs_value_spec(limbs));
     }
 
-    proof fn lemma_len_bound_from_value_upper_pow(limbs: Seq<u32>, upper_exp: nat)
+    pub proof fn lemma_len_bound_from_value_upper_pow(limbs: Seq<u32>, upper_exp: nat)
         requires
             Self::canonical_limbs_spec(limbs),
             Self::limbs_value_spec(limbs) < Self::pow_base_spec(upper_exp),
@@ -341,7 +341,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    proof fn lemma_cmp_prefix_last_digit_gt(a: Seq<u32>, b: Seq<u32>)
+    pub proof fn lemma_cmp_prefix_last_digit_gt(a: Seq<u32>, b: Seq<u32>)
         requires
             a.len() == b.len(),
             a.len() > 0,
@@ -437,7 +437,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limbs_value_spec(a) > Self::limbs_value_spec(b));
     }
 
-    proof fn lemma_cmp_high_diff_gt(a: Seq<u32>, b: Seq<u32>, idx: nat)
+    pub proof fn lemma_cmp_high_diff_gt(a: Seq<u32>, b: Seq<u32>, idx: nat)
         requires
             a.len() == b.len(),
             idx < a.len(),
@@ -502,7 +502,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limbs_value_spec(a) > Self::limbs_value_spec(b));
     }
 
-    proof fn lemma_trimmed_len_gt_implies_value_gt(a: Seq<u32>, alen: nat, b: Seq<u32>, blen: nat)
+    pub proof fn lemma_trimmed_len_gt_implies_value_gt(a: Seq<u32>, alen: nat, b: Seq<u32>, blen: nat)
         requires
             alen <= a.len(),
             blen <= b.len(),
@@ -539,7 +539,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limbs_value_spec(a) > Self::limbs_value_spec(b));
     }
 
-    proof fn lemma_trimmed_high_diff_implies_value_gt(a: Seq<u32>, alen: nat, b: Seq<u32>, blen: nat, idx: nat)
+    pub proof fn lemma_trimmed_high_diff_implies_value_gt(a: Seq<u32>, alen: nat, b: Seq<u32>, blen: nat, idx: nat)
         requires
             alen == blen,
             alen <= a.len(),
@@ -577,7 +577,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limbs_value_spec(a) > Self::limbs_value_spec(b));
     }
 
-    proof fn lemma_model_zero_or_single_limb(&self)
+    pub proof fn lemma_model_zero_or_single_limb(&self)
         requires
             self.wf_spec(),
             self.limbs_le@.len() <= 1,
