@@ -141,7 +141,26 @@ cargo verus verify
 
 ## Proof Coverage Map
 
-All verification artifacts live under `src/runtime_bigint_witness/verified_impl/` (plus executable contracts in `src/runtime_bigint_witness/verified_impl.rs`).
+Verification artifacts are split across unsigned and signed implementations:
+
+- Unsigned (`RuntimeBigNatWitness`): `src/runtime_bigint_witness/verified_impl/` and `src/runtime_bigint_witness/verified_impl.rs`
+- Signed (`RuntimeBigIntWitness`): `src/runtime_bigint_witness/signed_verified_impl.rs`
+- Signed planning/status docs:
+  - `docs/runtime-bigint-signed-todo.md`
+  - `docs/runtime-bigint-signed-proof-parity.md`
+  - `docs/runtime-bigint-next-proof-todo.md`
+  - `docs/runtime-bigint-shape-compare-proof-todo.md`
+
+### Signed Proof Coverage (`RuntimeBigIntWitness`)
+
+- Signed model + core semantics:
+  [`abs_model_spec`](src/runtime_bigint_witness/signed_verified_impl.rs#L31), [`trunc_div_spec`](src/runtime_bigint_witness/signed_verified_impl.rs#L39), [`trunc_rem_spec`](src/runtime_bigint_witness/signed_verified_impl.rs#L53), [`abs`](src/runtime_bigint_witness/signed_verified_impl.rs#L628), [`signum`](src/runtime_bigint_witness/signed_verified_impl.rs#L657), [`cmp`](src/runtime_bigint_witness/signed_verified_impl.rs#L730), [`add`](src/runtime_bigint_witness/signed_verified_impl.rs#L825), [`sub`](src/runtime_bigint_witness/signed_verified_impl.rs#L947), [`mul`](src/runtime_bigint_witness/signed_verified_impl.rs#L966), [`div`](src/runtime_bigint_witness/signed_verified_impl.rs#L1055), [`rem`](src/runtime_bigint_witness/signed_verified_impl.rs#L1131), [`div_rem`](src/runtime_bigint_witness/signed_verified_impl.rs#L1249), [`neg`](src/runtime_bigint_witness/signed_verified_impl.rs#L3416).
+- Signed parity wrappers (nat-surface mirrors):
+  compare/sub round-trips [`lemma_cmp_le_zero_iff_le_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1444), [`lemma_model_sub_zero_iff_eq_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1547), [`lemma_model_sub_add_inverse_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1572), [`lemma_model_add_sub_round_trip_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1596); order/div/rem wrappers [`lemma_model_div_monotonic_pos_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1626), [`lemma_cmp_pos_implies_sub_pos_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1718), [`lemma_cmp_eq_implies_bi_sub_zero_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1742), [`lemma_cmp_neg_implies_asym_sub_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1770), [`lemma_model_rem_bounds_nonneg_dividend_pos_divisor_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1800), [`lemma_model_rem_bounds_nonpos_dividend_pos_divisor_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1844); shape/length wrappers [`lemma_model_len_window_nonzero_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1902), [`lemma_model_zero_implies_len_zero_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1927), [`lemma_abs_add_len_bound_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1942), [`lemma_abs_mul_len_bound_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1967), [`lemma_abs_div_len_bound_nonzero_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L1989), [`lemma_abs_rem_len_bound_nonzero_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2013).
+- Signed-only wrappers:
+  [`lemma_signum_sub_eq_cmp_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2304), divisor-sign flips [`lemma_model_div_divisor_sign_flip_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2372), [`lemma_model_rem_divisor_sign_flip_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2402), negated-dividend laws [`lemma_model_div_neg_dividend_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2432), [`lemma_model_rem_neg_dividend_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2461), unit divisors [`lemma_model_unit_div_rem_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2490), explicit sign laws [`lemma_model_mul_sign_nonzero_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2548), [`lemma_model_div_sign_nonzero_quotient_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2609), [`lemma_model_rem_sign_nonzero_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2662), abs interaction laws [`lemma_abs_neg_eq_abs_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2683), [`lemma_abs_mul_distribution_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2711), [`lemma_abs_rem_bound_nonzero_ops`](src/runtime_bigint_witness/signed_verified_impl.rs#L2750).
+
+### Unsigned Proof Coverage (`RuntimeBigNatWitness`)
 
 Notation used below: `B = 2^32`, `V(xs) = limbs_value_spec(xs)`, `|xs| = xs.len()`.
 

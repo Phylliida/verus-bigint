@@ -42,14 +42,14 @@ the underlying facts.
 
 Unsigned did not need these because sign is absent.
 
-| Priority | Signed-only lemma candidate | Why it matters |
-|---|---|---|
-| P1 | `signum(a - b) == cmp(a,b)` | Very strong bridge between arithmetic and ordering proofs |
-| P1 | Divisor-sign flip laws: `div(a,-d) == -div(a,d)`, `rem(a,-d) == rem(a,d)` (`d!=0`) | Removes repeated sign case splits in division-heavy proofs |
-| P1 | Negation/distribution laws for trunc ops: `div(-a,d) == -div(a,d)`, `rem(-a,d) == -rem(a,d)` (`d!=0`) | Canonical simplification for negative-branch reasoning |
-| P1 | Unit divisor laws: `a/1=a`, `a/(-1)=-a`, `a%1=0`, `a%(-1)=0` | Common rewrite rules and edge-case cleanup |
-| P2 | Explicit sign-of-result lemmas for `mul`, `div`, `rem` (with zero side conditions) | Makes sign-case proofs compositional instead of inlining method proofs |
-| P2 | `abs` interaction laws: `abs(-a)=abs(a)`, `abs(a*b)=abs(a)*abs(b)`, `abs(rem(a,d)) < abs(d)` wrapper form | Central for mixed signed/unsigned reasoning |
+| Priority | Status | Signed-only target | Added signed wrapper(s) |
+|---|---|---|---|
+| P1 | Done | `signum(a - b) == cmp(a,b)` | `lemma_signum_sub_eq_cmp_ops` |
+| P1 | Done | Divisor-sign flips: `div(a,-d) == -div(a,d)`, `rem(a,-d) == rem(a,d)` (`d!=0`) | `lemma_model_div_divisor_sign_flip_ops`, `lemma_model_rem_divisor_sign_flip_ops` |
+| P1 | Done | Negated-dividend laws: `div(-a,d) == -div(a,d)`, `rem(-a,d) == -rem(a,d)` (`d!=0`) | `lemma_model_div_neg_dividend_ops`, `lemma_model_rem_neg_dividend_ops` |
+| P1 | Done | Unit divisor laws: `a/1=a`, `a/(-1)=-a`, `a%1=0`, `a%(-1)=0` | `lemma_model_unit_div_rem_ops` |
+| P2 | Done | Explicit sign-of-result wrappers for `mul`, `div`, `rem` | `lemma_model_mul_sign_nonzero_ops`, `lemma_model_div_sign_nonzero_quotient_ops`, `lemma_model_rem_sign_nonzero_ops` |
+| P2 | Done | `abs` interactions: `abs(-a)=abs(a)`, `abs(a*b)=abs(a)*abs(b)`, `abs(rem(a,d)) < abs(d)` | `lemma_abs_neg_eq_abs_ops`, `lemma_abs_mul_distribution_ops`, `lemma_abs_rem_bound_nonzero_ops` |
 
 ## Nat Lemmas That Should Not Be Ported Unchanged
 

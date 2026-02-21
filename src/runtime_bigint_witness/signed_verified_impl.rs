@@ -2033,6 +2033,750 @@ impl RuntimeBigIntWitness {
         out_rem
     }
 
+    /// Arithmetic helper: negation does not change absolute value.
+    pub proof fn lemma_abs_model_neg_symmetry(model: int)
+        ensures
+            Self::abs_model_spec(-model) == Self::abs_model_spec(model),
+    {
+        if model < 0 {
+            assert(-model > 0);
+            assert(Self::abs_model_spec(model) == (-model) as nat);
+            assert(Self::abs_model_spec(-model) == (-model) as nat);
+        } else if model == 0 {
+            assert(-model == 0);
+            assert(Self::abs_model_spec(model) == 0);
+            assert(Self::abs_model_spec(-model) == 0);
+        } else {
+            assert(model > 0);
+            assert(-model < 0);
+            assert(Self::abs_model_spec(model) == model as nat);
+            assert(Self::abs_model_spec(-model) == (-(-model)) as nat);
+            assert((-(-model)) as nat == model as nat);
+        }
+    }
+
+    /// Arithmetic helper: absolute value distributes over integer multiplication.
+    pub proof fn lemma_abs_model_mul_distributes(a: int, b: int)
+        ensures
+            Self::abs_model_spec(a * b) == Self::abs_model_spec(a) * Self::abs_model_spec(b),
+    {
+        if a == 0 || b == 0 {
+            if a == 0 {
+                assert(a * b == 0);
+                assert(Self::abs_model_spec(a * b) == 0);
+                assert(Self::abs_model_spec(a) == 0);
+                assert(Self::abs_model_spec(a) * Self::abs_model_spec(b) == 0);
+            } else {
+                assert(b == 0);
+                assert(a * b == 0);
+                assert(Self::abs_model_spec(a * b) == 0);
+                assert(Self::abs_model_spec(b) == 0);
+                assert(Self::abs_model_spec(a) * Self::abs_model_spec(b) == 0);
+            }
+        } else if a < 0 {
+            if b < 0 {
+                assert(-a > 0);
+                assert(-b > 0);
+                lemma_mul_strict_inequality(0, -a, -b);
+                assert(0 < (-a) * (-b));
+                assert(a * b == (-a) * (-b)) by (nonlinear_arith);
+                assert(a * b > 0);
+                assert(Self::abs_model_spec(a * b) == (a * b) as nat);
+                assert(Self::abs_model_spec(a) == (-a) as nat);
+                assert(Self::abs_model_spec(b) == (-b) as nat);
+                assert((a * b) as nat == ((-a) * (-b)) as nat);
+                assert(((-a) * (-b)) as nat == ((-a) as nat) * ((-b) as nat));
+            } else {
+                assert(b > 0);
+                assert(-a > 0);
+                lemma_mul_strict_inequality(0, -a, b);
+                assert(0 < (-a) * b);
+                assert(a * b == -((-a) * b)) by (nonlinear_arith);
+                assert(a * b < 0);
+                assert(-(a * b) == (-a) * b) by (nonlinear_arith);
+                assert(Self::abs_model_spec(a * b) == (-(a * b)) as nat);
+                assert(Self::abs_model_spec(a) == (-a) as nat);
+                assert(Self::abs_model_spec(b) == b as nat);
+                assert((-(a * b)) as nat == ((-a) * b) as nat);
+                assert(((-a) * b) as nat == ((-a) as nat) * (b as nat));
+            }
+        } else {
+            assert(a > 0);
+            if b < 0 {
+                assert(-b > 0);
+                lemma_mul_strict_inequality(0, a, -b);
+                assert(0 < a * (-b));
+                assert(a * b == -(a * (-b))) by (nonlinear_arith);
+                assert(a * b < 0);
+                assert(-(a * b) == a * (-b)) by (nonlinear_arith);
+                assert(Self::abs_model_spec(a * b) == (-(a * b)) as nat);
+                assert(Self::abs_model_spec(a) == a as nat);
+                assert(Self::abs_model_spec(b) == (-b) as nat);
+                assert((-(a * b)) as nat == (a * (-b)) as nat);
+                assert((a * (-b)) as nat == (a as nat) * ((-b) as nat));
+            } else {
+                assert(b > 0);
+                lemma_mul_strict_inequality(0, a, b);
+                assert(0 < a * b);
+                assert(Self::abs_model_spec(a * b) == (a * b) as nat);
+                assert(Self::abs_model_spec(a) == a as nat);
+                assert(Self::abs_model_spec(b) == b as nat);
+                assert((a * b) as nat == (a as nat) * (b as nat));
+            }
+        }
+    }
+
+    /// Arithmetic helper: flipping divisor sign negates trunc quotient.
+    pub proof fn lemma_trunc_div_divisor_sign_flip(a: int, d: int)
+        requires
+            d != 0,
+        ensures
+            Self::trunc_div_spec(a, -d) == -Self::trunc_div_spec(a, d),
+    {
+        let abs_a = Self::abs_model_spec(a);
+        let abs_d = Self::abs_model_spec(d);
+        let abs_neg_d = Self::abs_model_spec(-d);
+        let q_abs = abs_a / abs_d;
+        let lhs_neg = (a < 0) != (-d < 0);
+        let rhs_neg = (a < 0) != (d < 0);
+
+        Self::lemma_abs_model_neg_symmetry(d);
+        assert(abs_neg_d == abs_d);
+        assert(abs_a / abs_neg_d == q_abs);
+
+        if d < 0 {
+            assert(-d > 0);
+            assert(abs_d == (-d) as nat);
+            assert(abs_d > 0);
+            assert((-d < 0) == false);
+            assert((d < 0) == true);
+            assert(lhs_neg == (a < 0));
+            assert(rhs_neg == !(a < 0));
+        } else {
+            assert(d > 0);
+            assert(abs_d == d as nat);
+            assert(abs_d > 0);
+            assert((-d < 0) == true);
+            assert((d < 0) == false);
+            assert(lhs_neg == !(a < 0));
+            assert(rhs_neg == (a < 0));
+        }
+        assert(lhs_neg != rhs_neg);
+
+        if lhs_neg {
+            assert(!rhs_neg);
+            assert(Self::trunc_div_spec(a, -d) == -(q_abs as int));
+            assert(Self::trunc_div_spec(a, d) == q_abs as int);
+            assert(-Self::trunc_div_spec(a, d) == -(q_abs as int));
+        } else {
+            assert(rhs_neg);
+            assert(Self::trunc_div_spec(a, -d) == q_abs as int);
+            assert(Self::trunc_div_spec(a, d) == -(q_abs as int));
+            assert(-Self::trunc_div_spec(a, d) == q_abs as int);
+        }
+    }
+
+    /// Arithmetic helper: flipping divisor sign preserves trunc remainder.
+    pub proof fn lemma_trunc_rem_divisor_sign_flip(a: int, d: int)
+        requires
+            d != 0,
+        ensures
+            Self::trunc_rem_spec(a, -d) == Self::trunc_rem_spec(a, d),
+    {
+        let abs_a = Self::abs_model_spec(a);
+        let abs_d = Self::abs_model_spec(d);
+        let abs_neg_d = Self::abs_model_spec(-d);
+        let r_abs = abs_a % abs_d;
+
+        Self::lemma_abs_model_neg_symmetry(d);
+        assert(abs_neg_d == abs_d);
+        assert(abs_a % abs_neg_d == r_abs);
+
+        if a < 0 {
+            assert(Self::trunc_rem_spec(a, -d) == -(r_abs as int));
+            assert(Self::trunc_rem_spec(a, d) == -(r_abs as int));
+        } else {
+            assert(Self::trunc_rem_spec(a, -d) == r_abs as int);
+            assert(Self::trunc_rem_spec(a, d) == r_abs as int);
+        }
+    }
+
+    /// Arithmetic helper: negating dividend negates trunc quotient.
+    pub proof fn lemma_trunc_div_neg_dividend(a: int, d: int)
+        requires
+            d != 0,
+        ensures
+            Self::trunc_div_spec(-a, d) == -Self::trunc_div_spec(a, d),
+    {
+        let abs_a = Self::abs_model_spec(a);
+        let abs_neg_a = Self::abs_model_spec(-a);
+        let abs_d = Self::abs_model_spec(d);
+        let q_abs = abs_a / abs_d;
+        let lhs_neg = (-a < 0) != (d < 0);
+        let rhs_neg = (a < 0) != (d < 0);
+
+        Self::lemma_abs_model_neg_symmetry(a);
+        assert(abs_neg_a == abs_a);
+
+        if d < 0 {
+            assert(-d > 0);
+            assert(abs_d == (-d) as nat);
+            assert(abs_d > 0);
+        } else {
+            assert(d > 0);
+            assert(abs_d == d as nat);
+            assert(abs_d > 0);
+        }
+
+        if a == 0 {
+            assert(-a == 0);
+            assert(abs_a == 0);
+            assert(q_abs == 0);
+            assert(Self::trunc_div_spec(-a, d) == 0);
+            assert(Self::trunc_div_spec(a, d) == 0);
+        } else {
+            assert((-a < 0) != (a < 0));
+            assert(lhs_neg != rhs_neg);
+            if lhs_neg {
+                assert(!rhs_neg);
+                assert(Self::trunc_div_spec(-a, d) == -(q_abs as int));
+                assert(Self::trunc_div_spec(a, d) == q_abs as int);
+                assert(-Self::trunc_div_spec(a, d) == -(q_abs as int));
+            } else {
+                assert(rhs_neg);
+                assert(Self::trunc_div_spec(-a, d) == q_abs as int);
+                assert(Self::trunc_div_spec(a, d) == -(q_abs as int));
+                assert(-Self::trunc_div_spec(a, d) == q_abs as int);
+            }
+        }
+    }
+
+    /// Arithmetic helper: negating dividend negates trunc remainder.
+    pub proof fn lemma_trunc_rem_neg_dividend(a: int, d: int)
+        requires
+            d != 0,
+        ensures
+            Self::trunc_rem_spec(-a, d) == -Self::trunc_rem_spec(a, d),
+    {
+        let abs_a = Self::abs_model_spec(a);
+        let abs_neg_a = Self::abs_model_spec(-a);
+        let abs_d = Self::abs_model_spec(d);
+        let r_abs = abs_a % abs_d;
+
+        Self::lemma_abs_model_neg_symmetry(a);
+        assert(abs_neg_a == abs_a);
+        if d < 0 {
+            assert(-d > 0);
+            assert(abs_d == (-d) as nat);
+            assert(abs_d > 0);
+        } else {
+            assert(d > 0);
+            assert(abs_d == d as nat);
+            assert(abs_d > 0);
+        }
+
+        if a == 0 {
+            assert(-a == 0);
+            assert(abs_a == 0);
+            assert(r_abs == abs_a % abs_d);
+            assert(r_abs == 0nat % abs_d);
+            assert(r_abs == 0nat);
+            assert((-a < 0) == false);
+            assert((a < 0) == false);
+            assert(Self::trunc_rem_spec(-a, d) == r_abs as int);
+            assert(Self::trunc_rem_spec(a, d) == r_abs as int);
+            assert(r_abs as int == 0);
+        } else if a < 0 {
+            assert(-a > 0);
+            assert(Self::trunc_rem_spec(-a, d) == r_abs as int);
+            assert(Self::trunc_rem_spec(a, d) == -(r_abs as int));
+            assert(-Self::trunc_rem_spec(a, d) == r_abs as int);
+        } else {
+            assert(a > 0);
+            assert(-a < 0);
+            assert(Self::trunc_rem_spec(-a, d) == -(r_abs as int));
+            assert(Self::trunc_rem_spec(a, d) == r_abs as int);
+            assert(-Self::trunc_rem_spec(a, d) == -(r_abs as int));
+        }
+    }
+
+    /// Signed-only wrapper: sign of exact difference matches compare result.
+    pub(crate) fn lemma_signum_sub_eq_cmp_ops(a: &Self, b: &Self) -> (out: (Self, i8, i8))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.0.wf_spec(),
+            out.0.model@ == a.model@ - b.model@,
+            out.1 == -1i8 || out.1 == 0i8 || out.1 == 1i8,
+            out.2 == -1i8 || out.2 == 0i8 || out.2 == 1i8,
+            (out.1 == -1i8) <==> (a.model@ < b.model@),
+            (out.1 == 0i8) <==> (a.model@ == b.model@),
+            (out.1 == 1i8) <==> (a.model@ > b.model@),
+            out.1 == out.2,
+    {
+        let sub_ab = a.sub(b);
+        let sign_sub = sub_ab.signum();
+        let cmp_ab = a.cmp(b);
+        proof {
+            assert(sub_ab.model@ == a.model@ - b.model@);
+
+            if sign_sub == -1i8 {
+                assert(sub_ab.model@ < 0);
+                assert(a.model@ - b.model@ < 0);
+                assert(a.model@ < b.model@);
+            }
+            if sign_sub == 0i8 {
+                assert(sub_ab.model@ == 0);
+                assert(a.model@ - b.model@ == 0);
+                assert(a.model@ == b.model@);
+            }
+            if sign_sub == 1i8 {
+                assert(sub_ab.model@ > 0);
+                assert(a.model@ - b.model@ > 0);
+                assert(a.model@ > b.model@);
+            }
+            if a.model@ < b.model@ {
+                assert(a.model@ - b.model@ < 0);
+                assert(sub_ab.model@ < 0);
+                assert(sign_sub == -1i8);
+            }
+            if a.model@ == b.model@ {
+                assert(a.model@ - b.model@ == 0);
+                assert(sub_ab.model@ == 0);
+                assert(sign_sub == 0i8);
+            }
+            if a.model@ > b.model@ {
+                assert(a.model@ - b.model@ > 0);
+                assert(sub_ab.model@ > 0);
+                assert(sign_sub == 1i8);
+            }
+
+            if sign_sub == -1i8 {
+                assert(a.model@ < b.model@);
+                assert(cmp_ab == -1i8);
+            } else if sign_sub == 0i8 {
+                assert(a.model@ == b.model@);
+                assert(cmp_ab == 0i8);
+            } else {
+                assert(sign_sub == 1i8);
+                assert(a.model@ > b.model@);
+                assert(cmp_ab == 1i8);
+            }
+            assert(sign_sub == cmp_ab);
+        }
+        (sub_ab, sign_sub, cmp_ab)
+    }
+
+    /// Signed-only wrapper: flipping divisor sign negates quotient.
+    pub(crate) fn lemma_model_div_divisor_sign_flip_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ != 0,
+        ensures
+            out.0.wf_spec(),
+            out.0.model@ == -d.model@,
+            out.1.wf_spec(),
+            out.1.model@ == Self::trunc_div_spec(a.model@, d.model@),
+            out.2.wf_spec(),
+            out.2.model@ == Self::trunc_div_spec(a.model@, out.0.model@),
+            out.2.model@ == -out.1.model@,
+    {
+        let neg_d = d.neg();
+        let div_a_d = a.div(d);
+        let div_a_neg_d = a.div(&neg_d);
+        proof {
+            assert(neg_d.model@ == -d.model@);
+            assert(neg_d.model@ != 0);
+            assert(div_a_d.model@ == Self::trunc_div_spec(a.model@, d.model@));
+            assert(div_a_neg_d.model@ == Self::trunc_div_spec(a.model@, neg_d.model@));
+            Self::lemma_trunc_div_divisor_sign_flip(a.model@, d.model@);
+            assert(Self::trunc_div_spec(a.model@, neg_d.model@) == -Self::trunc_div_spec(a.model@, d.model@));
+            assert(div_a_neg_d.model@ == -div_a_d.model@);
+        }
+        (neg_d, div_a_d, div_a_neg_d)
+    }
+
+    /// Signed-only wrapper: flipping divisor sign preserves remainder.
+    pub(crate) fn lemma_model_rem_divisor_sign_flip_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ != 0,
+        ensures
+            out.0.wf_spec(),
+            out.0.model@ == -d.model@,
+            out.1.wf_spec(),
+            out.1.model@ == Self::trunc_rem_spec(a.model@, d.model@),
+            out.2.wf_spec(),
+            out.2.model@ == Self::trunc_rem_spec(a.model@, out.0.model@),
+            out.2.model@ == out.1.model@,
+    {
+        let neg_d = d.neg();
+        let rem_a_d = a.rem(d);
+        let rem_a_neg_d = a.rem(&neg_d);
+        proof {
+            assert(neg_d.model@ == -d.model@);
+            assert(neg_d.model@ != 0);
+            assert(rem_a_d.model@ == Self::trunc_rem_spec(a.model@, d.model@));
+            assert(rem_a_neg_d.model@ == Self::trunc_rem_spec(a.model@, neg_d.model@));
+            Self::lemma_trunc_rem_divisor_sign_flip(a.model@, d.model@);
+            assert(Self::trunc_rem_spec(a.model@, neg_d.model@) == Self::trunc_rem_spec(a.model@, d.model@));
+            assert(rem_a_neg_d.model@ == rem_a_d.model@);
+        }
+        (neg_d, rem_a_d, rem_a_neg_d)
+    }
+
+    /// Signed-only wrapper: negating dividend negates quotient.
+    pub(crate) fn lemma_model_div_neg_dividend_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ != 0,
+        ensures
+            out.0.wf_spec(),
+            out.0.model@ == -a.model@,
+            out.1.wf_spec(),
+            out.1.model@ == Self::trunc_div_spec(a.model@, d.model@),
+            out.2.wf_spec(),
+            out.2.model@ == Self::trunc_div_spec(out.0.model@, d.model@),
+            out.2.model@ == -out.1.model@,
+    {
+        let neg_a = a.neg();
+        let div_a_d = a.div(d);
+        let div_neg_a_d = neg_a.div(d);
+        proof {
+            assert(neg_a.model@ == -a.model@);
+            assert(div_a_d.model@ == Self::trunc_div_spec(a.model@, d.model@));
+            assert(div_neg_a_d.model@ == Self::trunc_div_spec(neg_a.model@, d.model@));
+            Self::lemma_trunc_div_neg_dividend(a.model@, d.model@);
+            assert(Self::trunc_div_spec(neg_a.model@, d.model@) == -Self::trunc_div_spec(a.model@, d.model@));
+            assert(div_neg_a_d.model@ == -div_a_d.model@);
+        }
+        (neg_a, div_a_d, div_neg_a_d)
+    }
+
+    /// Signed-only wrapper: negating dividend negates remainder.
+    pub(crate) fn lemma_model_rem_neg_dividend_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ != 0,
+        ensures
+            out.0.wf_spec(),
+            out.0.model@ == -a.model@,
+            out.1.wf_spec(),
+            out.1.model@ == Self::trunc_rem_spec(a.model@, d.model@),
+            out.2.wf_spec(),
+            out.2.model@ == Self::trunc_rem_spec(out.0.model@, d.model@),
+            out.2.model@ == -out.1.model@,
+    {
+        let neg_a = a.neg();
+        let rem_a_d = a.rem(d);
+        let rem_neg_a_d = neg_a.rem(d);
+        proof {
+            assert(neg_a.model@ == -a.model@);
+            assert(rem_a_d.model@ == Self::trunc_rem_spec(a.model@, d.model@));
+            assert(rem_neg_a_d.model@ == Self::trunc_rem_spec(neg_a.model@, d.model@));
+            Self::lemma_trunc_rem_neg_dividend(a.model@, d.model@);
+            assert(Self::trunc_rem_spec(neg_a.model@, d.model@) == -Self::trunc_rem_spec(a.model@, d.model@));
+            assert(rem_neg_a_d.model@ == -rem_a_d.model@);
+        }
+        (neg_a, rem_a_d, rem_neg_a_d)
+    }
+
+    /// Signed-only wrapper: unit divisor identities for truncating division/remainder.
+    pub(crate) fn lemma_model_unit_div_rem_ops(a: &Self) -> (out: (Self, Self, Self, Self, Self, Self))
+        requires
+            a.wf_spec(),
+        ensures
+            out.0.wf_spec(),
+            out.0.model@ == 1,
+            out.1.wf_spec(),
+            out.1.model@ == -1,
+            out.2.wf_spec(),
+            out.2.model@ == Self::trunc_div_spec(a.model@, 1),
+            out.2.model@ == a.model@,
+            out.3.wf_spec(),
+            out.3.model@ == Self::trunc_div_spec(a.model@, -1),
+            out.3.model@ == -a.model@,
+            out.4.wf_spec(),
+            out.4.model@ == Self::trunc_rem_spec(a.model@, 1),
+            out.4.model@ == 0,
+            out.5.wf_spec(),
+            out.5.model@ == Self::trunc_rem_spec(a.model@, -1),
+            out.5.model@ == 0,
+    {
+        let one = Self::from_i32(1);
+        let neg_one = Self::from_i32(-1);
+        let div_by_one = a.div(&one);
+        let div_by_neg_one = a.div(&neg_one);
+        let rem_by_one = a.rem(&one);
+        let rem_by_neg_one = a.rem(&neg_one);
+        proof {
+            assert(one.model@ == 1);
+            assert(neg_one.model@ == -1);
+            assert(div_by_one.model@ == Self::trunc_div_spec(a.model@, one.model@));
+            assert(div_by_neg_one.model@ == Self::trunc_div_spec(a.model@, neg_one.model@));
+            assert(rem_by_one.model@ == Self::trunc_rem_spec(a.model@, one.model@));
+            assert(rem_by_neg_one.model@ == Self::trunc_rem_spec(a.model@, neg_one.model@));
+
+            Self::lemma_trunc_div_rem_mul_cancel(a.model@, 1);
+            assert(a.model@ * 1 == a.model@) by (nonlinear_arith);
+            assert(Self::trunc_div_spec(a.model@, 1) == Self::trunc_div_spec(a.model@ * 1, 1));
+            assert(Self::trunc_rem_spec(a.model@, 1) == Self::trunc_rem_spec(a.model@ * 1, 1));
+            assert(Self::trunc_div_spec(a.model@, 1) == a.model@);
+            assert(Self::trunc_rem_spec(a.model@, 1) == 0);
+
+            Self::lemma_trunc_div_rem_mul_cancel(-a.model@, -1);
+            assert((-a.model@) * (-1) == a.model@) by (nonlinear_arith);
+            assert(Self::trunc_div_spec(a.model@, -1) == Self::trunc_div_spec(((-a.model@) * (-1)), -1));
+            assert(Self::trunc_rem_spec(a.model@, -1) == Self::trunc_rem_spec(((-a.model@) * (-1)), -1));
+            assert(Self::trunc_div_spec(a.model@, -1) == -a.model@);
+            assert(Self::trunc_rem_spec(a.model@, -1) == 0);
+
+            assert(div_by_one.model@ == a.model@);
+            assert(div_by_neg_one.model@ == -a.model@);
+            assert(rem_by_one.model@ == 0);
+            assert(rem_by_neg_one.model@ == 0);
+        }
+        (one, neg_one, div_by_one, div_by_neg_one, rem_by_one, rem_by_neg_one)
+    }
+
+    /// Signed-only wrapper: explicit nonzero sign law for multiplication result.
+    pub(crate) fn lemma_model_mul_sign_nonzero_ops(a: &Self, b: &Self) -> (out: Self)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            a.model@ != 0,
+            b.model@ != 0,
+        ensures
+            out.wf_spec(),
+            out.model@ == a.model@ * b.model@,
+            out.model@ != 0,
+            (out.model@ < 0) <==> ((a.model@ < 0) != (b.model@ < 0)),
+    {
+        let out_prod = a.mul(b);
+        proof {
+            assert(out_prod.model@ == a.model@ * b.model@);
+            if a.model@ < 0 {
+                if b.model@ < 0 {
+                    assert(-a.model@ > 0);
+                    assert(-b.model@ > 0);
+                    lemma_mul_strict_inequality(0, -a.model@, -b.model@);
+                    assert(0 < (-a.model@) * (-b.model@));
+                    assert(a.model@ * b.model@ == (-a.model@) * (-b.model@)) by (nonlinear_arith);
+                    assert(out_prod.model@ > 0);
+                    assert((out_prod.model@ < 0) == false);
+                    assert(((a.model@ < 0) != (b.model@ < 0)) == false);
+                } else {
+                    assert(b.model@ > 0);
+                    assert(-a.model@ > 0);
+                    lemma_mul_strict_inequality(0, -a.model@, b.model@);
+                    assert(0 < (-a.model@) * b.model@);
+                    assert(a.model@ * b.model@ == -((-a.model@) * b.model@)) by (nonlinear_arith);
+                    assert(out_prod.model@ < 0);
+                    assert((out_prod.model@ < 0) == true);
+                    assert(((a.model@ < 0) != (b.model@ < 0)) == true);
+                }
+            } else {
+                assert(a.model@ > 0);
+                if b.model@ < 0 {
+                    assert(-b.model@ > 0);
+                    lemma_mul_strict_inequality(0, a.model@, -b.model@);
+                    assert(0 < a.model@ * (-b.model@));
+                    assert(a.model@ * b.model@ == -(a.model@ * (-b.model@))) by (nonlinear_arith);
+                    assert(out_prod.model@ < 0);
+                    assert((out_prod.model@ < 0) == true);
+                    assert(((a.model@ < 0) != (b.model@ < 0)) == true);
+                } else {
+                    assert(b.model@ > 0);
+                    lemma_mul_strict_inequality(0, a.model@, b.model@);
+                    assert(0 < a.model@ * b.model@);
+                    assert(out_prod.model@ > 0);
+                    assert((out_prod.model@ < 0) == false);
+                    assert(((a.model@ < 0) != (b.model@ < 0)) == false);
+                }
+            }
+            assert(out_prod.model@ != 0);
+            assert((out_prod.model@ < 0) <==> ((a.model@ < 0) != (b.model@ < 0)));
+        }
+        out_prod
+    }
+
+    /// Signed-only wrapper: explicit sign law for nonzero trunc quotient.
+    pub(crate) fn lemma_model_div_sign_nonzero_quotient_ops(a: &Self, d: &Self) -> (out: Self)
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ != 0,
+        ensures
+            out.wf_spec(),
+            out.model@ == Self::trunc_div_spec(a.model@, d.model@),
+            out.model@ != 0 ==> ((out.model@ < 0) <==> ((a.model@ < 0) != (d.model@ < 0))),
+    {
+        let out_div = a.div(d);
+        proof {
+            let abs_a = Self::abs_model_spec(a.model@);
+            let abs_d = Self::abs_model_spec(d.model@);
+            let q_abs = abs_a / abs_d;
+            let signs_differ = (a.model@ < 0) != (d.model@ < 0);
+
+            assert(out_div.model@ == Self::trunc_div_spec(a.model@, d.model@));
+            if d.model@ < 0 {
+                assert(-d.model@ > 0);
+                assert(abs_d == (-d.model@) as nat);
+                assert(abs_d > 0);
+            } else {
+                assert(d.model@ > 0);
+                assert(abs_d == d.model@ as nat);
+                assert(abs_d > 0);
+            }
+
+            if out_div.model@ != 0 {
+                if signs_differ {
+                    assert(out_div.model@ == -(q_abs as int));
+                    if q_abs == 0 {
+                        assert(out_div.model@ == 0);
+                        assert(false);
+                    }
+                    assert(q_abs > 0);
+                    assert(out_div.model@ < 0);
+                } else {
+                    assert(out_div.model@ == q_abs as int);
+                    if q_abs == 0 {
+                        assert(out_div.model@ == 0);
+                        assert(false);
+                    }
+                    assert(q_abs > 0);
+                    assert(out_div.model@ > 0);
+                }
+                assert((out_div.model@ < 0) <==> signs_differ);
+            }
+        }
+        out_div
+    }
+
+    /// Signed-only wrapper: explicit sign law for nonzero trunc remainder.
+    pub(crate) fn lemma_model_rem_sign_nonzero_ops(a: &Self, d: &Self) -> (out: Self)
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ != 0,
+        ensures
+            out.wf_spec(),
+            out.model@ == Self::trunc_rem_spec(a.model@, d.model@),
+            out.model@ != 0 ==> ((out.model@ < 0) <==> (a.model@ < 0)),
+    {
+        let out_rem = a.rem(d);
+        proof {
+            assert(out_rem.model@ == Self::trunc_rem_spec(a.model@, d.model@));
+            if out_rem.model@ != 0 {
+                assert((out_rem.model@ < 0) <==> (a.model@ < 0));
+            }
+        }
+        out_rem
+    }
+
+    /// Signed-only wrapper: `abs(-a) == abs(a)` with runtime witnesses.
+    pub(crate) fn lemma_abs_neg_eq_abs_ops(a: &Self) -> (out: (Self, RuntimeBigNatWitness, RuntimeBigNatWitness))
+        requires
+            a.wf_spec(),
+        ensures
+            out.0.wf_spec(),
+            out.0.model@ == -a.model@,
+            out.1.wf_spec(),
+            out.1.model@ == Self::abs_model_spec(a.model@),
+            out.2.wf_spec(),
+            out.2.model@ == Self::abs_model_spec(out.0.model@),
+            out.2.model@ == out.1.model@,
+    {
+        let neg_a = a.neg();
+        let abs_a = a.abs();
+        let abs_neg_a = neg_a.abs();
+        proof {
+            assert(neg_a.model@ == -a.model@);
+            assert(abs_a.model@ == Self::abs_model_spec(a.model@));
+            assert(abs_neg_a.model@ == Self::abs_model_spec(neg_a.model@));
+            Self::lemma_abs_model_neg_symmetry(a.model@);
+            assert(Self::abs_model_spec(neg_a.model@) == Self::abs_model_spec(-a.model@));
+            assert(Self::abs_model_spec(-a.model@) == Self::abs_model_spec(a.model@));
+            assert(abs_neg_a.model@ == abs_a.model@);
+        }
+        (neg_a, abs_a, abs_neg_a)
+    }
+
+    /// Signed-only wrapper: `abs(a * b) == abs(a) * abs(b)` with runtime witnesses.
+    pub(crate) fn lemma_abs_mul_distribution_ops(
+        a: &Self,
+        b: &Self,
+    ) -> (out: (Self, RuntimeBigNatWitness, RuntimeBigNatWitness, RuntimeBigNatWitness))
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+        ensures
+            out.0.wf_spec(),
+            out.0.model@ == a.model@ * b.model@,
+            out.1.wf_spec(),
+            out.1.model@ == Self::abs_model_spec(out.0.model@),
+            out.2.wf_spec(),
+            out.2.model@ == Self::abs_model_spec(a.model@),
+            out.3.wf_spec(),
+            out.3.model@ == Self::abs_model_spec(b.model@),
+            out.1.model@ == out.2.model@ * out.3.model@,
+    {
+        let prod = a.mul(b);
+        let abs_prod = prod.abs();
+        let abs_a = a.abs();
+        let abs_b = b.abs();
+        proof {
+            assert(prod.model@ == a.model@ * b.model@);
+            assert(abs_prod.model@ == Self::abs_model_spec(prod.model@));
+            assert(abs_a.model@ == Self::abs_model_spec(a.model@));
+            assert(abs_b.model@ == Self::abs_model_spec(b.model@));
+            Self::lemma_abs_model_mul_distributes(a.model@, b.model@);
+            assert(Self::abs_model_spec(prod.model@) == Self::abs_model_spec(a.model@ * b.model@));
+            assert(
+                Self::abs_model_spec(a.model@ * b.model@)
+                    == Self::abs_model_spec(a.model@) * Self::abs_model_spec(b.model@)
+            );
+            assert(abs_prod.model@ == abs_a.model@ * abs_b.model@);
+        }
+        (prod, abs_prod, abs_a, abs_b)
+    }
+
+    /// Signed-only wrapper: `abs(rem(a, d)) < abs(d)` with explicit abs witnesses.
+    pub(crate) fn lemma_abs_rem_bound_nonzero_ops(
+        a: &Self,
+        d: &Self,
+    ) -> (out: (Self, RuntimeBigNatWitness, RuntimeBigNatWitness))
+        requires
+            a.wf_spec(),
+            d.wf_spec(),
+            d.model@ != 0,
+        ensures
+            out.0.wf_spec(),
+            out.0.model@ == Self::trunc_rem_spec(a.model@, d.model@),
+            out.1.wf_spec(),
+            out.1.model@ == Self::abs_model_spec(out.0.model@),
+            out.2.wf_spec(),
+            out.2.model@ == Self::abs_model_spec(d.model@),
+            out.1.model@ < out.2.model@,
+    {
+        let rem_a_d = a.rem(d);
+        let abs_rem = rem_a_d.abs();
+        let abs_d = d.abs();
+        proof {
+            assert(rem_a_d.model@ == Self::trunc_rem_spec(a.model@, d.model@));
+            assert(abs_rem.model@ == Self::abs_model_spec(rem_a_d.model@));
+            assert(abs_d.model@ == Self::abs_model_spec(d.model@));
+            assert(Self::abs_model_spec(rem_a_d.model@) < Self::abs_model_spec(d.model@));
+            assert(abs_rem.model@ < abs_d.model@);
+        }
+        (rem_a_d, abs_rem, abs_d)
+    }
+
     /// Arithmetic helper for signed truncating division/remainder cancellation on exact products.
     pub proof fn lemma_trunc_div_rem_mul_cancel(a: int, d: int)
         requires
