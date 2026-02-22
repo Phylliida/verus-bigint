@@ -654,6 +654,33 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Copy this signed integer (analogous to `RuntimeBigNatWitness::copy_small_total`).
+    pub fn copy_small_total(&self) -> (out: Self)
+        requires
+            self.wf_spec(),
+        ensures
+            out.wf_spec(),
+            out.model@ == self.model@,
+    {
+        let mag_copy = self.magnitude.copy_small_total();
+        let out = Self::from_sign_and_magnitude(self.is_negative, mag_copy);
+        proof {
+            assert(mag_copy.model@ == self.magnitude.model@);
+            if self.is_negative {
+                assert(self.magnitude.model@ > 0);
+                assert(out.is_negative == true);
+                assert(out.magnitude.model@ == self.magnitude.model@);
+                assert(out.model@ == -(out.magnitude.model@ as int));
+                assert(self.model@ == -(self.magnitude.model@ as int));
+            } else {
+                assert(out.magnitude.model@ == self.magnitude.model@);
+                assert(out.model@ == out.magnitude.model@ as int);
+                assert(self.model@ == self.magnitude.model@ as int);
+            }
+        }
+        out
+    }
+
     pub fn signum(&self) -> (out: i8)
         requires
             self.wf_spec(),
