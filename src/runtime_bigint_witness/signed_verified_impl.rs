@@ -3120,6 +3120,7 @@ impl RuntimeBigIntWitness {
         (lhs, rhs_sum)
     }
 
+    /// Signed operation-level wrapper: multiplication is commutative (`a * b == b * a`).
     pub(crate) fn lemma_model_mul_commutative_ops(a: &Self, b: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3143,6 +3144,7 @@ impl RuntimeBigIntWitness {
         (ab, ba)
     }
 
+    /// Signed operation-level wrapper: multiplication is associative (`(a * b) * c == a * (b * c)`).
     pub(crate) fn lemma_model_mul_associative_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3173,6 +3175,7 @@ impl RuntimeBigIntWitness {
         (lhs, rhs_prod)
     }
 
+    /// Signed operation-level wrapper: multiplication distributes over addition (`a * (b + c) == a*b + a*c`).
     pub(crate) fn lemma_model_mul_distributes_over_add_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3205,6 +3208,7 @@ impl RuntimeBigIntWitness {
         (lhs, rhs_sum)
     }
 
+    /// Signed operation-level wrapper: addition preserves `<=` (`a <= b ==> a + c <= b + c`).
     pub(crate) fn lemma_model_add_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3229,6 +3233,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
+    /// Signed operation-level wrapper: addition preserves `<` (`a < b ==> a + c < b + c`).
     pub(crate) fn lemma_model_add_strict_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3253,6 +3258,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
+    /// Signed operation-level wrapper: additive cancellation (`a + c == b + c ==> a == b`).
     pub(crate) fn lemma_model_add_cancellation_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3277,6 +3283,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
+    /// Signed operation-level wrapper: multiplication by nonneg preserves `<=` (`a <= b, c >= 0 ==> a*c <= b*c`).
     pub(crate) fn lemma_model_mul_monotonic_nonneg_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3303,6 +3310,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
+    /// Signed operation-level wrapper: multiplication by positive preserves `<` (`a < b, c > 0 ==> a*c < b*c`).
     pub(crate) fn lemma_model_mul_strict_monotonic_pos_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3329,6 +3337,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
+    /// Signed operation-level wrapper: multiplicative cancellation for positive factor (`c > 0, a*c == b*c ==> a == b`).
     pub(crate) fn lemma_model_mul_cancellation_pos_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3360,6 +3369,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
+    /// Signed operation-level wrapper: `a + (-a) == 0`.
     pub(crate) fn lemma_neg_add_self_zero_ops(a: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3380,6 +3390,7 @@ impl RuntimeBigIntWitness {
         (neg_a, sum)
     }
 
+    /// Signed operation-level wrapper: `a - a == 0`.
     pub(crate) fn lemma_sub_self_zero_ops(a: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -3395,6 +3406,7 @@ impl RuntimeBigIntWitness {
         out_sub
     }
 
+    /// Signed operation-level wrapper: all ways to construct zero yield a canonical non-negative zero.
     pub(crate) fn lemma_zero_sign_normalization_ops() -> (out: (Self, Self, Self))
         ensures
             out.0.wf_spec(),
@@ -3423,6 +3435,7 @@ impl RuntimeBigIntWitness {
         (z_from_neg_sign, z_ctor, z_neg)
     }
 
+    /// Signed operation-level wrapper: computes sum, difference, and product for nonneg `a` and nonpos `b`.
     pub(crate) fn lemma_mixed_sign_arith_ops(a: &Self, b: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -3448,6 +3461,7 @@ impl RuntimeBigIntWitness {
         (sum, diff, prod)
     }
 
+    /// Signed operation-level wrapper: truncating div/rem with sign-aware remainder guarantee.
     pub(crate) fn lemma_div_rem_sign_edge_ops(a: &Self, d: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
