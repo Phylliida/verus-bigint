@@ -54,6 +54,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
+    /// Constructs a zero-valued BigUint.
     pub fn zero() -> (out: Self)
         ensures
             out.model@ == 0,
@@ -68,6 +69,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
+    /// Constructs a BigUint from a `u32`.
     pub fn from_u32(x: u32) -> (out: Self)
         ensures
             out.model@ == x as nat,
@@ -88,6 +90,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Constructs a BigUint from a `u64`.
     pub fn from_u64(x: u64) -> (out: Self)
         ensures
             out.model@ == x as nat,
@@ -114,6 +117,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
+    /// Constructs a BigUint from two limbs: `lo + base * hi`.
     pub fn from_two_limbs(lo: u32, hi: u32) -> (out: Self)
         ensures
             out.model@ == lo as nat + Self::limb_base_spec() * hi as nat,
@@ -145,6 +149,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Returns `self + rhs`.
     pub fn add(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -167,6 +172,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
+    /// Returns `self * rhs`.
     pub fn mul(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -209,6 +215,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
+    /// Returns `self / rhs` (floor division; returns 0 if `rhs == 0`).
     pub fn div(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -274,6 +281,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
+    /// Returns `self % rhs` (returns 0 if `rhs == 0`).
     pub fn rem(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -349,6 +357,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
+    /// Returns `(self / rhs, self % rhs)`.
     pub fn div_rem(&self, rhs: &Self) -> (out: (Self, Self))
         requires
             self.wf_spec(),
@@ -397,6 +406,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
+    /// Returns `true` iff `self == 0`.
     pub fn is_zero(&self) -> (out: bool)
         requires
             self.wf_spec(),
@@ -427,6 +437,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
+    /// Returns a reference to the little-endian limb slice.
     pub fn limbs_le(&self) -> (out: &[u32])
         ensures
             out@ == self.limbs_le@,

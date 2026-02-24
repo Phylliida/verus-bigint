@@ -1,5 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
+    /// `pow_base(exp) >= 1` for all exponents.
     pub proof fn lemma_pow_ge_one(exp: nat)
         ensures
             Self::pow_base_spec(exp) >= 1,
@@ -22,6 +23,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// `pow_base` is monotonic: `lo <= hi` implies `pow_base(lo) <= pow_base(hi)`.
     pub proof fn lemma_pow_monotonic(lo: nat, hi: nat)
         requires
             lo <= hi,
@@ -48,6 +50,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Additive law: `pow_base(lhs + rhs) == pow_base(lhs) * pow_base(rhs)`.
     pub proof fn lemma_pow_add(lhs: nat, rhs: nat)
         ensures
             Self::pow_base_spec(lhs + rhs) == Self::pow_base_spec(lhs) * Self::pow_base_spec(rhs),
@@ -93,6 +96,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Unfolds `limbs_value` for nonempty sequences: `head + base * tail_value`.
     pub proof fn lemma_limbs_value_unfold_nonempty(limbs: Seq<u32>)
         requires
             limbs.len() > 0,
@@ -120,6 +124,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Concatenation law: `value(left ++ right) == value(left) + pow(|left|) * value(right)`.
     pub proof fn lemma_limbs_value_append(left: Seq<u32>, right: Seq<u32>)
         ensures
             Self::limbs_value_spec(left + right)
@@ -196,6 +201,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Upper bound: `limbs_value(s) < pow_base(|s|)`.
     pub proof fn lemma_limbs_value_lt_pow_len(limbs: Seq<u32>)
         ensures
             Self::limbs_value_spec(limbs) < Self::pow_base_spec(limbs.len()),
@@ -276,6 +282,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Lower bound: nonzero last limb implies `pow_base(|s|-1) <= limbs_value(s)`.
     pub proof fn lemma_limbs_value_ge_pow_last_nonzero(limbs: Seq<u32>)
         requires
             limbs.len() > 0,
@@ -316,6 +323,7 @@ impl RuntimeBigNatWitness {
         assert(Self::pow_base_spec(n) <= Self::limbs_value_spec(limbs));
     }
 
+    /// Canonical limbs with value `< pow_base(n)` have at most `n` limbs.
     pub proof fn lemma_len_bound_from_value_upper_pow(limbs: Seq<u32>, upper_exp: nat)
         requires
             Self::canonical_limbs_spec(limbs),
@@ -341,6 +349,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Equal-length sequences with `a[last] > b[last]` satisfy `value(a) > value(b)`.
     pub proof fn lemma_cmp_prefix_last_digit_gt(a: Seq<u32>, b: Seq<u32>)
         requires
             a.len() == b.len(),
@@ -437,6 +446,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limbs_value_spec(a) > Self::limbs_value_spec(b));
     }
 
+    /// Highest differing limb larger implies `value(a) > value(b)`.
     pub proof fn lemma_cmp_high_diff_gt(a: Seq<u32>, b: Seq<u32>, idx: nat)
         requires
             a.len() == b.len(),
@@ -502,6 +512,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limbs_value_spec(a) > Self::limbs_value_spec(b));
     }
 
+    /// Longer trimmed length with nonzero top limb implies strictly greater value.
     pub proof fn lemma_trimmed_len_gt_implies_value_gt(a: Seq<u32>, alen: nat, b: Seq<u32>, blen: nat)
         requires
             alen <= a.len(),
@@ -539,6 +550,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limbs_value_spec(a) > Self::limbs_value_spec(b));
     }
 
+    /// Equal trimmed length with higher differing limb implies strictly greater value.
     pub proof fn lemma_trimmed_high_diff_implies_value_gt(a: Seq<u32>, alen: nat, b: Seq<u32>, blen: nat, idx: nat)
         requires
             alen == blen,
@@ -577,6 +589,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limbs_value_spec(a) > Self::limbs_value_spec(b));
     }
 
+    /// Zero or single-limb witnesses have model equal to 0 or `limbs[0]`.
     pub proof fn lemma_model_zero_or_single_limb(&self)
         requires
             self.wf_spec(),
