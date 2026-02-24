@@ -1,5 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
+    /// Antisymmetry of limb-wise comparison: `cmp(a,b) == -cmp(b,a)`.
     pub proof fn lemma_cmp_limbwise_small_total_antisymmetric(
         a: &Self,
         b: &Self,
@@ -77,6 +78,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Transitivity of limb-wise comparison under `<=`: `a <= b` and `b <= c` implies `a <= c`.
     pub proof fn lemma_cmp_limbwise_small_total_transitive_le(
         a: &Self,
         b: &Self,
@@ -142,6 +144,7 @@ impl RuntimeBigNatWitness {
         assert(ac <= 0i8);
     }
 
+    /// Transitivity of limb-wise comparison under equality: `a == b` and `b == c` implies `a == c`.
     pub proof fn lemma_cmp_limbwise_small_total_transitive_eq(
         a: &Self,
         b: &Self,
@@ -197,6 +200,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// `cmp <= 0` iff `value(a) <= value(b)`, from total contracts.
     pub proof fn lemma_cmp_le_zero_iff_le_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -241,6 +245,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// `cmp < 0` iff `value(a) < value(b)`, from total contracts.
     pub proof fn lemma_cmp_lt_zero_iff_lt_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -286,6 +291,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// `cmp == 0` iff `value(a) == value(b)`, from total contracts.
     pub proof fn lemma_cmp_eq_zero_iff_eq_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -330,6 +336,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Add-sub inverse from total contracts: `(a - b) + b == a` when `b <= a`.
     pub proof fn lemma_model_add_sub_inverse_from_total_contracts(
         self_in: &Self,
         rhs: &Self,
@@ -368,6 +375,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Sub-add inverse from total contracts: `(a - b) + b == a` when `b <= a`.
     pub proof fn lemma_model_sub_add_inverse_ge_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -388,6 +396,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_model_add_sub_inverse_from_total_contracts(a, b, sub_ab, add_sub_ab_b);
     }
 
+    /// Truncated subtraction is zero iff `a <= b`, from total contracts.
     pub proof fn lemma_model_sub_zero_iff_le_from_total_contracts(
         a: &Self,
         b: &Self,

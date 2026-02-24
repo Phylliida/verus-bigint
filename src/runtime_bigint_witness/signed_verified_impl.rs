@@ -16,6 +16,7 @@ use vstd::arithmetic::mul::{
 
 verus! {
 impl RuntimeBigIntWitness {
+    /// Computes the signed integer model from a sign flag and magnitude.
     pub open spec fn model_from_sign_and_magnitude_spec(is_negative: bool, magnitude_model: nat) -> int {
         if is_negative {
             -(magnitude_model as int)
@@ -24,10 +25,12 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Canonical sign: negative flag is false when magnitude is zero.
     pub open spec fn canonical_sign_spec(is_negative: bool, magnitude_model: nat) -> bool {
         !is_negative || magnitude_model > 0
     }
 
+    /// Absolute value of an integer model.
     pub open spec fn abs_model_spec(model: int) -> nat {
         if model < 0 {
             (-model) as nat
@@ -36,6 +39,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Truncating (towards-zero) division of signed integers.
     pub open spec fn trunc_div_spec(a: int, b: int) -> int
         recommends
             b != 0,
@@ -50,6 +54,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Truncating (towards-zero) remainder of signed integers.
     pub open spec fn trunc_rem_spec(a: int, b: int) -> int
         recommends
             b != 0,
@@ -64,18 +69,21 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Well-formedness: magnitude is well-formed, sign is canonical, and model is consistent.
     pub open spec fn wf_spec(&self) -> bool {
         &&& self.magnitude.wf_spec()
         &&& Self::canonical_sign_spec(self.is_negative, self.magnitude.model@)
         &&& self.model@ == Self::model_from_sign_and_magnitude_spec(self.is_negative, self.magnitude.model@)
     }
 
+    /// `abs_model(x) >= 0` for all integers.
     pub proof fn lemma_abs_model_nonnegative(model: int)
         ensures
             0 <= Self::abs_model_spec(model),
     {
     }
 
+    /// Round-trip: `abs(model_from_sign_and_magnitude(s, m)) == m`.
     pub proof fn lemma_abs_model_from_sign_and_magnitude(is_negative: bool, magnitude_model: nat)
         ensures
             Self::abs_model_spec(
@@ -107,6 +115,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Bridge between sign/magnitude representation and model: relates sign, abs, and zero.
     pub proof fn lemma_sign_model_bridge(&self)
         requires
             self.wf_spec(),
@@ -189,6 +198,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Constructs a BigInt from a sign flag and unsigned magnitude.
     pub fn from_sign_and_magnitude(is_negative: bool, magnitude: RuntimeBigNatWitness) -> (out: Self)
         requires
             magnitude.wf_spec(),
@@ -236,6 +246,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Constructs a zero-valued BigInt.
     pub fn zero() -> (out: Self)
         ensures
             out.wf_spec(),
@@ -253,6 +264,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Constructs a non-negative BigInt from an unsigned magnitude.
     pub fn from_unsigned(magnitude: RuntimeBigNatWitness) -> (out: Self)
         requires
             magnitude.wf_spec(),
@@ -277,6 +289,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Constructs a BigInt from a `u64`.
     pub fn from_u64(x: u64) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -293,6 +306,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Constructs a BigInt from a `u32`.
     pub fn from_u32(x: u32) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -365,6 +379,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Attempts to convert to `u64`; returns `(true, value)` on success, `(false, 0)` on overflow.
     pub fn try_to_u64(&self) -> (out: (bool, u64))
         requires
             self.wf_spec(),
@@ -396,6 +411,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Attempts to convert to `i64`; returns `(true, value)` on success, `(false, 0)` on overflow.
     pub fn try_to_i64(&self) -> (out: (bool, i64))
         requires
             self.wf_spec(),
@@ -451,6 +467,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Returns `'-'` if negative, `'+'` otherwise.
     pub fn sign_char(&self) -> (out: char)
         requires
             self.wf_spec(),
@@ -487,6 +504,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Parses a sign character (`'+'`/`'-'`) and `u64` magnitude into a BigInt.
     pub fn parse_sign_char_and_u64(sign: char, magnitude: u64) -> (out: (bool, Self))
         ensures
             out.0 ==> (sign == '+' || sign == '-'),
@@ -515,6 +533,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Constructs a `BigInt` from an `i64` value.
     pub fn from_i64(x: i64) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -561,6 +580,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Constructs a `BigInt` from an `i32` value.
     pub fn from_i32(x: i32) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -575,6 +595,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Returns `true` iff this signed integer equals zero.
     pub fn is_zero(&self) -> (out: bool)
         requires
             self.wf_spec(),
@@ -605,6 +626,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Returns `true` iff this signed integer is strictly negative.
     pub fn is_negative(&self) -> (out: bool)
         requires
             self.wf_spec(),
@@ -625,6 +647,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Returns the absolute value of this signed integer as an unsigned `BigNat`.
     pub fn abs(&self) -> (out: RuntimeBigNatWitness)
         requires
             self.wf_spec(),
@@ -681,6 +704,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Returns the sign of this integer: `-1` if negative, `0` if zero, `1` if positive.
     pub fn signum(&self) -> (out: i8)
         requires
             self.wf_spec(),
@@ -754,6 +778,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Three-way comparison: returns `-1`, `0`, or `1` as `self` is less than, equal to, or greater than `rhs`.
     pub fn cmp(&self, rhs: &Self) -> (out: i8)
         requires
             self.wf_spec(),
@@ -849,6 +874,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Returns the sum `self + rhs`.
     pub fn add(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -971,6 +997,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Returns the difference `self - rhs`.
     pub fn sub(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -990,6 +1017,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Returns the product `self * rhs`.
     pub fn mul(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1079,6 +1107,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
+    /// Returns the truncating quotient `self / rhs` (returns zero when `rhs` is zero).
     pub fn div(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1155,6 +1184,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Returns the truncating remainder `self % rhs` (returns zero when `rhs` is zero).
     pub fn rem(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1273,6 +1303,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
+    /// Returns the truncating quotient and remainder `(self / rhs, self % rhs)` simultaneously.
     pub fn div_rem(&self, rhs: &Self) -> (out: (Self, Self))
         requires
             self.wf_spec(),
@@ -3037,6 +3068,7 @@ impl RuntimeBigIntWitness {
         (prod, qr.0, qr.1)
     }
 
+    /// Signed operation-level wrapper: addition is commutative (`a + b == b + a`).
     pub(crate) fn lemma_model_add_commutative_ops(a: &Self, b: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3058,6 +3090,7 @@ impl RuntimeBigIntWitness {
         (ab, ba)
     }
 
+    /// Signed operation-level wrapper: addition is associative (`(a + b) + c == a + (b + c)`).
     pub(crate) fn lemma_model_add_associative_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3440,6 +3473,7 @@ impl RuntimeBigIntWitness {
         qr
     }
 
+    /// Returns the negation `-self`.
     pub fn neg(&self) -> (out: Self)
         requires
             self.wf_spec(),

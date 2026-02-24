@@ -1,5 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
+    /// Uniqueness of natural division: same dividend and divisor yield the same quotient and remainder.
     pub proof fn lemma_div_rem_unique_nat(x: nat, d: nat, q1: nat, r1: nat, q2: nat, r2: nat)
         requires
             d > 0,
@@ -36,6 +37,7 @@ impl RuntimeBigNatWitness {
         assert(r1 == r2);
     }
 
+    /// `x % d == 0` implies there exists `k` such that `x == k * d`.
     pub proof fn lemma_mod_zero_implies_multiple_nat(x: nat, d: nat) -> (k: nat)
         requires
             d > 0,
@@ -60,6 +62,7 @@ impl RuntimeBigNatWitness {
         k
     }
 
+    /// `x == k * d` implies `x % d == 0`.
     pub proof fn lemma_multiple_implies_mod_zero_nat(x: nat, d: nat, k: nat)
         requires
             d > 0,
@@ -79,6 +82,7 @@ impl RuntimeBigNatWitness {
         assert(x % d == 0);
     }
 
+    /// Shifting by a multiple: `(x + k*d) / d == x/d + k` and remainder is unchanged.
     pub proof fn lemma_div_rem_shift_by_multiple_nat(x: nat, d: nat, k: nat)
         requires
             d > 0,
@@ -121,6 +125,7 @@ impl RuntimeBigNatWitness {
         assert(x_shift % d == x % d);
     }
 
+    /// Exact cancellation: `(a * d) / d == a` and `(a * d) % d == 0`.
     pub proof fn lemma_mul_div_rem_cancel_nat(a: nat, d: nat)
         requires
             d > 0,
@@ -144,6 +149,7 @@ impl RuntimeBigNatWitness {
         assert((a * d) % d == 0);
     }
 
+    /// Floor-division add bounds: `a/d + b/d <= (a+b)/d <= a/d + b/d + 1`.
     pub proof fn lemma_div_add_bounds_nat(a: nat, b: nat, d: nat)
         requires
             d > 0,
@@ -227,6 +233,7 @@ impl RuntimeBigNatWitness {
         assert((a + b) / d <= qa + qb + 1);
     }
 
+    /// Model-level shifting by a multiple preserves quotient offset.
     pub proof fn lemma_model_div_shift_by_multiple_pos(a: &Self, d: &Self, k: nat)
         requires
             a.wf_spec(),
@@ -238,6 +245,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_div_rem_shift_by_multiple_nat(a.model@, d.model@, k);
     }
 
+    /// Model-level shifting by a multiple preserves remainder.
     pub proof fn lemma_model_rem_shift_by_multiple_pos(a: &Self, d: &Self, k: nat)
         requires
             a.wf_spec(),
@@ -249,6 +257,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_div_rem_shift_by_multiple_nat(a.model@, d.model@, k);
     }
 
+    /// Larger divisor yields smaller quotient: `d1 <= d2` implies `x/d2 <= x/d1`.
     pub proof fn lemma_div_monotonic_in_divisor_nat(x: nat, d1: nat, d2: nat)
         requires
             d1 > 0,
@@ -272,6 +281,7 @@ impl RuntimeBigNatWitness {
         assert(x / d2 <= x / d1);
     }
 
+    /// Model-level divisor monotonicity: `0 < d1 <= d2` implies `a/d2 <= a/d1`.
     pub proof fn lemma_model_div_monotonic_in_divisor_pos(a: &Self, d1: &Self, d2: &Self)
         requires
             a.wf_spec(),
@@ -284,6 +294,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_div_monotonic_in_divisor_nat(a.model@, d1.model@, d2.model@);
     }
 
+    /// Modular addition compatibility: `(x + y) % m == ((x % m) + (y % m)) % m`.
     pub proof fn lemma_mod_add_compat_nat(x: nat, y: nat, m: nat)
         requires
             m > 0,
@@ -303,6 +314,7 @@ impl RuntimeBigNatWitness {
         assert((x + y) % m == ((x % m) + (y % m)) % m);
     }
 
+    /// Model-level modular addition compatibility.
     pub proof fn lemma_model_add_mod_compat(a: &Self, b: &Self, m: &Self)
         requires
             a.wf_spec(),
@@ -316,6 +328,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_mod_add_compat_nat(a.model@, b.model@, m.model@);
     }
 
+    /// Modular multiplication compatibility: `(x * y) % m == ((x % m) * (y % m)) % m`.
     pub proof fn lemma_mod_mul_compat_nat(x: nat, y: nat, m: nat)
         requires
             m > 0,
@@ -335,6 +348,7 @@ impl RuntimeBigNatWitness {
         assert((x * y) % m == ((x % m) * (y % m)) % m);
     }
 
+    /// Model-level modular multiplication compatibility.
     pub proof fn lemma_model_mul_mod_compat(a: &Self, b: &Self, m: &Self)
         requires
             a.wf_spec(),
@@ -348,6 +362,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_mod_mul_compat_nat(a.model@, b.model@, m.model@);
     }
 
+    /// Congruence preserved under addition: `a === b (mod m)` implies `a+c === b+c (mod m)`.
     pub proof fn lemma_mod_congruence_add_nat(a: nat, b: nat, c: nat, m: nat)
         requires
             m > 0,
@@ -363,6 +378,7 @@ impl RuntimeBigNatWitness {
         assert((a + c) % m == (b + c) % m);
     }
 
+    /// Model-level modular congruence preserved under addition.
     pub proof fn lemma_model_mod_congruence_add(a: &Self, b: &Self, c: &Self, m: &Self)
         requires
             a.wf_spec(),
@@ -377,6 +393,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_mod_congruence_add_nat(a.model@, b.model@, c.model@, m.model@);
     }
 
+    /// Congruence preserved under multiplication: `a === b (mod m)` implies `a*c === b*c (mod m)`.
     pub proof fn lemma_mod_congruence_mul_nat(a: nat, b: nat, c: nat, m: nat)
         requires
             m > 0,
@@ -392,6 +409,7 @@ impl RuntimeBigNatWitness {
         assert((a * c) % m == (b * c) % m);
     }
 
+    /// Model-level modular congruence preserved under multiplication.
     pub proof fn lemma_model_mod_congruence_mul(a: &Self, b: &Self, c: &Self, m: &Self)
         requires
             a.wf_spec(),
