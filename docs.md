@@ -6,199 +6,317 @@
 
 ### Spec Functions
 
-- **`open spec fn model_from_sign_and_magnitude_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:19](./src/runtime_bigint_witness/signed_verified_impl.rs#L19)
-- **`open spec fn canonical_sign_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:27](./src/runtime_bigint_witness/signed_verified_impl.rs#L27)
-- **`open spec fn abs_model_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:31](./src/runtime_bigint_witness/signed_verified_impl.rs#L31)
-- **`open spec fn trunc_div_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:39](./src/runtime_bigint_witness/signed_verified_impl.rs#L39)
-- **`open spec fn trunc_rem_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:53](./src/runtime_bigint_witness/signed_verified_impl.rs#L53)
-- **`open spec fn wf_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:67](./src/runtime_bigint_witness/signed_verified_impl.rs#L67)
+- **`open spec fn model_from_sign_and_magnitude_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:20](./src/runtime_bigint_witness/signed_verified_impl.rs#L20)
+  > Computes the signed integer model from a sign flag and magnitude.
+- **`open spec fn canonical_sign_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:29](./src/runtime_bigint_witness/signed_verified_impl.rs#L29)
+  > Canonical sign: negative flag is false when magnitude is zero.
+- **`open spec fn abs_model_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:34](./src/runtime_bigint_witness/signed_verified_impl.rs#L34)
+  > Absolute value of an integer model.
+- **`open spec fn trunc_div_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:43](./src/runtime_bigint_witness/signed_verified_impl.rs#L43)
+  > Truncating (towards-zero) division of signed integers.
+- **`open spec fn trunc_rem_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:58](./src/runtime_bigint_witness/signed_verified_impl.rs#L58)
+  > Truncating (towards-zero) remainder of signed integers.
+- **`open spec fn wf_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:73](./src/runtime_bigint_witness/signed_verified_impl.rs#L73)
+  > Well-formedness: magnitude is well-formed, sign is canonical, and model is consistent.
 
 ### Proof Functions
 
-- **`proof fn lemma_abs_model_nonnegative`** — [runtime_bigint_witness/signed_verified_impl.rs:73](./src/runtime_bigint_witness/signed_verified_impl.rs#L73)
-- **`proof fn lemma_abs_model_from_sign_and_magnitude`** — [runtime_bigint_witness/signed_verified_impl.rs:79](./src/runtime_bigint_witness/signed_verified_impl.rs#L79)
-- **`proof fn lemma_sign_model_bridge`** — [runtime_bigint_witness/signed_verified_impl.rs:110](./src/runtime_bigint_witness/signed_verified_impl.rs#L110)
-- **`proof fn lemma_abs_model_neg_symmetry`** — [runtime_bigint_witness/signed_verified_impl.rs:2064](./src/runtime_bigint_witness/signed_verified_impl.rs#L2064)
+- **`proof fn lemma_abs_model_nonnegative`** — [runtime_bigint_witness/signed_verified_impl.rs:80](./src/runtime_bigint_witness/signed_verified_impl.rs#L80)
+  > `abs_model(x) >= 0` for all integers.
+- **`proof fn lemma_abs_model_from_sign_and_magnitude`** — [runtime_bigint_witness/signed_verified_impl.rs:87](./src/runtime_bigint_witness/signed_verified_impl.rs#L87)
+  > Round-trip: `abs(model_from_sign_and_magnitude(s, m)) == m`.
+- **`proof fn lemma_sign_model_bridge`** — [runtime_bigint_witness/signed_verified_impl.rs:119](./src/runtime_bigint_witness/signed_verified_impl.rs#L119)
+  > Bridge between sign/magnitude representation and model: relates sign, abs, and zero.
+- **`proof fn lemma_abs_model_neg_symmetry`** — [runtime_bigint_witness/signed_verified_impl.rs:2095](./src/runtime_bigint_witness/signed_verified_impl.rs#L2095)
   > Arithmetic helper: negation does not change absolute value.
-- **`proof fn lemma_abs_model_mul_distributes`** — [runtime_bigint_witness/signed_verified_impl.rs:2086](./src/runtime_bigint_witness/signed_verified_impl.rs#L2086)
+- **`proof fn lemma_abs_model_mul_distributes`** — [runtime_bigint_witness/signed_verified_impl.rs:2117](./src/runtime_bigint_witness/signed_verified_impl.rs#L2117)
   > Arithmetic helper: absolute value distributes over integer multiplication.
-- **`proof fn lemma_trunc_div_divisor_sign_flip`** — [runtime_bigint_witness/signed_verified_impl.rs:2157](./src/runtime_bigint_witness/signed_verified_impl.rs#L2157)
+- **`proof fn lemma_trunc_div_divisor_sign_flip`** — [runtime_bigint_witness/signed_verified_impl.rs:2188](./src/runtime_bigint_witness/signed_verified_impl.rs#L2188)
   > Arithmetic helper: flipping divisor sign negates trunc quotient.
-- **`proof fn lemma_trunc_rem_divisor_sign_flip`** — [runtime_bigint_witness/signed_verified_impl.rs:2207](./src/runtime_bigint_witness/signed_verified_impl.rs#L2207)
+- **`proof fn lemma_trunc_rem_divisor_sign_flip`** — [runtime_bigint_witness/signed_verified_impl.rs:2238](./src/runtime_bigint_witness/signed_verified_impl.rs#L2238)
   > Arithmetic helper: flipping divisor sign preserves trunc remainder.
-- **`proof fn lemma_trunc_div_neg_dividend`** — [runtime_bigint_witness/signed_verified_impl.rs:2232](./src/runtime_bigint_witness/signed_verified_impl.rs#L2232)
+- **`proof fn lemma_trunc_div_neg_dividend`** — [runtime_bigint_witness/signed_verified_impl.rs:2263](./src/runtime_bigint_witness/signed_verified_impl.rs#L2263)
   > Arithmetic helper: negating dividend negates trunc quotient.
-- **`proof fn lemma_trunc_rem_neg_dividend`** — [runtime_bigint_witness/signed_verified_impl.rs:2282](./src/runtime_bigint_witness/signed_verified_impl.rs#L2282)
+- **`proof fn lemma_trunc_rem_neg_dividend`** — [runtime_bigint_witness/signed_verified_impl.rs:2313](./src/runtime_bigint_witness/signed_verified_impl.rs#L2313)
   > Arithmetic helper: negating dividend negates trunc remainder.
-- **`proof fn lemma_trunc_div_rem_mul_cancel`** — [runtime_bigint_witness/signed_verified_impl.rs:2808](./src/runtime_bigint_witness/signed_verified_impl.rs#L2808)
+- **`proof fn lemma_trunc_div_rem_mul_cancel`** — [runtime_bigint_witness/signed_verified_impl.rs:2839](./src/runtime_bigint_witness/signed_verified_impl.rs#L2839)
   > Arithmetic helper for signed truncating division/remainder cancellation on exact products.
 
 ### Exec Functions
 
-- **`exec fn from_sign_and_magnitude`** — [runtime_bigint_witness/signed_verified_impl.rs:192](./src/runtime_bigint_witness/signed_verified_impl.rs#L192)
-- **`exec fn zero`** — [runtime_bigint_witness/signed_verified_impl.rs:239](./src/runtime_bigint_witness/signed_verified_impl.rs#L239)
-- **`exec fn from_unsigned`** — [runtime_bigint_witness/signed_verified_impl.rs:256](./src/runtime_bigint_witness/signed_verified_impl.rs#L256)
-- **`exec fn from_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:280](./src/runtime_bigint_witness/signed_verified_impl.rs#L280)
-- **`exec fn from_u32`** — [runtime_bigint_witness/signed_verified_impl.rs:296](./src/runtime_bigint_witness/signed_verified_impl.rs#L296)
-- **`exec fn try_to_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:368](./src/runtime_bigint_witness/signed_verified_impl.rs#L368)
-- **`exec fn try_to_i64`** — [runtime_bigint_witness/signed_verified_impl.rs:399](./src/runtime_bigint_witness/signed_verified_impl.rs#L399)
-- **`exec fn sign_char`** — [runtime_bigint_witness/signed_verified_impl.rs:454](./src/runtime_bigint_witness/signed_verified_impl.rs#L454)
-- **`exec fn parse_sign_char_and_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:490](./src/runtime_bigint_witness/signed_verified_impl.rs#L490)
-- **`exec fn from_i64`** — [runtime_bigint_witness/signed_verified_impl.rs:518](./src/runtime_bigint_witness/signed_verified_impl.rs#L518)
-- **`exec fn from_i32`** — [runtime_bigint_witness/signed_verified_impl.rs:564](./src/runtime_bigint_witness/signed_verified_impl.rs#L564)
-- **`exec fn is_zero`** — [runtime_bigint_witness/signed_verified_impl.rs:578](./src/runtime_bigint_witness/signed_verified_impl.rs#L578)
-- **`exec fn is_negative`** — [runtime_bigint_witness/signed_verified_impl.rs:608](./src/runtime_bigint_witness/signed_verified_impl.rs#L608)
-- **`exec fn abs`** — [runtime_bigint_witness/signed_verified_impl.rs:628](./src/runtime_bigint_witness/signed_verified_impl.rs#L628)
-- **`exec fn copy_small_total`** — [runtime_bigint_witness/signed_verified_impl.rs:658](./src/runtime_bigint_witness/signed_verified_impl.rs#L658)
+- **`exec fn from_sign_and_magnitude`** — [runtime_bigint_witness/signed_verified_impl.rs:202](./src/runtime_bigint_witness/signed_verified_impl.rs#L202)
+  > Constructs a BigInt from a sign flag and unsigned magnitude.
+- **`exec fn zero`** — [runtime_bigint_witness/signed_verified_impl.rs:250](./src/runtime_bigint_witness/signed_verified_impl.rs#L250)
+  > Constructs a zero-valued BigInt.
+- **`exec fn from_unsigned`** — [runtime_bigint_witness/signed_verified_impl.rs:268](./src/runtime_bigint_witness/signed_verified_impl.rs#L268)
+  > Constructs a non-negative BigInt from an unsigned magnitude.
+- **`exec fn from_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:293](./src/runtime_bigint_witness/signed_verified_impl.rs#L293)
+  > Constructs a BigInt from a `u64`.
+- **`exec fn from_u32`** — [runtime_bigint_witness/signed_verified_impl.rs:310](./src/runtime_bigint_witness/signed_verified_impl.rs#L310)
+  > Constructs a BigInt from a `u32`.
+- **`exec fn try_to_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:383](./src/runtime_bigint_witness/signed_verified_impl.rs#L383)
+  > Attempts to convert to `u64`; returns `(true, value)` on success, `(false, 0)` on overflow.
+- **`exec fn try_to_i64`** — [runtime_bigint_witness/signed_verified_impl.rs:415](./src/runtime_bigint_witness/signed_verified_impl.rs#L415)
+  > Attempts to convert to `i64`; returns `(true, value)` on success, `(false, 0)` on overflow.
+- **`exec fn sign_char`** — [runtime_bigint_witness/signed_verified_impl.rs:471](./src/runtime_bigint_witness/signed_verified_impl.rs#L471)
+  > Returns `'-'` if negative, `'+'` otherwise.
+- **`exec fn parse_sign_char_and_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:508](./src/runtime_bigint_witness/signed_verified_impl.rs#L508)
+  > Parses a sign character (`'+'`/`'-'`) and `u64` magnitude into a BigInt.
+- **`exec fn from_i64`** — [runtime_bigint_witness/signed_verified_impl.rs:537](./src/runtime_bigint_witness/signed_verified_impl.rs#L537)
+  > Constructs a `BigInt` from an `i64` value.
+- **`exec fn from_i32`** — [runtime_bigint_witness/signed_verified_impl.rs:584](./src/runtime_bigint_witness/signed_verified_impl.rs#L584)
+  > Constructs a `BigInt` from an `i32` value.
+- **`exec fn is_zero`** — [runtime_bigint_witness/signed_verified_impl.rs:599](./src/runtime_bigint_witness/signed_verified_impl.rs#L599)
+  > Returns `true` iff this signed integer equals zero.
+- **`exec fn is_negative`** — [runtime_bigint_witness/signed_verified_impl.rs:630](./src/runtime_bigint_witness/signed_verified_impl.rs#L630)
+  > Returns `true` iff this signed integer is strictly negative.
+- **`exec fn abs`** — [runtime_bigint_witness/signed_verified_impl.rs:651](./src/runtime_bigint_witness/signed_verified_impl.rs#L651)
+  > Returns the absolute value of this signed integer as an unsigned `BigNat`.
+- **`exec fn copy_small_total`** — [runtime_bigint_witness/signed_verified_impl.rs:681](./src/runtime_bigint_witness/signed_verified_impl.rs#L681)
   > Copy this signed integer (analogous to `RuntimeBigNatWitness::copy_small_total`).
-- **`exec fn signum`** — [runtime_bigint_witness/signed_verified_impl.rs:684](./src/runtime_bigint_witness/signed_verified_impl.rs#L684)
-- **`exec fn cmp`** — [runtime_bigint_witness/signed_verified_impl.rs:757](./src/runtime_bigint_witness/signed_verified_impl.rs#L757)
-- **`exec fn add`** — [runtime_bigint_witness/signed_verified_impl.rs:852](./src/runtime_bigint_witness/signed_verified_impl.rs#L852)
-- **`exec fn sub`** — [runtime_bigint_witness/signed_verified_impl.rs:974](./src/runtime_bigint_witness/signed_verified_impl.rs#L974)
-- **`exec fn mul`** — [runtime_bigint_witness/signed_verified_impl.rs:993](./src/runtime_bigint_witness/signed_verified_impl.rs#L993)
-- **`exec fn div`** — [runtime_bigint_witness/signed_verified_impl.rs:1082](./src/runtime_bigint_witness/signed_verified_impl.rs#L1082)
-- **`exec fn rem`** — [runtime_bigint_witness/signed_verified_impl.rs:1158](./src/runtime_bigint_witness/signed_verified_impl.rs#L1158)
-- **`exec fn div_rem`** — [runtime_bigint_witness/signed_verified_impl.rs:1276](./src/runtime_bigint_witness/signed_verified_impl.rs#L1276)
-- **`exec fn neg`** — [runtime_bigint_witness/signed_verified_impl.rs:3443](./src/runtime_bigint_witness/signed_verified_impl.rs#L3443)
+- **`exec fn signum`** — [runtime_bigint_witness/signed_verified_impl.rs:708](./src/runtime_bigint_witness/signed_verified_impl.rs#L708)
+  > Returns the sign of this integer: `-1` if negative, `0` if zero, `1` if positive.
+- **`exec fn cmp`** — [runtime_bigint_witness/signed_verified_impl.rs:782](./src/runtime_bigint_witness/signed_verified_impl.rs#L782)
+  > Three-way comparison: returns `-1`, `0`, or `1` as `self` is less than, equal to, or greater than `rhs`.
+- **`exec fn add`** — [runtime_bigint_witness/signed_verified_impl.rs:878](./src/runtime_bigint_witness/signed_verified_impl.rs#L878)
+  > Returns the sum `self + rhs`.
+- **`exec fn sub`** — [runtime_bigint_witness/signed_verified_impl.rs:1001](./src/runtime_bigint_witness/signed_verified_impl.rs#L1001)
+  > Returns the difference `self - rhs`.
+- **`exec fn mul`** — [runtime_bigint_witness/signed_verified_impl.rs:1021](./src/runtime_bigint_witness/signed_verified_impl.rs#L1021)
+  > Returns the product `self * rhs`.
+- **`exec fn div`** — [runtime_bigint_witness/signed_verified_impl.rs:1111](./src/runtime_bigint_witness/signed_verified_impl.rs#L1111)
+  > Returns the truncating quotient `self / rhs` (returns zero when `rhs` is zero).
+- **`exec fn rem`** — [runtime_bigint_witness/signed_verified_impl.rs:1188](./src/runtime_bigint_witness/signed_verified_impl.rs#L1188)
+  > Returns the truncating remainder `self % rhs` (returns zero when `rhs` is zero).
+- **`exec fn div_rem`** — [runtime_bigint_witness/signed_verified_impl.rs:1307](./src/runtime_bigint_witness/signed_verified_impl.rs#L1307)
+  > Returns the truncating quotient and remainder `(self / rhs, self % rhs)` simultaneously.
+- **`exec fn neg`** — [runtime_bigint_witness/signed_verified_impl.rs:3491](./src/runtime_bigint_witness/signed_verified_impl.rs#L3491)
+  > Returns the negation `-self`.
 
 ## `runtime_bigint_witness::verified_impl::RuntimeBigNatWitness`
 
 ### Exec Functions
 
-- **`exec fn zero`** — [runtime_bigint_witness/verified_impl.rs:57](./src/runtime_bigint_witness/verified_impl.rs#L57)
-- **`exec fn from_u32`** — [runtime_bigint_witness/verified_impl.rs:71](./src/runtime_bigint_witness/verified_impl.rs#L71)
-- **`exec fn from_u64`** — [runtime_bigint_witness/verified_impl.rs:91](./src/runtime_bigint_witness/verified_impl.rs#L91)
-- **`exec fn from_two_limbs`** — [runtime_bigint_witness/verified_impl.rs:117](./src/runtime_bigint_witness/verified_impl.rs#L117)
-- **`exec fn add`** — [runtime_bigint_witness/verified_impl.rs:148](./src/runtime_bigint_witness/verified_impl.rs#L148)
-- **`exec fn mul`** — [runtime_bigint_witness/verified_impl.rs:170](./src/runtime_bigint_witness/verified_impl.rs#L170)
-- **`exec fn div`** — [runtime_bigint_witness/verified_impl.rs:212](./src/runtime_bigint_witness/verified_impl.rs#L212)
-- **`exec fn rem`** — [runtime_bigint_witness/verified_impl.rs:277](./src/runtime_bigint_witness/verified_impl.rs#L277)
-- **`exec fn div_rem`** — [runtime_bigint_witness/verified_impl.rs:352](./src/runtime_bigint_witness/verified_impl.rs#L352)
-- **`exec fn is_zero`** — [runtime_bigint_witness/verified_impl.rs:400](./src/runtime_bigint_witness/verified_impl.rs#L400)
-- **`exec fn limbs_le`** — [runtime_bigint_witness/verified_impl.rs:430](./src/runtime_bigint_witness/verified_impl.rs#L430)
-- **`exec fn add_limbwise_small`** — [runtime_bigint_witness/verified_impl.rs:439](./src/runtime_bigint_witness/verified_impl.rs#L439)
+- **`exec fn zero`** — [runtime_bigint_witness/verified_impl.rs:58](./src/runtime_bigint_witness/verified_impl.rs#L58)
+  > Constructs a zero-valued BigUint.
+- **`exec fn from_u32`** — [runtime_bigint_witness/verified_impl.rs:73](./src/runtime_bigint_witness/verified_impl.rs#L73)
+  > Constructs a BigUint from a `u32`.
+- **`exec fn from_u64`** — [runtime_bigint_witness/verified_impl.rs:94](./src/runtime_bigint_witness/verified_impl.rs#L94)
+  > Constructs a BigUint from a `u64`.
+- **`exec fn from_two_limbs`** — [runtime_bigint_witness/verified_impl.rs:121](./src/runtime_bigint_witness/verified_impl.rs#L121)
+  > Constructs a BigUint from two limbs: `lo + base * hi`.
+- **`exec fn add`** — [runtime_bigint_witness/verified_impl.rs:153](./src/runtime_bigint_witness/verified_impl.rs#L153)
+  > Returns `self + rhs`.
+- **`exec fn mul`** — [runtime_bigint_witness/verified_impl.rs:176](./src/runtime_bigint_witness/verified_impl.rs#L176)
+  > Returns `self * rhs`.
+- **`exec fn div`** — [runtime_bigint_witness/verified_impl.rs:219](./src/runtime_bigint_witness/verified_impl.rs#L219)
+  > Returns `self / rhs` (floor division; returns 0 if `rhs == 0`).
+- **`exec fn rem`** — [runtime_bigint_witness/verified_impl.rs:285](./src/runtime_bigint_witness/verified_impl.rs#L285)
+  > Returns `self % rhs` (returns 0 if `rhs == 0`).
+- **`exec fn div_rem`** — [runtime_bigint_witness/verified_impl.rs:361](./src/runtime_bigint_witness/verified_impl.rs#L361)
+  > Returns `(self / rhs, self % rhs)`.
+- **`exec fn is_zero`** — [runtime_bigint_witness/verified_impl.rs:410](./src/runtime_bigint_witness/verified_impl.rs#L410)
+  > Returns `true` iff `self == 0`.
+- **`exec fn limbs_le`** — [runtime_bigint_witness/verified_impl.rs:441](./src/runtime_bigint_witness/verified_impl.rs#L441)
+  > Returns a reference to the little-endian limb slice.
+- **`exec fn add_limbwise_small`** — [runtime_bigint_witness/verified_impl.rs:450](./src/runtime_bigint_witness/verified_impl.rs#L450)
   > First constructive limb-wise addition milestone: supports operands represented by at most one limb each.
-- **`exec fn add_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:523](./src/runtime_bigint_witness/verified_impl.rs#L523)
+- **`exec fn add_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:534](./src/runtime_bigint_witness/verified_impl.rs#L534)
   > Total limb-wise addition helper used by scalar witness plumbing.  Computes carry-propagating multi-limb addition over little-endian limbs, then canonicalizes the output by trimming trailing zero limbs.
-- **`exec fn mul_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1035](./src/runtime_bigint_witness/verified_impl.rs#L1035)
+- **`exec fn mul_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1046](./src/runtime_bigint_witness/verified_impl.rs#L1046)
   > Total limb-wise multiplication helper used by scalar witness plumbing.  Computes exact multiplication in little-endian limb space by combining: - per-limb scalar multiplication (`mul_by_u32_total`) - base shifting (`shift_base_once_total`) - semantic accumulation (`add_limbwise_small_total`)
-- **`exec fn div_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1181](./src/runtime_bigint_witness/verified_impl.rs#L1181)
+- **`exec fn div_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1192](./src/runtime_bigint_witness/verified_impl.rs#L1192)
   > Total small-limb division helper used by scalar witness plumbing.  Computes the floor quotient of `self / rhs` using monotone multiplication-by-addition accumulation. Returns `0` when `rhs == 0`.
-- **`exec fn rem_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1379](./src/runtime_bigint_witness/verified_impl.rs#L1379)
+- **`exec fn rem_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1390](./src/runtime_bigint_witness/verified_impl.rs#L1390)
   > Total small-limb remainder helper used by scalar witness plumbing.  Computes `self % rhs` with total semantics, returning `0` when `rhs == 0`.
-- **`exec fn div_rem_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1415](./src/runtime_bigint_witness/verified_impl.rs#L1415)
+- **`exec fn div_rem_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1426](./src/runtime_bigint_witness/verified_impl.rs#L1426)
   > Total small-limb quotient/remainder helper used by scalar witness plumbing.  Returns `(q, r)` where `q = floor(self / rhs)` and `r = self % rhs`. Uses total semantics `(0, 0)` when `rhs == 0`.
-- **`exec fn cmp_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1525](./src/runtime_bigint_witness/verified_impl.rs#L1525)
+- **`exec fn cmp_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1536](./src/runtime_bigint_witness/verified_impl.rs#L1536)
   > Total small-limb compare helper used by scalar witness plumbing.  Returns the exact sign of `(self - rhs)` as `-1/0/1` using full multi-limb comparison with trailing-zero normalization.
-- **`exec fn sub_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1742](./src/runtime_bigint_witness/verified_impl.rs#L1742)
+- **`exec fn sub_limbwise_small_total`** — [runtime_bigint_witness/verified_impl.rs:1753](./src/runtime_bigint_witness/verified_impl.rs#L1753)
   > Total small-limb subtraction helper used by scalar witness plumbing.  Computes the exact nonnegative difference when `self >= rhs` using full multi-limb borrow propagation (with trailing-zero normalization). Returns `0` when `self < rhs`.
-- **`exec fn copy_small_total`** — [runtime_bigint_witness/verified_impl.rs:2058](./src/runtime_bigint_witness/verified_impl.rs#L2058)
+- **`exec fn copy_small_total`** — [runtime_bigint_witness/verified_impl.rs:2069](./src/runtime_bigint_witness/verified_impl.rs#L2069)
   > Total witness copy helper for scalar witness plumbing.  Preserves all limbs exactly (after trailing-zero normalization).
 
 ## `runtime_bigint_witness::verified_impl::contracts_arith::RuntimeBigNatWitness`
 
 ### Proof Functions
 
-- **`proof fn lemma_model_add_monotonic_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:3](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L3)
-- **`proof fn lemma_model_mul_monotonic_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:37](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L37)
-- **`proof fn lemma_model_add_strict_monotonic_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:69](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L69)
-- **`proof fn lemma_model_mul_strict_monotonic_pos_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:100](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L100)
-- **`proof fn lemma_model_add_cancellation_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:142](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L142)
-- **`proof fn lemma_model_mul_cancellation_pos_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:185](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L185)
-- **`proof fn lemma_model_div_monotonic_pos_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:229](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L229)
-- **`proof fn lemma_model_rem_upper_bound_pos_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:275](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L275)
-- **`proof fn lemma_model_add_commutative_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:301](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L301)
-- **`proof fn lemma_model_add_associative_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:323](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L323)
-- **`proof fn lemma_model_mul_commutative_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:349](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L349)
-- **`proof fn lemma_model_mul_associative_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:371](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L371)
-- **`proof fn lemma_model_mul_distributes_over_add_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:397](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L397)
+- **`proof fn lemma_model_add_monotonic_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:4](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L4)
+  > Additive monotonicity from total contracts: `a <= b` implies `a + c <= b + c`.
+- **`proof fn lemma_model_mul_monotonic_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:39](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L39)
+  > Multiplicative monotonicity from total contracts: `a <= b` implies `a * c <= b * c`.
+- **`proof fn lemma_model_add_strict_monotonic_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:72](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L72)
+  > Strict additive monotonicity from total contracts: `a < b` implies `a + c < b + c`.
+- **`proof fn lemma_model_mul_strict_monotonic_pos_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:104](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L104)
+  > Strict multiplicative monotonicity from total contracts: `a < b` and `c > 0` implies `a*c < b*c`.
+- **`proof fn lemma_model_add_cancellation_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:147](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L147)
+  > Additive cancellation from total contracts: `a + c == b + c` implies `a == b`.
+- **`proof fn lemma_model_mul_cancellation_pos_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:191](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L191)
+  > Multiplicative cancellation from total contracts: `a*c == b*c` and `c > 0` implies `a == b`.
+- **`proof fn lemma_model_div_monotonic_pos_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:236](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L236)
+  > Division monotonicity from total contracts: `a <= b` implies `a/d <= b/d`.
+- **`proof fn lemma_model_rem_upper_bound_pos_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:283](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L283)
+  > Remainder upper bound from total contracts: `a % d < d`.
+- **`proof fn lemma_model_add_commutative_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:310](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L310)
+  > Additive commutativity from total contracts: `a + b == b + a`.
+- **`proof fn lemma_model_add_associative_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:333](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L333)
+  > Additive associativity from total contracts: `(a + b) + c == a + (b + c)`.
+- **`proof fn lemma_model_mul_commutative_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:360](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L360)
+  > Multiplicative commutativity from total contracts: `a * b == b * a`.
+- **`proof fn lemma_model_mul_associative_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:383](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L383)
+  > Multiplicative associativity from total contracts: `(a * b) * c == a * (b * c)`.
+- **`proof fn lemma_model_mul_distributes_over_add_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_arith.rs:410](./src/runtime_bigint_witness/verified_impl/contracts_arith.rs#L410)
+  > Distributivity from total contracts: `a * (b + c) == a*b + a*c`.
 
 ## `runtime_bigint_witness::verified_impl::contracts_cmp_sub::RuntimeBigNatWitness`
 
 ### Proof Functions
 
-- **`proof fn lemma_cmp_limbwise_small_total_antisymmetric`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:3](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L3)
-- **`proof fn lemma_cmp_limbwise_small_total_transitive_le`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:80](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L80)
-- **`proof fn lemma_cmp_limbwise_small_total_transitive_eq`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:145](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L145)
-- **`proof fn lemma_cmp_le_zero_iff_le_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:200](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L200)
-- **`proof fn lemma_cmp_lt_zero_iff_lt_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:244](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L244)
-- **`proof fn lemma_cmp_eq_zero_iff_eq_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:289](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L289)
-- **`proof fn lemma_model_add_sub_inverse_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:333](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L333)
-- **`proof fn lemma_model_sub_add_inverse_ge_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:371](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L371)
-- **`proof fn lemma_model_sub_zero_iff_le_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:391](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L391)
+- **`proof fn lemma_cmp_limbwise_small_total_antisymmetric`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:4](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L4)
+  > Antisymmetry of limb-wise comparison: `cmp(a,b) == -cmp(b,a)`.
+- **`proof fn lemma_cmp_limbwise_small_total_transitive_le`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:82](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L82)
+  > Transitivity of limb-wise comparison under `<=`: `a <= b` and `b <= c` implies `a <= c`.
+- **`proof fn lemma_cmp_limbwise_small_total_transitive_eq`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:148](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L148)
+  > Transitivity of limb-wise comparison under equality: `a == b` and `b == c` implies `a == c`.
+- **`proof fn lemma_cmp_le_zero_iff_le_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:204](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L204)
+  > `cmp <= 0` iff `value(a) <= value(b)`, from total contracts.
+- **`proof fn lemma_cmp_lt_zero_iff_lt_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:249](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L249)
+  > `cmp < 0` iff `value(a) < value(b)`, from total contracts.
+- **`proof fn lemma_cmp_eq_zero_iff_eq_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:295](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L295)
+  > `cmp == 0` iff `value(a) == value(b)`, from total contracts.
+- **`proof fn lemma_model_add_sub_inverse_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:340](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L340)
+  > Add-sub inverse from total contracts: `(a - b) + b == a` when `b <= a`.
+- **`proof fn lemma_model_sub_add_inverse_ge_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:379](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L379)
+  > Sub-add inverse from total contracts: `(a - b) + b == a` when `b <= a`.
+- **`proof fn lemma_model_sub_zero_iff_le_from_total_contracts`** — [runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs:400](./src/runtime_bigint_witness/verified_impl/contracts_cmp_sub.rs#L400)
+  > Truncated subtraction is zero iff `a <= b`, from total contracts.
 
 ## `runtime_bigint_witness::verified_impl::core_nat_div_mod::RuntimeBigNatWitness`
 
 ### Proof Functions
 
-- **`proof fn lemma_div_rem_unique_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:3](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L3)
-- **`proof fn lemma_mod_zero_implies_multiple_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:39](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L39)
-- **`proof fn lemma_multiple_implies_mod_zero_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:63](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L63)
-- **`proof fn lemma_div_rem_shift_by_multiple_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:82](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L82)
-- **`proof fn lemma_mul_div_rem_cancel_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:124](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L124)
-- **`proof fn lemma_div_add_bounds_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:147](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L147)
-- **`proof fn lemma_model_div_shift_by_multiple_pos`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:230](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L230)
-- **`proof fn lemma_model_rem_shift_by_multiple_pos`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:241](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L241)
-- **`proof fn lemma_div_monotonic_in_divisor_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:252](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L252)
-- **`proof fn lemma_model_div_monotonic_in_divisor_pos`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:275](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L275)
-- **`proof fn lemma_mod_add_compat_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:287](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L287)
-- **`proof fn lemma_model_add_mod_compat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:306](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L306)
-- **`proof fn lemma_mod_mul_compat_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:319](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L319)
-- **`proof fn lemma_model_mul_mod_compat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:338](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L338)
-- **`proof fn lemma_mod_congruence_add_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:351](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L351)
-- **`proof fn lemma_model_mod_congruence_add`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:366](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L366)
-- **`proof fn lemma_mod_congruence_mul_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:380](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L380)
-- **`proof fn lemma_model_mod_congruence_mul`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:395](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L395)
+- **`proof fn lemma_div_rem_unique_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:4](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L4)
+  > Uniqueness of natural division: same dividend and divisor yield the same quotient and remainder.
+- **`proof fn lemma_mod_zero_implies_multiple_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:41](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L41)
+  > `x % d == 0` implies there exists `k` such that `x == k * d`.
+- **`proof fn lemma_multiple_implies_mod_zero_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:66](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L66)
+  > `x == k * d` implies `x % d == 0`.
+- **`proof fn lemma_div_rem_shift_by_multiple_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:86](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L86)
+  > Shifting by a multiple: `(x + k*d) / d == x/d + k` and remainder is unchanged.
+- **`proof fn lemma_mul_div_rem_cancel_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:129](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L129)
+  > Exact cancellation: `(a * d) / d == a` and `(a * d) % d == 0`.
+- **`proof fn lemma_div_add_bounds_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:153](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L153)
+  > Floor-division add bounds: `a/d + b/d <= (a+b)/d <= a/d + b/d + 1`.
+- **`proof fn lemma_model_div_shift_by_multiple_pos`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:237](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L237)
+  > Model-level shifting by a multiple preserves quotient offset.
+- **`proof fn lemma_model_rem_shift_by_multiple_pos`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:249](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L249)
+  > Model-level shifting by a multiple preserves remainder.
+- **`proof fn lemma_div_monotonic_in_divisor_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:261](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L261)
+  > Larger divisor yields smaller quotient: `d1 <= d2` implies `x/d2 <= x/d1`.
+- **`proof fn lemma_model_div_monotonic_in_divisor_pos`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:285](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L285)
+  > Model-level divisor monotonicity: `0 < d1 <= d2` implies `a/d2 <= a/d1`.
+- **`proof fn lemma_mod_add_compat_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:298](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L298)
+  > Modular addition compatibility: `(x + y) % m == ((x % m) + (y % m)) % m`.
+- **`proof fn lemma_model_add_mod_compat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:318](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L318)
+  > Model-level modular addition compatibility.
+- **`proof fn lemma_mod_mul_compat_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:332](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L332)
+  > Modular multiplication compatibility: `(x * y) % m == ((x % m) * (y % m)) % m`.
+- **`proof fn lemma_model_mul_mod_compat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:352](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L352)
+  > Model-level modular multiplication compatibility.
+- **`proof fn lemma_mod_congruence_add_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:366](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L366)
+  > Congruence preserved under addition: `a === b (mod m)` implies `a+c === b+c (mod m)`.
+- **`proof fn lemma_model_mod_congruence_add`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:382](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L382)
+  > Model-level modular congruence preserved under addition.
+- **`proof fn lemma_mod_congruence_mul_nat`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:397](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L397)
+  > Congruence preserved under multiplication: `a === b (mod m)` implies `a*c === b*c (mod m)`.
+- **`proof fn lemma_model_mod_congruence_mul`** — [runtime_bigint_witness/verified_impl/core_nat_div_mod.rs:413](./src/runtime_bigint_witness/verified_impl/core_nat_div_mod.rs#L413)
+  > Model-level modular congruence preserved under multiplication.
 
 ## `runtime_bigint_witness::verified_impl::core_pow_cmp::RuntimeBigNatWitness`
 
 ### Proof Functions
 
-- **`proof fn lemma_pow_ge_one`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:3](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L3)
-- **`proof fn lemma_pow_monotonic`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:25](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L25)
-- **`proof fn lemma_pow_add`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:51](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L51)
-- **`proof fn lemma_limbs_value_unfold_nonempty`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:96](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L96)
-- **`proof fn lemma_limbs_value_append`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:123](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L123)
-- **`proof fn lemma_limbs_value_lt_pow_len`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:199](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L199)
-- **`proof fn lemma_limbs_value_ge_pow_last_nonzero`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:279](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L279)
-- **`proof fn lemma_len_bound_from_value_upper_pow`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:319](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L319)
-- **`proof fn lemma_cmp_prefix_last_digit_gt`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:344](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L344)
-- **`proof fn lemma_cmp_high_diff_gt`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:440](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L440)
-- **`proof fn lemma_trimmed_len_gt_implies_value_gt`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:505](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L505)
-- **`proof fn lemma_trimmed_high_diff_implies_value_gt`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:542](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L542)
-- **`proof fn lemma_model_zero_or_single_limb`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:580](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L580)
+- **`proof fn lemma_pow_ge_one`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:4](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L4)
+  > `pow_base(exp) >= 1` for all exponents.
+- **`proof fn lemma_pow_monotonic`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:27](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L27)
+  > `pow_base` is monotonic: `lo <= hi` implies `pow_base(lo) <= pow_base(hi)`.
+- **`proof fn lemma_pow_add`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:54](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L54)
+  > Additive law: `pow_base(lhs + rhs) == pow_base(lhs) * pow_base(rhs)`.
+- **`proof fn lemma_limbs_value_unfold_nonempty`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:100](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L100)
+  > Unfolds `limbs_value` for nonempty sequences: `head + base * tail_value`.
+- **`proof fn lemma_limbs_value_append`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:128](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L128)
+  > Concatenation law: `value(left ++ right) == value(left) + pow(|left|) * value(right)`.
+- **`proof fn lemma_limbs_value_lt_pow_len`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:205](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L205)
+  > Upper bound: `limbs_value(s) < pow_base(|s|)`.
+- **`proof fn lemma_limbs_value_ge_pow_last_nonzero`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:286](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L286)
+  > Lower bound: nonzero last limb implies `pow_base(|s|-1) <= limbs_value(s)`.
+- **`proof fn lemma_len_bound_from_value_upper_pow`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:327](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L327)
+  > Canonical limbs with value `< pow_base(n)` have at most `n` limbs.
+- **`proof fn lemma_cmp_prefix_last_digit_gt`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:353](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L353)
+  > Equal-length sequences with `a[last] > b[last]` satisfy `value(a) > value(b)`.
+- **`proof fn lemma_cmp_high_diff_gt`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:450](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L450)
+  > Highest differing limb larger implies `value(a) > value(b)`.
+- **`proof fn lemma_trimmed_len_gt_implies_value_gt`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:516](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L516)
+  > Longer trimmed length with nonzero top limb implies strictly greater value.
+- **`proof fn lemma_trimmed_high_diff_implies_value_gt`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:554](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L554)
+  > Equal trimmed length with higher differing limb implies strictly greater value.
+- **`proof fn lemma_model_zero_or_single_limb`** — [runtime_bigint_witness/verified_impl/core_pow_cmp.rs:593](./src/runtime_bigint_witness/verified_impl/core_pow_cmp.rs#L593)
+  > Zero or single-limb witnesses have model equal to 0 or `limbs[0]`.
 
 ## `runtime_bigint_witness::verified_impl::core_repr_prefix::RuntimeBigNatWitness`
 
 ### Spec Functions
 
-- **`open spec fn limb_base_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:3](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L3)
-- **`open spec fn pow_base_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:7](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L7)
-- **`open spec fn limbs_value_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:17](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L17)
-- **`open spec fn canonical_limbs_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:29](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L29)
-- **`open spec fn wf_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:33](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L33)
-- **`open spec fn limb_or_zero_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:179](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L179)
-- **`open spec fn prefix_sum_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:187](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L187)
-- **`open spec fn add_sum_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:199](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L199)
-- **`open spec fn add_digit_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:203](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L203)
-- **`open spec fn add_carry_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:211](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L211)
+- **`open spec fn limb_base_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:4](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L4)
+  > The radix base for a single limb (2^32).
+- **`open spec fn pow_base_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:9](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L9)
+  > Computes `limb_base^exp` (positional weight for limb at position `exp`).
+- **`open spec fn limbs_value_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:20](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L20)
+  > Evaluates a little-endian limb sequence as a natural number.
+- **`open spec fn canonical_limbs_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:33](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L33)
+  > A limb sequence is canonical iff it has no trailing zero limbs.
+- **`open spec fn wf_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:38](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L38)
+  > Well-formedness: model equals limb evaluation and limbs are canonical.
+- **`open spec fn limb_or_zero_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:188](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L188)
+  > Returns `limbs[idx]` if in bounds, otherwise 0.
+- **`open spec fn prefix_sum_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:197](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L197)
+  > Partial positional sum of the first `count` limbs (zero-extended beyond `logical_len`).
+- **`open spec fn add_sum_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:210](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L210)
+  > Raw digit sum before carry extraction: `a + b + carry_in`.
+- **`open spec fn add_digit_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:215](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L215)
+  > Output digit after carry: `(a + b + carry_in) mod limb_base`.
+- **`open spec fn add_carry_spec`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:224](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L224)
+  > Carry-out bit: 1 if `a + b + carry_in >= limb_base`, else 0.
 
 ### Proof Functions
 
-- **`proof fn lemma_pow_base_succ`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:38](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L38)
-- **`proof fn lemma_limbs_value_push`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:45](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L45)
+- **`proof fn lemma_pow_base_succ`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:44](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L44)
+  > Successor law: `pow_base(exp + 1) == limb_base * pow_base(exp)`.
+- **`proof fn lemma_limbs_value_push`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:51](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L51)
   > Value update law for appending a high limb in little-endian representation.
-- **`proof fn lemma_limbs_value_drop_last_zero`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:91](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L91)
-- **`proof fn lemma_limbs_value_trim_suffix_zeros`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:132](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L132)
-- **`proof fn lemma_add_digit_carry_decompose`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:219](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L219)
-- **`proof fn lemma_add_prefix_step`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:255](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L255)
-- **`proof fn lemma_sub_prefix_step`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:302](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L302)
-- **`proof fn lemma_limb_or_zero_past_logical_len`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:356](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L356)
-- **`proof fn lemma_prefix_sum_step`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:366](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L366)
-- **`proof fn lemma_prefix_sum_constant_from_extra`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:379](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L379)
-- **`proof fn lemma_prefix_sum_constant_past_logical_len`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:411](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L411)
-- **`proof fn lemma_prefix_sum_matches_subrange`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:427](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L427)
-- **`proof fn lemma_prefix_sum_eq_subrange_value`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:486](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L486)
+- **`proof fn lemma_limbs_value_drop_last_zero`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:98](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L98)
+  > Dropping a trailing zero limb preserves the evaluated value.
+- **`proof fn lemma_limbs_value_trim_suffix_zeros`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:140](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L140)
+  > Trimming all trailing zero limbs beyond position `n` preserves the evaluated value.
+- **`proof fn lemma_add_digit_carry_decompose`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:233](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L233)
+  > Digit + carry decomposition: `digit + carry * base == a + b + carry_in`.
+- **`proof fn lemma_add_prefix_step`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:270](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L270)
+  > Inductive step for carry-propagating addition over prefix sums.
+- **`proof fn lemma_sub_prefix_step`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:318](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L318)
+  > Inductive step for borrow-propagating subtraction over prefix sums.
+- **`proof fn lemma_limb_or_zero_past_logical_len`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:373](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L373)
+  > `limb_or_zero` returns 0 for indices at or beyond the logical length.
+- **`proof fn lemma_prefix_sum_step`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:384](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L384)
+  > Unfolding law: `prefix_sum(count+1) == prefix_sum(count) + limb_or_zero(count) * pow(count)`.
+- **`proof fn lemma_prefix_sum_constant_from_extra`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:398](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L398)
+  > Prefix sum is constant for indices beyond the logical length (induction on extra).
+- **`proof fn lemma_prefix_sum_constant_past_logical_len`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:431](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L431)
+  > Prefix sum stabilises once `count >= logical_len`.
+- **`proof fn lemma_prefix_sum_matches_subrange`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:448](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L448)
+  > Prefix sum over `count` limbs equals `limbs_value_spec` of the first `count` elements.
+- **`proof fn lemma_prefix_sum_eq_subrange_value`** — [runtime_bigint_witness/verified_impl/core_repr_prefix.rs:508](./src/runtime_bigint_witness/verified_impl/core_repr_prefix.rs#L508)
+  > Full prefix sum equals `limbs_value_spec` of the logical prefix.
 
 ## `runtime_bigint_witness::verified_impl::ops_add::RuntimeBigNatWitness`
 
