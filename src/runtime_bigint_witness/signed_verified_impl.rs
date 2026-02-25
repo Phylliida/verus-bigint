@@ -4,6 +4,7 @@ use super::{RuntimeBigIntWitness, RuntimeBigNatWitness};
 use vstd::prelude::*;
 use vstd::arithmetic::div_mod::{
     lemma_div_is_ordered,
+    lemma_fundamental_div_mod,
     lemma_fundamental_div_mod_converse,
     lemma_small_mod,
 };
@@ -3519,6 +3520,353 @@ impl RuntimeBigIntWitness {
                     assert(out.model@ == -self.model@);
                 }
             }
+        }
+        out
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Signed div/rem composition lemmas
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// |a * b| == |a| * |b|.
+    pub proof fn lemma_abs_model_mul(a: int, b: int)
+        ensures
+            Self::abs_model_spec(a * b) == Self::abs_model_spec(a) * Self::abs_model_spec(b),
+    {
+        let abs_a = Self::abs_model_spec(a);
+        let abs_b = Self::abs_model_spec(b);
+        if a >= 0 && b >= 0 {
+            assert(a * b >= 0) by (nonlinear_arith)
+                requires a >= 0, b >= 0;
+            assert(abs_a == a as nat);
+            assert(abs_b == b as nat);
+            assert(Self::abs_model_spec(a * b) == (a * b) as nat);
+            assert((a * b) as nat == (a as nat) * (b as nat)) by (nonlinear_arith)
+                requires a >= 0, b >= 0;
+        } else if a >= 0 && b < 0 {
+            if a == 0 {
+                assert(a * b == 0) by (nonlinear_arith)
+                    requires a == 0;
+                assert(abs_a == 0nat);
+                assert(abs_a * abs_b == 0nat) by (nonlinear_arith)
+                    requires abs_a == 0nat;
+            } else {
+                assert(a > 0);
+                assert(a * b < 0) by (nonlinear_arith)
+                    requires a > 0, b < 0;
+                assert(abs_a == a as nat);
+                assert(abs_b == (-b) as nat);
+                assert(Self::abs_model_spec(a * b) == (-(a * b)) as nat);
+                assert((-(a * b)) as nat == (a as nat) * ((-b) as nat)) by (nonlinear_arith)
+                    requires a > 0, b < 0;
+            }
+        } else if a < 0 && b >= 0 {
+            if b == 0 {
+                assert(a * b == 0) by (nonlinear_arith)
+                    requires b == 0;
+                assert(abs_b == 0nat);
+                assert(abs_a * abs_b == 0nat) by (nonlinear_arith)
+                    requires abs_b == 0nat;
+            } else {
+                assert(b > 0);
+                assert(a * b < 0) by (nonlinear_arith)
+                    requires a < 0, b > 0;
+                assert(abs_a == (-a) as nat);
+                assert(abs_b == b as nat);
+                assert(Self::abs_model_spec(a * b) == (-(a * b)) as nat);
+                assert((-(a * b)) as nat == ((-a) as nat) * (b as nat)) by (nonlinear_arith)
+                    requires a < 0, b > 0;
+            }
+        } else {
+            assert(a < 0 && b < 0);
+            assert(a * b > 0) by (nonlinear_arith)
+                requires a < 0, b < 0;
+            assert(abs_a == (-a) as nat);
+            assert(abs_b == (-b) as nat);
+            assert(Self::abs_model_spec(a * b) == (a * b) as nat);
+            assert((a * b) as nat == ((-a) as nat) * ((-b) as nat)) by (nonlinear_arith)
+                requires a < 0, b < 0;
+        }
+    }
+
+    /// trunc_div and trunc_rem satisfy the fundamental division identity:
+    /// a == trunc_div(a, b) * b + trunc_rem(a, b) when b != 0.
+    pub proof fn lemma_trunc_div_rem_identity(a: int, b: int)
+        requires b != 0,
+        ensures a == Self::trunc_div_spec(a, b) * b + Self::trunc_rem_spec(a, b),
+    {
+        let abs_a = Self::abs_model_spec(a);
+        let abs_b = Self::abs_model_spec(b);
+        let q_abs: nat = abs_a / abs_b;
+        let r_abs: nat = abs_a % abs_b;
+
+        // abs_b > 0
+        if b > 0 {
+            assert(abs_b == b as nat);
+        } else {
+            assert(abs_b == (-b) as nat);
+        }
+        assert(abs_b > 0);
+
+        // Fundamental identity for nats: abs_a == q_abs * abs_b + r_abs
+        lemma_fundamental_div_mod(abs_a as int, abs_b as int);
+
+        // Case split on signs of a and b
+        if a >= 0 && b > 0 {
+            assert(abs_a == a as nat);
+            assert(Self::trunc_div_spec(a, b) == q_abs as int);
+            assert(Self::trunc_rem_spec(a, b) == r_abs as int);
+            assert(a == Self::trunc_div_spec(a, b) * b + Self::trunc_rem_spec(a, b))
+                by (nonlinear_arith)
+                requires
+                    abs_a as int == (abs_b as int) * (abs_a as int / abs_b as int) + abs_a as int % abs_b as int,
+                    abs_a == a as nat, abs_b == b as nat,
+                    q_abs == abs_a / abs_b, r_abs == abs_a % abs_b,
+                    Self::trunc_div_spec(a, b) == q_abs as int,
+                    Self::trunc_rem_spec(a, b) == r_abs as int,
+                    a >= 0, b > 0;
+        } else if a >= 0 && b < 0 {
+            assert(abs_a == a as nat);
+            assert(abs_b == (-b) as nat);
+            // signs differ: (a < 0) != (b < 0) is false != true = true
+            assert((a < 0) != (b < 0));
+            assert(Self::trunc_div_spec(a, b) == -(q_abs as int));
+            assert(Self::trunc_rem_spec(a, b) == r_abs as int);
+            assert(a == Self::trunc_div_spec(a, b) * b + Self::trunc_rem_spec(a, b))
+                by (nonlinear_arith)
+                requires
+                    abs_a as int == (abs_b as int) * (abs_a as int / abs_b as int) + abs_a as int % abs_b as int,
+                    abs_a == a as nat, abs_b as int == -b,
+                    q_abs == abs_a / abs_b, r_abs == abs_a % abs_b,
+                    Self::trunc_div_spec(a, b) == -(q_abs as int),
+                    Self::trunc_rem_spec(a, b) == r_abs as int,
+                    a >= 0, b < 0;
+        } else if a < 0 && b > 0 {
+            assert(abs_a == (-a) as nat);
+            assert(abs_b == b as nat);
+            assert((a < 0) != (b < 0));
+            assert(Self::trunc_div_spec(a, b) == -(q_abs as int));
+            assert(Self::trunc_rem_spec(a, b) == -(r_abs as int));
+            assert(a == Self::trunc_div_spec(a, b) * b + Self::trunc_rem_spec(a, b))
+                by (nonlinear_arith)
+                requires
+                    abs_a as int == (abs_b as int) * (abs_a as int / abs_b as int) + abs_a as int % abs_b as int,
+                    abs_a as int == -a, abs_b == b as nat,
+                    q_abs == abs_a / abs_b, r_abs == abs_a % abs_b,
+                    Self::trunc_div_spec(a, b) == -(q_abs as int),
+                    Self::trunc_rem_spec(a, b) == -(r_abs as int),
+                    a < 0, b > 0;
+        } else {
+            // a < 0 && b < 0
+            assert(abs_a == (-a) as nat);
+            assert(abs_b == (-b) as nat);
+            assert(!((a < 0) != (b < 0)));
+            assert(Self::trunc_div_spec(a, b) == q_abs as int);
+            assert(Self::trunc_rem_spec(a, b) == -(r_abs as int));
+            assert(a == Self::trunc_div_spec(a, b) * b + Self::trunc_rem_spec(a, b))
+                by (nonlinear_arith)
+                requires
+                    abs_a as int == (abs_b as int) * (abs_a as int / abs_b as int) + abs_a as int % abs_b as int,
+                    abs_a as int == -a, abs_b as int == -b,
+                    q_abs == abs_a / abs_b, r_abs == abs_a % abs_b,
+                    Self::trunc_div_spec(a, b) == q_abs as int,
+                    Self::trunc_rem_spec(a, b) == -(r_abs as int),
+                    a < 0, b < 0;
+        }
+    }
+
+    /// Truncating division by 1 is identity.
+    pub proof fn lemma_trunc_div_one(a: int)
+        ensures Self::trunc_div_spec(a, 1) == a,
+    {
+        assert(Self::abs_model_spec(1) == 1nat);
+        let abs_a = Self::abs_model_spec(a);
+        assert(abs_a / 1nat == abs_a);
+        if a >= 0 {
+            assert(abs_a == a as nat);
+            assert(!((a < 0) != (1 < 0)));
+            assert(Self::trunc_div_spec(a, 1) == abs_a as int);
+        } else {
+            assert(abs_a == (-a) as nat);
+            assert((a < 0) != (1 < 0));
+            assert(Self::trunc_div_spec(a, 1) == -(abs_a as int));
+            assert(-(abs_a as int) == a);
+        }
+    }
+
+    /// Truncating remainder by 1 is zero.
+    pub proof fn lemma_trunc_rem_one(a: int)
+        ensures Self::trunc_rem_spec(a, 1) == 0,
+    {
+        assert(Self::abs_model_spec(1) == 1nat);
+        let abs_a = Self::abs_model_spec(a);
+        assert(abs_a % 1nat == 0nat) by (nonlinear_arith)
+            requires abs_a >= 0nat;
+        if a < 0 {
+            assert(Self::trunc_rem_spec(a, 1) == -(0nat as int));
+        } else {
+            assert(Self::trunc_rem_spec(a, 1) == 0nat as int);
+        }
+    }
+
+    /// Truncating division of zero is zero.
+    pub proof fn lemma_trunc_div_zero_numerator(b: int)
+        requires b != 0,
+        ensures Self::trunc_div_spec(0, b) == 0,
+    {
+        assert(Self::abs_model_spec(0) == 0nat);
+        let abs_b = Self::abs_model_spec(b);
+        if b > 0 { assert(abs_b == b as nat); } else { assert(abs_b == (-b) as nat); }
+        assert(abs_b > 0);
+        assert(0nat / abs_b == 0nat);
+    }
+
+    /// Truncating remainder of zero is zero.
+    pub proof fn lemma_trunc_rem_zero_numerator(b: int)
+        requires b != 0,
+        ensures Self::trunc_rem_spec(0, b) == 0,
+    {
+        assert(Self::abs_model_spec(0) == 0nat);
+        let abs_b = Self::abs_model_spec(b);
+        if b > 0 { assert(abs_b == b as nat); } else { assert(abs_b == (-b) as nat); }
+        assert(abs_b > 0);
+        assert(0nat % abs_b == 0nat) by {
+            lemma_small_mod(0nat, abs_b);
+        };
+    }
+
+    /// (a * b) / b == a via truncating division when b != 0.
+    pub proof fn lemma_trunc_div_mul_cancel(a: int, b: int)
+        requires b != 0,
+        ensures Self::trunc_div_spec(a * b, b) == a,
+    {
+        let abs_a = Self::abs_model_spec(a);
+        let abs_b = Self::abs_model_spec(b);
+        let abs_ab = Self::abs_model_spec(a * b);
+
+        Self::lemma_abs_model_mul(a, b);
+        assert(abs_ab == abs_a * abs_b);
+
+        if b > 0 { assert(abs_b == b as nat); } else { assert(abs_b == (-b) as nat); }
+        assert(abs_b > 0);
+
+        // (|a| * |b|) / |b| == |a|
+        RuntimeBigNatWitness::lemma_mul_div_rem_cancel_nat(abs_a, abs_b);
+        let q_abs = abs_ab / abs_b;
+        assert(q_abs == abs_a);
+
+        // Reconstruct signed quotient
+        if a == 0 {
+            assert(a * b == 0) by (nonlinear_arith)
+                requires a == 0;
+            assert(abs_a == 0nat);
+        } else if a > 0 {
+            assert(abs_a == a as nat);
+            if b > 0 {
+                assert(a * b > 0) by (nonlinear_arith)
+                    requires a > 0, b > 0;
+                assert(!((a * b < 0) != (b < 0)));
+                assert(Self::trunc_div_spec(a * b, b) == q_abs as int);
+            } else {
+                assert(a * b < 0) by (nonlinear_arith)
+                    requires a > 0, b < 0;
+                assert(!((a * b < 0) != (b < 0)));
+                assert(Self::trunc_div_spec(a * b, b) == q_abs as int);
+            }
+            assert(q_abs as int == a);
+        } else {
+            assert(a < 0);
+            assert(abs_a == (-a) as nat);
+            if b > 0 {
+                assert(a * b < 0) by (nonlinear_arith)
+                    requires a < 0, b > 0;
+                assert((a * b < 0) != (b < 0));
+                assert(Self::trunc_div_spec(a * b, b) == -(q_abs as int));
+            } else {
+                assert(a * b > 0) by (nonlinear_arith)
+                    requires a < 0, b < 0;
+                assert((a * b < 0) != (b < 0));
+                assert(Self::trunc_div_spec(a * b, b) == -(q_abs as int));
+            }
+            assert(-(abs_a as int) == a);
+            assert(-(q_abs as int) == a);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Exec-level roundtrip proofs
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// Exec roundtrip: (a + b) - b == a.
+    pub fn lemma_exec_add_sub_roundtrip(a: &Self, b: &Self) -> (out: Self)
+        requires a.wf_spec(), b.wf_spec(),
+        ensures out.wf_spec(), out.model@ == a.model@,
+    {
+        let sum = a.add(b);
+        let out = sum.sub(b);
+        proof {
+            assert(sum.model@ == a.model@ + b.model@);
+            assert(out.model@ == sum.model@ - b.model@);
+        }
+        out
+    }
+
+    /// Exec roundtrip: (a - b) + b == a.
+    pub fn lemma_exec_sub_add_roundtrip(a: &Self, b: &Self) -> (out: Self)
+        requires a.wf_spec(), b.wf_spec(),
+        ensures out.wf_spec(), out.model@ == a.model@,
+    {
+        let diff = a.sub(b);
+        let out = diff.add(b);
+        proof {
+            assert(diff.model@ == a.model@ - b.model@);
+            assert(out.model@ == diff.model@ + b.model@);
+        }
+        out
+    }
+
+    /// Exec roundtrip: neg(neg(a)) == a.
+    pub fn lemma_exec_neg_neg_roundtrip(a: &Self) -> (out: Self)
+        requires a.wf_spec(),
+        ensures out.wf_spec(), out.model@ == a.model@,
+    {
+        let neg1 = a.neg();
+        let out = neg1.neg();
+        proof {
+            assert(neg1.model@ == -a.model@);
+            assert(out.model@ == -neg1.model@);
+        }
+        out
+    }
+
+    /// Exec roundtrip: (a * b) / b == a when b != 0.
+    pub fn lemma_exec_mul_div_roundtrip(a: &Self, b: &Self) -> (out: Self)
+        requires a.wf_spec(), b.wf_spec(), b.model@ != 0,
+        ensures out.wf_spec(), out.model@ == a.model@,
+    {
+        let product = a.mul(b);
+        let out = product.div(b);
+        proof {
+            assert(product.model@ == a.model@ * b.model@);
+            assert(b.model@ != 0);
+            assert(out.model@ == Self::trunc_div_spec(product.model@, b.model@));
+            Self::lemma_trunc_div_mul_cancel(a.model@, b.model@);
+        }
+        out
+    }
+
+    /// Exec roundtrip: a / 1 == a.
+    pub fn lemma_exec_div_one(a: &Self) -> (out: Self)
+        requires a.wf_spec(),
+        ensures out.wf_spec(), out.model@ == a.model@,
+    {
+        let one = Self::from_i64(1);
+        let out = a.div(&one);
+        proof {
+            assert(one.model@ == 1);
+            assert(one.model@ != 0);
+            assert(out.model@ == Self::trunc_div_spec(a.model@, 1));
+            Self::lemma_trunc_div_one(a.model@);
         }
         out
     }

@@ -9,95 +9,127 @@
 - **`open spec fn new`** — [bigint.rs:17](./src/bigint.rs#L17)
   > Construct from an int value.
 
+## `runtime_bigint_witness::signed_verified_impl`
+
+### Proof Functions
+
+- **`proof fn lemma_trunc_div_zero_numerator`** — [runtime_bigint_witness/signed_verified_impl.rs:3713](./src/runtime_bigint_witness/signed_verified_impl.rs#L3713)
+  > Truncating division of zero is zero.
+- **`proof fn lemma_trunc_rem_zero_numerator`** — [runtime_bigint_witness/signed_verified_impl.rs:3725](./src/runtime_bigint_witness/signed_verified_impl.rs#L3725)
+  > Truncating remainder of zero is zero.
+- **`proof fn lemma_trunc_div_mul_cancel`** — [runtime_bigint_witness/signed_verified_impl.rs:3739](./src/runtime_bigint_witness/signed_verified_impl.rs#L3739)
+  > (a * b) / b == a via truncating division when b != 0.
+
+### Exec Functions
+
+- **`exec fn lemma_exec_add_sub_roundtrip`** — [runtime_bigint_witness/signed_verified_impl.rs:3801](./src/runtime_bigint_witness/signed_verified_impl.rs#L3801)
+  > Exec roundtrip: (a + b) - b == a.
+- **`exec fn lemma_exec_sub_add_roundtrip`** — [runtime_bigint_witness/signed_verified_impl.rs:3815](./src/runtime_bigint_witness/signed_verified_impl.rs#L3815)
+  > Exec roundtrip: (a - b) + b == a.
+- **`exec fn lemma_exec_neg_neg_roundtrip`** — [runtime_bigint_witness/signed_verified_impl.rs:3829](./src/runtime_bigint_witness/signed_verified_impl.rs#L3829)
+  > Exec roundtrip: neg(neg(a)) == a.
+- **`exec fn lemma_exec_mul_div_roundtrip`** — [runtime_bigint_witness/signed_verified_impl.rs:3843](./src/runtime_bigint_witness/signed_verified_impl.rs#L3843)
+  > Exec roundtrip: (a * b) / b == a when b != 0.
+- **`exec fn lemma_exec_div_one`** — [runtime_bigint_witness/signed_verified_impl.rs:3859](./src/runtime_bigint_witness/signed_verified_impl.rs#L3859)
+  > Exec roundtrip: a / 1 == a.
+
 ## `runtime_bigint_witness::signed_verified_impl::RuntimeBigIntWitness`
 
 ### Spec Functions
 
-- **`open spec fn model_from_sign_and_magnitude_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:20](./src/runtime_bigint_witness/signed_verified_impl.rs#L20)
+- **`open spec fn model_from_sign_and_magnitude_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:21](./src/runtime_bigint_witness/signed_verified_impl.rs#L21)
   > Computes the signed integer model from a sign flag and magnitude.
-- **`open spec fn canonical_sign_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:29](./src/runtime_bigint_witness/signed_verified_impl.rs#L29)
+- **`open spec fn canonical_sign_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:30](./src/runtime_bigint_witness/signed_verified_impl.rs#L30)
   > Canonical sign: negative flag is false when magnitude is zero.
-- **`open spec fn abs_model_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:34](./src/runtime_bigint_witness/signed_verified_impl.rs#L34)
+- **`open spec fn abs_model_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:35](./src/runtime_bigint_witness/signed_verified_impl.rs#L35)
   > Absolute value of an integer model.
-- **`open spec fn trunc_div_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:43](./src/runtime_bigint_witness/signed_verified_impl.rs#L43)
+- **`open spec fn trunc_div_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:44](./src/runtime_bigint_witness/signed_verified_impl.rs#L44)
   > Truncating (towards-zero) division of signed integers.
-- **`open spec fn trunc_rem_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:58](./src/runtime_bigint_witness/signed_verified_impl.rs#L58)
+- **`open spec fn trunc_rem_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:59](./src/runtime_bigint_witness/signed_verified_impl.rs#L59)
   > Truncating (towards-zero) remainder of signed integers.
-- **`open spec fn wf_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:73](./src/runtime_bigint_witness/signed_verified_impl.rs#L73)
+- **`open spec fn wf_spec`** — [runtime_bigint_witness/signed_verified_impl.rs:74](./src/runtime_bigint_witness/signed_verified_impl.rs#L74)
   > Well-formedness: magnitude is well-formed, sign is canonical, and model is consistent.
 
 ### Proof Functions
 
-- **`proof fn lemma_abs_model_nonnegative`** — [runtime_bigint_witness/signed_verified_impl.rs:80](./src/runtime_bigint_witness/signed_verified_impl.rs#L80)
+- **`proof fn lemma_abs_model_nonnegative`** — [runtime_bigint_witness/signed_verified_impl.rs:81](./src/runtime_bigint_witness/signed_verified_impl.rs#L81)
   > `abs_model(x) >= 0` for all integers.
-- **`proof fn lemma_abs_model_from_sign_and_magnitude`** — [runtime_bigint_witness/signed_verified_impl.rs:87](./src/runtime_bigint_witness/signed_verified_impl.rs#L87)
+- **`proof fn lemma_abs_model_from_sign_and_magnitude`** — [runtime_bigint_witness/signed_verified_impl.rs:88](./src/runtime_bigint_witness/signed_verified_impl.rs#L88)
   > Round-trip: `abs(model_from_sign_and_magnitude(s, m)) == m`.
-- **`proof fn lemma_sign_model_bridge`** — [runtime_bigint_witness/signed_verified_impl.rs:119](./src/runtime_bigint_witness/signed_verified_impl.rs#L119)
+- **`proof fn lemma_sign_model_bridge`** — [runtime_bigint_witness/signed_verified_impl.rs:120](./src/runtime_bigint_witness/signed_verified_impl.rs#L120)
   > Bridge between sign/magnitude representation and model: relates sign, abs, and zero.
-- **`proof fn lemma_abs_model_neg_symmetry`** — [runtime_bigint_witness/signed_verified_impl.rs:2095](./src/runtime_bigint_witness/signed_verified_impl.rs#L2095)
+- **`proof fn lemma_abs_model_neg_symmetry`** — [runtime_bigint_witness/signed_verified_impl.rs:2096](./src/runtime_bigint_witness/signed_verified_impl.rs#L2096)
   > Arithmetic helper: negation does not change absolute value.
-- **`proof fn lemma_abs_model_mul_distributes`** — [runtime_bigint_witness/signed_verified_impl.rs:2117](./src/runtime_bigint_witness/signed_verified_impl.rs#L2117)
+- **`proof fn lemma_abs_model_mul_distributes`** — [runtime_bigint_witness/signed_verified_impl.rs:2118](./src/runtime_bigint_witness/signed_verified_impl.rs#L2118)
   > Arithmetic helper: absolute value distributes over integer multiplication.
-- **`proof fn lemma_trunc_div_divisor_sign_flip`** — [runtime_bigint_witness/signed_verified_impl.rs:2188](./src/runtime_bigint_witness/signed_verified_impl.rs#L2188)
+- **`proof fn lemma_trunc_div_divisor_sign_flip`** — [runtime_bigint_witness/signed_verified_impl.rs:2189](./src/runtime_bigint_witness/signed_verified_impl.rs#L2189)
   > Arithmetic helper: flipping divisor sign negates trunc quotient.
-- **`proof fn lemma_trunc_rem_divisor_sign_flip`** — [runtime_bigint_witness/signed_verified_impl.rs:2238](./src/runtime_bigint_witness/signed_verified_impl.rs#L2238)
+- **`proof fn lemma_trunc_rem_divisor_sign_flip`** — [runtime_bigint_witness/signed_verified_impl.rs:2239](./src/runtime_bigint_witness/signed_verified_impl.rs#L2239)
   > Arithmetic helper: flipping divisor sign preserves trunc remainder.
-- **`proof fn lemma_trunc_div_neg_dividend`** — [runtime_bigint_witness/signed_verified_impl.rs:2263](./src/runtime_bigint_witness/signed_verified_impl.rs#L2263)
+- **`proof fn lemma_trunc_div_neg_dividend`** — [runtime_bigint_witness/signed_verified_impl.rs:2264](./src/runtime_bigint_witness/signed_verified_impl.rs#L2264)
   > Arithmetic helper: negating dividend negates trunc quotient.
-- **`proof fn lemma_trunc_rem_neg_dividend`** — [runtime_bigint_witness/signed_verified_impl.rs:2313](./src/runtime_bigint_witness/signed_verified_impl.rs#L2313)
+- **`proof fn lemma_trunc_rem_neg_dividend`** — [runtime_bigint_witness/signed_verified_impl.rs:2314](./src/runtime_bigint_witness/signed_verified_impl.rs#L2314)
   > Arithmetic helper: negating dividend negates trunc remainder.
-- **`proof fn lemma_trunc_div_rem_mul_cancel`** — [runtime_bigint_witness/signed_verified_impl.rs:2839](./src/runtime_bigint_witness/signed_verified_impl.rs#L2839)
+- **`proof fn lemma_trunc_div_rem_mul_cancel`** — [runtime_bigint_witness/signed_verified_impl.rs:2840](./src/runtime_bigint_witness/signed_verified_impl.rs#L2840)
   > Arithmetic helper for signed truncating division/remainder cancellation on exact products.
+- **`proof fn lemma_abs_model_mul`** — [runtime_bigint_witness/signed_verified_impl.rs:3532](./src/runtime_bigint_witness/signed_verified_impl.rs#L3532)
+  > |a * b| == |a| * |b|.
+- **`proof fn lemma_trunc_div_rem_identity`** — [runtime_bigint_witness/signed_verified_impl.rs:3594](./src/runtime_bigint_witness/signed_verified_impl.rs#L3594)
+  > trunc_div and trunc_rem satisfy the fundamental division identity: a == trunc_div(a, b) * b + trunc_rem(a, b) when b != 0.
+- **`proof fn lemma_trunc_div_one`** — [runtime_bigint_witness/signed_verified_impl.rs:3679](./src/runtime_bigint_witness/signed_verified_impl.rs#L3679)
+  > Truncating division by 1 is identity.
+- **`proof fn lemma_trunc_rem_one`** — [runtime_bigint_witness/signed_verified_impl.rs:3698](./src/runtime_bigint_witness/signed_verified_impl.rs#L3698)
+  > Truncating remainder by 1 is zero.
 
 ### Exec Functions
 
-- **`exec fn from_sign_and_magnitude`** — [runtime_bigint_witness/signed_verified_impl.rs:202](./src/runtime_bigint_witness/signed_verified_impl.rs#L202)
+- **`exec fn from_sign_and_magnitude`** — [runtime_bigint_witness/signed_verified_impl.rs:203](./src/runtime_bigint_witness/signed_verified_impl.rs#L203)
   > Constructs a BigInt from a sign flag and unsigned magnitude.
-- **`exec fn zero`** — [runtime_bigint_witness/signed_verified_impl.rs:250](./src/runtime_bigint_witness/signed_verified_impl.rs#L250)
+- **`exec fn zero`** — [runtime_bigint_witness/signed_verified_impl.rs:251](./src/runtime_bigint_witness/signed_verified_impl.rs#L251)
   > Constructs a zero-valued BigInt.
-- **`exec fn from_unsigned`** — [runtime_bigint_witness/signed_verified_impl.rs:268](./src/runtime_bigint_witness/signed_verified_impl.rs#L268)
+- **`exec fn from_unsigned`** — [runtime_bigint_witness/signed_verified_impl.rs:269](./src/runtime_bigint_witness/signed_verified_impl.rs#L269)
   > Constructs a non-negative BigInt from an unsigned magnitude.
-- **`exec fn from_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:293](./src/runtime_bigint_witness/signed_verified_impl.rs#L293)
+- **`exec fn from_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:294](./src/runtime_bigint_witness/signed_verified_impl.rs#L294)
   > Constructs a BigInt from a `u64`.
-- **`exec fn from_u32`** — [runtime_bigint_witness/signed_verified_impl.rs:310](./src/runtime_bigint_witness/signed_verified_impl.rs#L310)
+- **`exec fn from_u32`** — [runtime_bigint_witness/signed_verified_impl.rs:311](./src/runtime_bigint_witness/signed_verified_impl.rs#L311)
   > Constructs a BigInt from a `u32`.
-- **`exec fn try_to_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:383](./src/runtime_bigint_witness/signed_verified_impl.rs#L383)
+- **`exec fn try_to_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:384](./src/runtime_bigint_witness/signed_verified_impl.rs#L384)
   > Attempts to convert to `u64`; returns `(true, value)` on success, `(false, 0)` on overflow.
-- **`exec fn try_to_i64`** — [runtime_bigint_witness/signed_verified_impl.rs:415](./src/runtime_bigint_witness/signed_verified_impl.rs#L415)
+- **`exec fn try_to_i64`** — [runtime_bigint_witness/signed_verified_impl.rs:416](./src/runtime_bigint_witness/signed_verified_impl.rs#L416)
   > Attempts to convert to `i64`; returns `(true, value)` on success, `(false, 0)` on overflow.
-- **`exec fn sign_char`** — [runtime_bigint_witness/signed_verified_impl.rs:471](./src/runtime_bigint_witness/signed_verified_impl.rs#L471)
+- **`exec fn sign_char`** — [runtime_bigint_witness/signed_verified_impl.rs:472](./src/runtime_bigint_witness/signed_verified_impl.rs#L472)
   > Returns `'-'` if negative, `'+'` otherwise.
-- **`exec fn parse_sign_char_and_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:508](./src/runtime_bigint_witness/signed_verified_impl.rs#L508)
+- **`exec fn parse_sign_char_and_u64`** — [runtime_bigint_witness/signed_verified_impl.rs:509](./src/runtime_bigint_witness/signed_verified_impl.rs#L509)
   > Parses a sign character (`'+'`/`'-'`) and `u64` magnitude into a BigInt.
-- **`exec fn from_i64`** — [runtime_bigint_witness/signed_verified_impl.rs:537](./src/runtime_bigint_witness/signed_verified_impl.rs#L537)
+- **`exec fn from_i64`** — [runtime_bigint_witness/signed_verified_impl.rs:538](./src/runtime_bigint_witness/signed_verified_impl.rs#L538)
   > Constructs a `BigInt` from an `i64` value.
-- **`exec fn from_i32`** — [runtime_bigint_witness/signed_verified_impl.rs:584](./src/runtime_bigint_witness/signed_verified_impl.rs#L584)
+- **`exec fn from_i32`** — [runtime_bigint_witness/signed_verified_impl.rs:585](./src/runtime_bigint_witness/signed_verified_impl.rs#L585)
   > Constructs a `BigInt` from an `i32` value.
-- **`exec fn is_zero`** — [runtime_bigint_witness/signed_verified_impl.rs:599](./src/runtime_bigint_witness/signed_verified_impl.rs#L599)
+- **`exec fn is_zero`** — [runtime_bigint_witness/signed_verified_impl.rs:600](./src/runtime_bigint_witness/signed_verified_impl.rs#L600)
   > Returns `true` iff this signed integer equals zero.
-- **`exec fn is_negative`** — [runtime_bigint_witness/signed_verified_impl.rs:630](./src/runtime_bigint_witness/signed_verified_impl.rs#L630)
+- **`exec fn is_negative`** — [runtime_bigint_witness/signed_verified_impl.rs:631](./src/runtime_bigint_witness/signed_verified_impl.rs#L631)
   > Returns `true` iff this signed integer is strictly negative.
-- **`exec fn abs`** — [runtime_bigint_witness/signed_verified_impl.rs:651](./src/runtime_bigint_witness/signed_verified_impl.rs#L651)
+- **`exec fn abs`** — [runtime_bigint_witness/signed_verified_impl.rs:652](./src/runtime_bigint_witness/signed_verified_impl.rs#L652)
   > Returns the absolute value of this signed integer as an unsigned `BigNat`.
-- **`exec fn copy_small_total`** — [runtime_bigint_witness/signed_verified_impl.rs:681](./src/runtime_bigint_witness/signed_verified_impl.rs#L681)
+- **`exec fn copy_small_total`** — [runtime_bigint_witness/signed_verified_impl.rs:682](./src/runtime_bigint_witness/signed_verified_impl.rs#L682)
   > Copy this signed integer (analogous to `RuntimeBigNatWitness::copy_small_total`).
-- **`exec fn signum`** — [runtime_bigint_witness/signed_verified_impl.rs:708](./src/runtime_bigint_witness/signed_verified_impl.rs#L708)
+- **`exec fn signum`** — [runtime_bigint_witness/signed_verified_impl.rs:709](./src/runtime_bigint_witness/signed_verified_impl.rs#L709)
   > Returns the sign of this integer: `-1` if negative, `0` if zero, `1` if positive.
-- **`exec fn cmp`** — [runtime_bigint_witness/signed_verified_impl.rs:782](./src/runtime_bigint_witness/signed_verified_impl.rs#L782)
+- **`exec fn cmp`** — [runtime_bigint_witness/signed_verified_impl.rs:783](./src/runtime_bigint_witness/signed_verified_impl.rs#L783)
   > Three-way comparison: returns `-1`, `0`, or `1` as `self` is less than, equal to, or greater than `rhs`.
-- **`exec fn add`** — [runtime_bigint_witness/signed_verified_impl.rs:878](./src/runtime_bigint_witness/signed_verified_impl.rs#L878)
+- **`exec fn add`** — [runtime_bigint_witness/signed_verified_impl.rs:879](./src/runtime_bigint_witness/signed_verified_impl.rs#L879)
   > Returns the sum `self + rhs`.
-- **`exec fn sub`** — [runtime_bigint_witness/signed_verified_impl.rs:1001](./src/runtime_bigint_witness/signed_verified_impl.rs#L1001)
+- **`exec fn sub`** — [runtime_bigint_witness/signed_verified_impl.rs:1002](./src/runtime_bigint_witness/signed_verified_impl.rs#L1002)
   > Returns the difference `self - rhs`.
-- **`exec fn mul`** — [runtime_bigint_witness/signed_verified_impl.rs:1021](./src/runtime_bigint_witness/signed_verified_impl.rs#L1021)
+- **`exec fn mul`** — [runtime_bigint_witness/signed_verified_impl.rs:1022](./src/runtime_bigint_witness/signed_verified_impl.rs#L1022)
   > Returns the product `self * rhs`.
-- **`exec fn div`** — [runtime_bigint_witness/signed_verified_impl.rs:1111](./src/runtime_bigint_witness/signed_verified_impl.rs#L1111)
+- **`exec fn div`** — [runtime_bigint_witness/signed_verified_impl.rs:1112](./src/runtime_bigint_witness/signed_verified_impl.rs#L1112)
   > Returns the truncating quotient `self / rhs` (returns zero when `rhs` is zero).
-- **`exec fn rem`** — [runtime_bigint_witness/signed_verified_impl.rs:1188](./src/runtime_bigint_witness/signed_verified_impl.rs#L1188)
+- **`exec fn rem`** — [runtime_bigint_witness/signed_verified_impl.rs:1189](./src/runtime_bigint_witness/signed_verified_impl.rs#L1189)
   > Returns the truncating remainder `self % rhs` (returns zero when `rhs` is zero).
-- **`exec fn div_rem`** — [runtime_bigint_witness/signed_verified_impl.rs:1307](./src/runtime_bigint_witness/signed_verified_impl.rs#L1307)
+- **`exec fn div_rem`** — [runtime_bigint_witness/signed_verified_impl.rs:1308](./src/runtime_bigint_witness/signed_verified_impl.rs#L1308)
   > Returns the truncating quotient and remainder `(self / rhs, self % rhs)` simultaneously.
-- **`exec fn neg`** — [runtime_bigint_witness/signed_verified_impl.rs:3491](./src/runtime_bigint_witness/signed_verified_impl.rs#L3491)
+- **`exec fn neg`** — [runtime_bigint_witness/signed_verified_impl.rs:3492](./src/runtime_bigint_witness/signed_verified_impl.rs#L3492)
   > Returns the negation `-self`.
 
 ## `runtime_bigint_witness::verified_impl::RuntimeBigNatWitness`
