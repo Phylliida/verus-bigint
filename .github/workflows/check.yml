@@ -27,6 +27,13 @@ jobs:
           path: verus
           persist-credentials: false
 
+      - name: Checkout verus-algebra
+        uses: actions/checkout@v4.2.2
+        with:
+          repository: Phylliida/verus-algebra
+          path: verus-algebra
+          persist-credentials: false
+
       - name: Install required Rust toolchain
         run: |
           set -euo pipefail
@@ -56,4 +63,4 @@ jobs:
           VERUS_ROOT: ${{ github.workspace }}/verus
         run: |
           set -euo pipefail
-          ./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 259
+          ./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 346
