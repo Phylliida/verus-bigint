@@ -16,7 +16,7 @@ impl Equivalence for BigInt {
     proof fn axiom_eqv_transitive(a: Self, b: Self, c: Self) {}
 }
 
-impl AdditiveGroup for BigInt {
+impl AdditiveCommutativeMonoid for BigInt {
     open spec fn zero() -> Self {
         BigInt { value: 0 }
     }
@@ -25,6 +25,16 @@ impl AdditiveGroup for BigInt {
         BigInt { value: self.value + other.value }
     }
 
+    proof fn axiom_add_commutative(a: Self, b: Self) {}
+
+    proof fn axiom_add_associative(a: Self, b: Self, c: Self) {}
+
+    proof fn axiom_add_zero_right(a: Self) {}
+
+    proof fn axiom_add_congruence_left(a: Self, b: Self, c: Self) {}
+}
+
+impl AdditiveGroup for BigInt {
     open spec fn neg(self) -> Self {
         BigInt { value: -self.value }
     }
@@ -33,17 +43,9 @@ impl AdditiveGroup for BigInt {
         BigInt { value: self.value - other.value }
     }
 
-    proof fn axiom_add_commutative(a: Self, b: Self) {}
-
-    proof fn axiom_add_associative(a: Self, b: Self, c: Self) {}
-
-    proof fn axiom_add_zero_right(a: Self) {}
-
     proof fn axiom_add_inverse_right(a: Self) {}
 
     proof fn axiom_sub_is_add_neg(a: Self, b: Self) {}
-
-    proof fn axiom_add_congruence_left(a: Self, b: Self, c: Self) {}
 
     proof fn axiom_neg_congruence(a: Self, b: Self) {}
 }
@@ -78,13 +80,9 @@ impl Ring for BigInt {
     proof fn axiom_mul_congruence_left(a: Self, b: Self, c: Self) {}
 }
 
-impl OrderedRing for BigInt {
+impl PartialOrder for BigInt {
     open spec fn le(self, other: Self) -> bool {
         self.value <= other.value
-    }
-
-    open spec fn lt(self, other: Self) -> bool {
-        self.value < other.value
     }
 
     proof fn axiom_le_reflexive(a: Self) {}
@@ -92,6 +90,14 @@ impl OrderedRing for BigInt {
     proof fn axiom_le_antisymmetric(a: Self, b: Self) {}
 
     proof fn axiom_le_transitive(a: Self, b: Self, c: Self) {}
+
+    proof fn axiom_le_congruence(a1: Self, a2: Self, b1: Self, b2: Self) {}
+}
+
+impl OrderedRing for BigInt {
+    open spec fn lt(self, other: Self) -> bool {
+        self.value < other.value
+    }
 
     proof fn axiom_le_total(a: Self, b: Self) {}
 
@@ -102,8 +108,6 @@ impl OrderedRing for BigInt {
     proof fn axiom_le_mul_nonneg_monotone(a: Self, b: Self, c: Self) {
         assert(a.value <= b.value && 0int <= c.value ==> a.value * c.value <= b.value * c.value) by(nonlinear_arith);
     }
-
-    proof fn axiom_le_congruence(a1: Self, a2: Self, b1: Self, b2: Self) {}
 }
 
 } // verus!
