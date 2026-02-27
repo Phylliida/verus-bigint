@@ -33,6 +33,9 @@ include!("verified_impl/ops_div_rem.rs");
 include!("verified_impl/contracts_cmp_sub.rs");
 include!("verified_impl/contracts_arith.rs");
 
+// Canonical uniqueness proofs for ext_equal-based operator SpecImpls.
+include!("verified_impl/canonical_uniqueness.rs");
+
 verus! {
 impl RuntimeBigNatWitness {
 
@@ -2063,6 +2066,39 @@ impl RuntimeBigNatWitness {
         }
     }
 
+    /// Checked subtraction: requires `self >= rhs` and unconditionally ensures the exact difference.
+    pub fn checked_sub(&self, rhs: &Self) -> (out: Self)
+        requires
+            self.wf_spec(),
+            rhs.wf_spec(),
+            self.model@ >= rhs.model@,
+        ensures
+            out.wf_spec(),
+            out.model@ == self.model@ - rhs.model@,
+    {
+        let out = self.sub_limbwise_small_total(rhs);
+        proof {
+            assert(self.model@ == Self::limbs_value_spec(self.limbs_le@));
+            assert(rhs.model@ == Self::limbs_value_spec(rhs.limbs_le@));
+            assert(Self::limbs_value_spec(self.limbs_le@) >= Self::limbs_value_spec(rhs.limbs_le@));
+            if Self::limbs_value_spec(self.limbs_le@) <= Self::limbs_value_spec(rhs.limbs_le@) {
+                assert(Self::limbs_value_spec(self.limbs_le@) == Self::limbs_value_spec(rhs.limbs_le@));
+                assert(out.model@ == 0);
+                assert(self.model@ == rhs.model@);
+                assert(self.model@ - rhs.model@ == 0);
+                assert(out.model@ == self.model@ - rhs.model@);
+            } else {
+                assert(
+                    out.model@
+                        == Self::limbs_value_spec(self.limbs_le@)
+                            - Self::limbs_value_spec(rhs.limbs_le@)
+                );
+                assert(out.model@ == self.model@ - rhs.model@);
+            }
+        }
+        out
+    }
+
     /// Total witness copy helper for scalar witness plumbing.
     ///
     /// Preserves all limbs exactly (after trailing-zero normalization).
@@ -2132,13 +2168,50 @@ impl RuntimeBigNatWitness {
     }
 }
 
+impl View for RuntimeBigNatWitness {
+    type V = nat;
+
+    open spec fn view(&self) -> nat {
+        self.model@
+    }
+}
+
+impl vstd::std_specs::cmp::PartialEqSpecImpl for RuntimeBigNatWitness {
+    open spec fn obeys_eq_spec() -> bool {
+        true
+    }
+
+    open spec fn eq_spec(&self, other: &Self) -> bool {
+        Self::limbs_value_spec(self.limbs_le@) == Self::limbs_value_spec(other.limbs_le@)
+    }
+}
+
+impl PartialEq for RuntimeBigNatWitness {
+    fn eq(&self, other: &Self) -> (out: bool) {
+        let cmp = self.cmp_limbwise_small_total(other);
+        proof {
+            // cmp_limbwise_small_total postconditions give us:
+            // cmp == 0 <==> limbs_value_spec(self) == limbs_value_spec(other)
+            if cmp == 0i8 {
+                assert(Self::limbs_value_spec(self.limbs_le@) == Self::limbs_value_spec(other.limbs_le@));
+            }
+            if cmp != 0i8 {
+                assert(Self::limbs_value_spec(self.limbs_le@) != Self::limbs_value_spec(other.limbs_le@));
+            }
+        }
+        cmp == 0i8
+    }
+}
+
+impl Eq for RuntimeBigNatWitness {}
+
 impl<'a, 'b> vstd::std_specs::ops::AddSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_add_spec() -> bool {
         false
     }
 
     open spec fn add_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
-        true
+        self.wf_spec() && rhs.wf_spec()
     }
 
     open spec fn add_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
@@ -2152,7 +2225,7 @@ impl<'a, 'b> vstd::std_specs::ops::SubSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 
     open spec fn sub_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
-        true
+        self.wf_spec() && rhs.wf_spec() && self.model@ >= rhs.model@
     }
 
     open spec fn sub_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
@@ -2166,7 +2239,7 @@ impl<'a, 'b> vstd::std_specs::ops::MulSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 
     open spec fn mul_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
-        true
+        self.wf_spec() && rhs.wf_spec()
     }
 
     open spec fn mul_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
@@ -2180,7 +2253,7 @@ impl<'a, 'b> vstd::std_specs::ops::DivSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 
     open spec fn div_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
-        true
+        self.wf_spec() && rhs.wf_spec()
     }
 
     open spec fn div_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
@@ -2194,7 +2267,7 @@ impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 
     open spec fn rem_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
-        true
+        self.wf_spec() && rhs.wf_spec()
     }
 
     open spec fn rem_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
@@ -2206,7 +2279,7 @@ impl<'a, 'b> core::ops::Add<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn add(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        self.add_limbwise_small_total(rhs)
+        RuntimeBigNatWitness::add(self, rhs)
     }
 }
 
@@ -2214,7 +2287,7 @@ impl<'a, 'b> core::ops::Sub<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn sub(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        self.sub_limbwise_small_total(rhs)
+        self.checked_sub(rhs)
     }
 }
 
@@ -2222,7 +2295,7 @@ impl<'a, 'b> core::ops::Mul<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn mul(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        self.mul_limbwise_small_total(rhs)
+        RuntimeBigNatWitness::mul(self, rhs)
     }
 }
 
@@ -2230,9 +2303,7 @@ impl<'a, 'b> core::ops::Div<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn div(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        let lhs_wf = self.copy_small_total();
-        let rhs_wf = rhs.copy_small_total();
-        lhs_wf.div_limbwise_small_total(&rhs_wf)
+        RuntimeBigNatWitness::div(self, rhs)
     }
 }
 
@@ -2240,9 +2311,7 @@ impl<'a, 'b> core::ops::Rem<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn rem(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        let lhs_wf = self.copy_small_total();
-        let rhs_wf = rhs.copy_small_total();
-        lhs_wf.rem_limbwise_small_total(&rhs_wf)
+        RuntimeBigNatWitness::rem(self, rhs)
     }
 }
 }

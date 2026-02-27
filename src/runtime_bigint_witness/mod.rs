@@ -17,11 +17,13 @@ use vstd::prelude::*;
 // predicates. Arithmetic over limb vectors is added in subsequent steps.
 #[cfg(verus_keep_ghost)]
 verus! {
+#[verifier::ext_equal]
 pub struct RuntimeBigNatWitness {
     pub limbs_le: Vec<u32>,
     pub model: Ghost<nat>,
 }
 
+#[verifier::ext_equal]
 pub struct RuntimeBigIntWitness {
     pub is_negative: bool,
     pub magnitude: RuntimeBigNatWitness,
@@ -39,15 +41,7 @@ impl core::fmt::Debug for RuntimeBigNatWitness {
     }
 }
 
-#[cfg(verus_keep_ghost)]
-impl PartialEq for RuntimeBigNatWitness {
-    fn eq(&self, other: &Self) -> bool {
-        core::ptr::eq(self, other)
-    }
-}
-
-#[cfg(verus_keep_ghost)]
-impl Eq for RuntimeBigNatWitness {}
+// PartialEq/Eq for RuntimeBigNatWitness are in verified_impl.rs (value-based).
 
 #[cfg(verus_keep_ghost)]
 impl core::fmt::Debug for RuntimeBigIntWitness {
@@ -56,12 +50,4 @@ impl core::fmt::Debug for RuntimeBigIntWitness {
     }
 }
 
-#[cfg(verus_keep_ghost)]
-impl PartialEq for RuntimeBigIntWitness {
-    fn eq(&self, other: &Self) -> bool {
-        core::ptr::eq(self, other)
-    }
-}
-
-#[cfg(verus_keep_ghost)]
-impl Eq for RuntimeBigIntWitness {}
+// PartialEq/Eq for RuntimeBigIntWitness are in signed_verified_impl.rs (value-based).
