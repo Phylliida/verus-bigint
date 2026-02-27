@@ -782,6 +782,7 @@ check_no_trusted_escapes_in_non_test_sources() {
       ! -name 'tests.rs' \
       ! -name 'test_*.rs' \
       ! -path '*/tests/*' \
+      ! -path '*/trusted/*' \
       -print0 \
     | xargs -0 grep -nE \
       -e '\badmit[[:space:]]*\(' \

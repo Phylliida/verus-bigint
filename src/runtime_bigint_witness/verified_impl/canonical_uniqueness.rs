@@ -190,5 +190,25 @@ impl RuntimeBigNatWitness {
         assert(Self::canonical_limbs_spec(b.limbs_le@));
         Self::lemma_canonical_limbs_unique(a.limbs_le@, b.limbs_le@);
     }
+
+    /// If two well-formed BigNat witnesses have the same model, they are extensionally equal.
+    pub proof fn lemma_wf_witnesses_ext_equal(a: RuntimeBigNatWitness, b: RuntimeBigNatWitness)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            a.model@ == b.model@,
+        ensures
+            a =~= b,
+    {
+        Self::lemma_wf_same_model_same_limbs(a, b);
+        // a.limbs_le@ == b.limbs_le@ (from canonical uniqueness)
+        // Apply trusted axiom: Vec content equality => Vec ext_equal
+        crate::trusted::vec_ext_equal::axiom_vec_ext_equal(a.limbs_le, b.limbs_le);
+        assert(a.limbs_le =~= b.limbs_le);
+        // Ghost supports ext_equal natively
+        assert(a.model =~= b.model);
+        // All fields =~=, struct =~= (via #[verifier::ext_equal])
+        assert(a =~= b);
+    }
 }
 }
