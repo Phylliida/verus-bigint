@@ -3870,7 +3870,77 @@ impl RuntimeBigIntWitness {
         }
         out
     }
+
+    /// If two well-formed signed witnesses have the same model, they have the same sign and magnitude limbs.
+    pub proof fn lemma_signed_wf_same_model_same_repr(a: RuntimeBigIntWitness, b: RuntimeBigIntWitness)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            a.model@ == b.model@,
+        ensures
+            a.is_negative == b.is_negative,
+            a.magnitude.limbs_le@ == b.magnitude.limbs_le@,
+    {
+        // Both wf: same model => same sign and same magnitude model
+        a.lemma_sign_model_bridge();
+        b.lemma_sign_model_bridge();
+
+        // Same model => same abs => same magnitude model
+        assert(Self::abs_model_spec(a.model@) == a.magnitude.model@);
+        assert(Self::abs_model_spec(b.model@) == b.magnitude.model@);
+        assert(a.model@ == b.model@);
+        assert(Self::abs_model_spec(a.model@) == Self::abs_model_spec(b.model@));
+        assert(a.magnitude.model@ == b.magnitude.model@);
+
+        // Same model sign => same is_negative flag
+        if a.model@ < 0 {
+            assert(a.is_negative);
+            assert(b.is_negative);
+        } else if a.model@ == 0 {
+            assert(!a.is_negative);
+            assert(!b.is_negative);
+        } else {
+            assert(!a.is_negative);
+            assert(!b.is_negative);
+        }
+        assert(a.is_negative == b.is_negative);
+
+        // Same magnitude model + both wf => same magnitude limbs
+        RuntimeBigNatWitness::lemma_wf_same_model_same_limbs(a.magnitude, b.magnitude);
+    }
 }
+
+impl View for RuntimeBigIntWitness {
+    type V = int;
+
+    open spec fn view(&self) -> int {
+        self.model@
+    }
+}
+
+impl vstd::std_specs::cmp::PartialEqSpecImpl for RuntimeBigIntWitness {
+    open spec fn obeys_eq_spec() -> bool {
+        false
+    }
+
+    open spec fn eq_spec(&self, other: &Self) -> bool {
+        self.model@ == other.model@
+    }
+}
+
+impl PartialEq for RuntimeBigIntWitness {
+    fn eq(&self, other: &Self) -> (out: bool) {
+        // Compare sign + magnitude limbs directly (no wf_spec required)
+        if self.is_negative != other.is_negative {
+            false
+        } else {
+            let cmp = self.magnitude.cmp_limbwise_small_total(&other.magnitude);
+            cmp == 0i8
+        }
+    }
+}
+
+impl Eq for RuntimeBigIntWitness {}
 
 impl<'a> vstd::std_specs::ops::NegSpecImpl for &'a RuntimeBigIntWitness {
     open spec fn obeys_neg_spec() -> bool {
