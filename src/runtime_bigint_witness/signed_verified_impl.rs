@@ -3908,6 +3908,26 @@ impl RuntimeBigIntWitness {
         // Same magnitude model + both wf => same magnitude limbs
         RuntimeBigNatWitness::lemma_wf_same_model_same_limbs(a.magnitude, b.magnitude);
     }
+
+    /// If two well-formed signed witnesses have the same model, they are extensionally equal.
+    pub proof fn lemma_signed_wf_witnesses_ext_equal(a: RuntimeBigIntWitness, b: RuntimeBigIntWitness)
+        requires
+            a.wf_spec(),
+            b.wf_spec(),
+            a.model@ == b.model@,
+        ensures
+            a =~= b,
+    {
+        Self::lemma_signed_wf_same_model_same_repr(a, b);
+        // a.is_negative == b.is_negative
+        // a.magnitude.limbs_le@ == b.magnitude.limbs_le@
+        crate::trusted::vec_ext_equal::axiom_vec_ext_equal(a.magnitude.limbs_le, b.magnitude.limbs_le);
+        assert(a.magnitude.limbs_le =~= b.magnitude.limbs_le);
+        assert(a.magnitude.model =~= b.magnitude.model);
+        assert(a.magnitude =~= b.magnitude);
+        assert(a.model =~= b.model);
+        assert(a =~= b);
+    }
 }
 
 impl View for RuntimeBigIntWitness {
@@ -3920,11 +3940,13 @@ impl View for RuntimeBigIntWitness {
 
 impl vstd::std_specs::cmp::PartialEqSpecImpl for RuntimeBigIntWitness {
     open spec fn obeys_eq_spec() -> bool {
-        false
+        true
     }
 
     open spec fn eq_spec(&self, other: &Self) -> bool {
-        self.model@ == other.model@
+        self.is_negative == other.is_negative
+            && RuntimeBigNatWitness::limbs_value_spec(self.magnitude.limbs_le@)
+                == RuntimeBigNatWitness::limbs_value_spec(other.magnitude.limbs_le@)
     }
 }
 
@@ -3935,6 +3957,16 @@ impl PartialEq for RuntimeBigIntWitness {
             false
         } else {
             let cmp = self.magnitude.cmp_limbwise_small_total(&other.magnitude);
+            proof {
+                if cmp == 0i8 {
+                    assert(RuntimeBigNatWitness::limbs_value_spec(self.magnitude.limbs_le@)
+                        == RuntimeBigNatWitness::limbs_value_spec(other.magnitude.limbs_le@));
+                }
+                if cmp != 0i8 {
+                    assert(RuntimeBigNatWitness::limbs_value_spec(self.magnitude.limbs_le@)
+                        != RuntimeBigNatWitness::limbs_value_spec(other.magnitude.limbs_le@));
+                }
+            }
             cmp == 0i8
         }
     }
@@ -3944,7 +3976,7 @@ impl Eq for RuntimeBigIntWitness {}
 
 impl<'a> vstd::std_specs::ops::NegSpecImpl for &'a RuntimeBigIntWitness {
     open spec fn obeys_neg_spec() -> bool {
-        false
+        true
     }
 
     open spec fn neg_req(self) -> bool {
@@ -3952,7 +3984,7 @@ impl<'a> vstd::std_specs::ops::NegSpecImpl for &'a RuntimeBigIntWitness {
     }
 
     open spec fn neg_spec(self) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigIntWitness| out.wf_spec() && out.model@ == -self.model@
     }
 }
 
@@ -3960,13 +3992,19 @@ impl<'a> core::ops::Neg for &'a RuntimeBigIntWitness {
     type Output = RuntimeBigIntWitness;
 
     fn neg(self) -> (out: Self::Output) {
-        RuntimeBigIntWitness::neg(self)
+        let ret = RuntimeBigIntWitness::neg(self);
+        proof {
+            let spec_ret: RuntimeBigIntWitness = choose|out: RuntimeBigIntWitness|
+                out.wf_spec() && out.model@ == -self.model@;
+            RuntimeBigIntWitness::lemma_signed_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
 impl<'a, 'b> vstd::std_specs::ops::AddSpecImpl<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitness {
     open spec fn obeys_add_spec() -> bool {
-        false
+        true
     }
 
     open spec fn add_req(self, rhs: &'b RuntimeBigIntWitness) -> bool {
@@ -3974,13 +4012,13 @@ impl<'a, 'b> vstd::std_specs::ops::AddSpecImpl<&'b RuntimeBigIntWitness> for &'a
     }
 
     open spec fn add_spec(self, rhs: &'b RuntimeBigIntWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigIntWitness| out.wf_spec() && out.model@ == self.model@ + rhs.model@
     }
 }
 
 impl<'a, 'b> vstd::std_specs::ops::SubSpecImpl<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitness {
     open spec fn obeys_sub_spec() -> bool {
-        false
+        true
     }
 
     open spec fn sub_req(self, rhs: &'b RuntimeBigIntWitness) -> bool {
@@ -3988,13 +4026,13 @@ impl<'a, 'b> vstd::std_specs::ops::SubSpecImpl<&'b RuntimeBigIntWitness> for &'a
     }
 
     open spec fn sub_spec(self, rhs: &'b RuntimeBigIntWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigIntWitness| out.wf_spec() && out.model@ == self.model@ - rhs.model@
     }
 }
 
 impl<'a, 'b> vstd::std_specs::ops::MulSpecImpl<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitness {
     open spec fn obeys_mul_spec() -> bool {
-        false
+        true
     }
 
     open spec fn mul_req(self, rhs: &'b RuntimeBigIntWitness) -> bool {
@@ -4002,13 +4040,13 @@ impl<'a, 'b> vstd::std_specs::ops::MulSpecImpl<&'b RuntimeBigIntWitness> for &'a
     }
 
     open spec fn mul_spec(self, rhs: &'b RuntimeBigIntWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigIntWitness| out.wf_spec() && out.model@ == self.model@ * rhs.model@
     }
 }
 
 impl<'a, 'b> vstd::std_specs::ops::DivSpecImpl<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitness {
     open spec fn obeys_div_spec() -> bool {
-        false
+        true
     }
 
     open spec fn div_req(self, rhs: &'b RuntimeBigIntWitness) -> bool {
@@ -4016,13 +4054,16 @@ impl<'a, 'b> vstd::std_specs::ops::DivSpecImpl<&'b RuntimeBigIntWitness> for &'a
     }
 
     open spec fn div_spec(self, rhs: &'b RuntimeBigIntWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigIntWitness| out.wf_spec() && {
+            if rhs.model@ == 0 { out.model@ == 0 }
+            else { out.model@ == RuntimeBigIntWitness::trunc_div_spec(self.model@, rhs.model@) }
+        }
     }
 }
 
 impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitness {
     open spec fn obeys_rem_spec() -> bool {
-        false
+        true
     }
 
     open spec fn rem_req(self, rhs: &'b RuntimeBigIntWitness) -> bool {
@@ -4030,7 +4071,10 @@ impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigIntWitness> for &'a
     }
 
     open spec fn rem_spec(self, rhs: &'b RuntimeBigIntWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigIntWitness| out.wf_spec() && {
+            if rhs.model@ == 0 { out.model@ == 0 }
+            else { out.model@ == RuntimeBigIntWitness::trunc_rem_spec(self.model@, rhs.model@) }
+        }
     }
 }
 
@@ -4038,7 +4082,13 @@ impl<'a, 'b> core::ops::Add<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitne
     type Output = RuntimeBigIntWitness;
 
     fn add(self, rhs: &'b RuntimeBigIntWitness) -> (out: Self::Output) {
-        RuntimeBigIntWitness::add(self, rhs)
+        let ret = RuntimeBigIntWitness::add(self, rhs);
+        proof {
+            let spec_ret: RuntimeBigIntWitness = choose|out: RuntimeBigIntWitness|
+                out.wf_spec() && out.model@ == self.model@ + rhs.model@;
+            RuntimeBigIntWitness::lemma_signed_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
@@ -4046,7 +4096,13 @@ impl<'a, 'b> core::ops::Sub<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitne
     type Output = RuntimeBigIntWitness;
 
     fn sub(self, rhs: &'b RuntimeBigIntWitness) -> (out: Self::Output) {
-        RuntimeBigIntWitness::sub(self, rhs)
+        let ret = RuntimeBigIntWitness::sub(self, rhs);
+        proof {
+            let spec_ret: RuntimeBigIntWitness = choose|out: RuntimeBigIntWitness|
+                out.wf_spec() && out.model@ == self.model@ - rhs.model@;
+            RuntimeBigIntWitness::lemma_signed_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
@@ -4054,7 +4110,13 @@ impl<'a, 'b> core::ops::Mul<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitne
     type Output = RuntimeBigIntWitness;
 
     fn mul(self, rhs: &'b RuntimeBigIntWitness) -> (out: Self::Output) {
-        RuntimeBigIntWitness::mul(self, rhs)
+        let ret = RuntimeBigIntWitness::mul(self, rhs);
+        proof {
+            let spec_ret: RuntimeBigIntWitness = choose|out: RuntimeBigIntWitness|
+                out.wf_spec() && out.model@ == self.model@ * rhs.model@;
+            RuntimeBigIntWitness::lemma_signed_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
@@ -4062,7 +4124,16 @@ impl<'a, 'b> core::ops::Div<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitne
     type Output = RuntimeBigIntWitness;
 
     fn div(self, rhs: &'b RuntimeBigIntWitness) -> (out: Self::Output) {
-        RuntimeBigIntWitness::div(self, rhs)
+        let ret = RuntimeBigIntWitness::div(self, rhs);
+        proof {
+            let spec_ret: RuntimeBigIntWitness = choose|out: RuntimeBigIntWitness|
+                out.wf_spec() && {
+                    if rhs.model@ == 0 { out.model@ == 0 }
+                    else { out.model@ == RuntimeBigIntWitness::trunc_div_spec(self.model@, rhs.model@) }
+                };
+            RuntimeBigIntWitness::lemma_signed_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
@@ -4070,7 +4141,16 @@ impl<'a, 'b> core::ops::Rem<&'b RuntimeBigIntWitness> for &'a RuntimeBigIntWitne
     type Output = RuntimeBigIntWitness;
 
     fn rem(self, rhs: &'b RuntimeBigIntWitness) -> (out: Self::Output) {
-        RuntimeBigIntWitness::rem(self, rhs)
+        let ret = RuntimeBigIntWitness::rem(self, rhs);
+        proof {
+            let spec_ret: RuntimeBigIntWitness = choose|out: RuntimeBigIntWitness|
+                out.wf_spec() && {
+                    if rhs.model@ == 0 { out.model@ == 0 }
+                    else { out.model@ == RuntimeBigIntWitness::trunc_rem_spec(self.model@, rhs.model@) }
+                };
+            RuntimeBigIntWitness::lemma_signed_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 }

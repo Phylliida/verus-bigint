@@ -2207,7 +2207,7 @@ impl Eq for RuntimeBigNatWitness {}
 
 impl<'a, 'b> vstd::std_specs::ops::AddSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_add_spec() -> bool {
-        false
+        true
     }
 
     open spec fn add_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
@@ -2215,13 +2215,13 @@ impl<'a, 'b> vstd::std_specs::ops::AddSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 
     open spec fn add_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigNatWitness| out.wf_spec() && out.model@ == self.model@ + rhs.model@
     }
 }
 
 impl<'a, 'b> vstd::std_specs::ops::SubSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_sub_spec() -> bool {
-        false
+        true
     }
 
     open spec fn sub_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
@@ -2229,13 +2229,13 @@ impl<'a, 'b> vstd::std_specs::ops::SubSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 
     open spec fn sub_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigNatWitness| out.wf_spec() && out.model@ == self.model@ - rhs.model@
     }
 }
 
 impl<'a, 'b> vstd::std_specs::ops::MulSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_mul_spec() -> bool {
-        false
+        true
     }
 
     open spec fn mul_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
@@ -2243,13 +2243,13 @@ impl<'a, 'b> vstd::std_specs::ops::MulSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 
     open spec fn mul_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigNatWitness| out.wf_spec() && out.model@ == self.model@ * rhs.model@
     }
 }
 
 impl<'a, 'b> vstd::std_specs::ops::DivSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_div_spec() -> bool {
-        false
+        true
     }
 
     open spec fn div_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
@@ -2257,13 +2257,16 @@ impl<'a, 'b> vstd::std_specs::ops::DivSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 
     open spec fn div_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigNatWitness| out.wf_spec() && {
+            if rhs.model@ == 0 { out.model@ == 0 }
+            else { out.model@ == self.model@ / rhs.model@ }
+        }
     }
 }
 
 impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_rem_spec() -> bool {
-        false
+        true
     }
 
     open spec fn rem_req(self, rhs: &'b RuntimeBigNatWitness) -> bool {
@@ -2271,7 +2274,10 @@ impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 
     open spec fn rem_spec(self, rhs: &'b RuntimeBigNatWitness) -> Self::Output {
-        arbitrary()
+        choose|out: RuntimeBigNatWitness| out.wf_spec() && {
+            if rhs.model@ == 0 { out.model@ == 0 }
+            else { out.model@ == self.model@ % rhs.model@ }
+        }
     }
 }
 
@@ -2279,7 +2285,13 @@ impl<'a, 'b> core::ops::Add<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn add(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        RuntimeBigNatWitness::add(self, rhs)
+        let ret = RuntimeBigNatWitness::add(self, rhs);
+        proof {
+            let spec_ret: RuntimeBigNatWitness = choose|out: RuntimeBigNatWitness|
+                out.wf_spec() && out.model@ == self.model@ + rhs.model@;
+            RuntimeBigNatWitness::lemma_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
@@ -2287,7 +2299,13 @@ impl<'a, 'b> core::ops::Sub<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn sub(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        self.checked_sub(rhs)
+        let ret = self.checked_sub(rhs);
+        proof {
+            let spec_ret: RuntimeBigNatWitness = choose|out: RuntimeBigNatWitness|
+                out.wf_spec() && out.model@ == self.model@ - rhs.model@;
+            RuntimeBigNatWitness::lemma_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
@@ -2295,7 +2313,13 @@ impl<'a, 'b> core::ops::Mul<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn mul(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        RuntimeBigNatWitness::mul(self, rhs)
+        let ret = RuntimeBigNatWitness::mul(self, rhs);
+        proof {
+            let spec_ret: RuntimeBigNatWitness = choose|out: RuntimeBigNatWitness|
+                out.wf_spec() && out.model@ == self.model@ * rhs.model@;
+            RuntimeBigNatWitness::lemma_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
@@ -2303,7 +2327,16 @@ impl<'a, 'b> core::ops::Div<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn div(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        RuntimeBigNatWitness::div(self, rhs)
+        let ret = RuntimeBigNatWitness::div(self, rhs);
+        proof {
+            let spec_ret: RuntimeBigNatWitness = choose|out: RuntimeBigNatWitness|
+                out.wf_spec() && {
+                    if rhs.model@ == 0 { out.model@ == 0 }
+                    else { out.model@ == self.model@ / rhs.model@ }
+                };
+            RuntimeBigNatWitness::lemma_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
@@ -2311,7 +2344,16 @@ impl<'a, 'b> core::ops::Rem<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitne
     type Output = RuntimeBigNatWitness;
 
     fn rem(self, rhs: &'b RuntimeBigNatWitness) -> (out: Self::Output) {
-        RuntimeBigNatWitness::rem(self, rhs)
+        let ret = RuntimeBigNatWitness::rem(self, rhs);
+        proof {
+            let spec_ret: RuntimeBigNatWitness = choose|out: RuntimeBigNatWitness|
+                out.wf_spec() && {
+                    if rhs.model@ == 0 { out.model@ == 0 }
+                    else { out.model@ == self.model@ % rhs.model@ }
+                };
+            RuntimeBigNatWitness::lemma_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 }
