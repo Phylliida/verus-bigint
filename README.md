@@ -218,9 +218,9 @@ Notation used below: `B = 2^32`, `V(xs) = limbs_value_spec(xs)`, `|xs| = xs.len(
 - Run all checks:
   - `./scripts/check.sh`
 - Run strict checks (fail if Verus tools are unavailable, fail on trusted-escape patterns in non-test `src/` files including `#[verifier::exec_allows_no_decreases_clause]` and `unsafe`, and gate against verification-count regressions):
-  - `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 394`
+  - `./scripts/check.sh --require-verus --forbid-trusted-escapes`
 - Run the CI-equivalent strict gate locally (kept aligned with `.github/workflows/check.yml` by `check.sh`, including strict command flags and Verus toolchain pin):
-  - `./scripts/check.sh --require-verus --forbid-trusted-escapes --min-verified 394`
+  - `./scripts/check.sh --require-verus --forbid-trusted-escapes`
   - It also preflights CI trigger coverage so strict checks remain wired to both `pull_request` and `push` on `main`, and rejects trigger filters (`paths*`, `branches-ignore`) that could silently skip enforcement.
   - It also preflights the CI `verify` job execution contract (no job-level `if:` gating, no job-level `continue-on-error`, and explicit `timeout-minutes`).
   - It also preflights CI runner posture for `verify`: `runs-on` must stay pinned to `ubuntu-22.04`, with no dynamic runner expressions and no `self-hosted` labels.
