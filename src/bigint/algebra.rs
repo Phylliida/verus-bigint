@@ -1,6 +1,6 @@
-use vstd::prelude::*;
-use verus_algebra::traits::*;
 use crate::bigint::BigInt;
+use verus_algebra::traits::*;
+use vstd::prelude::*;
 
 verus! {
 
@@ -14,6 +14,8 @@ impl Equivalence for BigInt {
     proof fn axiom_eqv_symmetric(a: Self, b: Self) {}
 
     proof fn axiom_eqv_transitive(a: Self, b: Self, c: Self) {}
+
+    proof fn axiom_eq_implies_eqv(a: Self, b: Self) {}
 }
 
 impl AdditiveCommutativeMonoid for BigInt {
