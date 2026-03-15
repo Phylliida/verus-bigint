@@ -1,8 +1,4 @@
-#[cfg(not(verus_keep_ghost))]
-compile_error!(
-    "verus-bigint now exposes a single verified implementation; \
-     build with Verus (`cfg(verus_keep_ghost)`, e.g. `cargo verus verify`)"
-);
+// Stub types for non-Verus builds (e.g. standalone viewer binaries).
 #[cfg(not(verus_keep_ghost))]
 pub struct RuntimeBigNatWitness;
 #[cfg(not(verus_keep_ghost))]
