@@ -1,7 +1,10 @@
-#![cfg(verus_keep_ghost)]
-
 use super::RuntimeBigNatWitness;
+use vstd::prelude::verus;
+#[cfg(not(verus_keep_ghost))]
+use vstd::prelude::{Ghost, nat};
+#[cfg(verus_keep_ghost)]
 use vstd::prelude::*;
+#[cfg(verus_keep_ghost)]
 use vstd::arithmetic::div_mod::{
     lemma_add_mod_noop,
     lemma_basic_div,
@@ -15,6 +18,7 @@ use vstd::arithmetic::div_mod::{
     lemma_mod_pos_bound,
     lemma_small_mod,
 };
+#[cfg(verus_keep_ghost)]
 use vstd::seq::Seq;
 
 // Core representation/arithmetic proof helpers are split by theme for readability.
@@ -2167,6 +2171,11 @@ impl RuntimeBigNatWitness {
         out
     }
 }
+} // end main verus! block
+
+// Spec-only trait impls — only available in Verus builds
+#[cfg(verus_keep_ghost)]
+verus! {
 
 impl View for RuntimeBigNatWitness {
     type V = nat;
@@ -2185,25 +2194,6 @@ impl vstd::std_specs::cmp::PartialEqSpecImpl for RuntimeBigNatWitness {
         Self::limbs_value_spec(self.limbs_le@) == Self::limbs_value_spec(other.limbs_le@)
     }
 }
-
-impl PartialEq for RuntimeBigNatWitness {
-    fn eq(&self, other: &Self) -> (out: bool) {
-        let cmp = self.cmp_limbwise_small_total(other);
-        proof {
-            // cmp_limbwise_small_total postconditions give us:
-            // cmp == 0 <==> limbs_value_spec(self) == limbs_value_spec(other)
-            if cmp == 0i8 {
-                assert(Self::limbs_value_spec(self.limbs_le@) == Self::limbs_value_spec(other.limbs_le@));
-            }
-            if cmp != 0i8 {
-                assert(Self::limbs_value_spec(self.limbs_le@) != Self::limbs_value_spec(other.limbs_le@));
-            }
-        }
-        cmp == 0i8
-    }
-}
-
-impl Eq for RuntimeBigNatWitness {}
 
 impl<'a, 'b> vstd::std_specs::ops::AddSpecImpl<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     open spec fn obeys_add_spec() -> bool {
@@ -2280,6 +2270,30 @@ impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigNatWitness> for &'a
         }
     }
 }
+
+} // end spec-only verus! block
+
+// Exec trait impls — always available
+verus! {
+
+impl PartialEq for RuntimeBigNatWitness {
+    fn eq(&self, other: &Self) -> (out: bool) {
+        let cmp = self.cmp_limbwise_small_total(other);
+        proof {
+            // cmp_limbwise_small_total postconditions give us:
+            // cmp == 0 <==> limbs_value_spec(self) == limbs_value_spec(other)
+            if cmp == 0i8 {
+                assert(Self::limbs_value_spec(self.limbs_le@) == Self::limbs_value_spec(other.limbs_le@));
+            }
+            if cmp != 0i8 {
+                assert(Self::limbs_value_spec(self.limbs_le@) != Self::limbs_value_spec(other.limbs_le@));
+            }
+        }
+        cmp == 0i8
+    }
+}
+
+impl Eq for RuntimeBigNatWitness {}
 
 impl<'a, 'b> core::ops::Add<&'b RuntimeBigNatWitness> for &'a RuntimeBigNatWitness {
     type Output = RuntimeBigNatWitness;

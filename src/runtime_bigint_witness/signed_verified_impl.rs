@@ -1,13 +1,17 @@
-#![cfg(verus_keep_ghost)]
-
 use super::{RuntimeBigIntWitness, RuntimeBigNatWitness};
+use vstd::prelude::verus;
+#[cfg(not(verus_keep_ghost))]
+use vstd::prelude::{Ghost, int};
+#[cfg(verus_keep_ghost)]
 use vstd::prelude::*;
+#[cfg(verus_keep_ghost)]
 use vstd::arithmetic::div_mod::{
     lemma_div_is_ordered,
     lemma_fundamental_div_mod,
     lemma_fundamental_div_mod_converse,
     lemma_small_mod,
 };
+#[cfg(verus_keep_ghost)]
 use vstd::arithmetic::mul::{
     lemma_mul_equality_converse,
     lemma_mul_inequality,
@@ -3929,6 +3933,11 @@ impl RuntimeBigIntWitness {
         assert(a =~= b);
     }
 }
+} // end main verus! block
+
+// Spec-only trait impls — only available in Verus builds
+#[cfg(verus_keep_ghost)]
+verus! {
 
 impl View for RuntimeBigIntWitness {
     type V = int;
@@ -3950,30 +3959,6 @@ impl vstd::std_specs::cmp::PartialEqSpecImpl for RuntimeBigIntWitness {
     }
 }
 
-impl PartialEq for RuntimeBigIntWitness {
-    fn eq(&self, other: &Self) -> (out: bool) {
-        // Compare sign + magnitude limbs directly (no wf_spec required)
-        if self.is_negative != other.is_negative {
-            false
-        } else {
-            let cmp = self.magnitude.cmp_limbwise_small_total(&other.magnitude);
-            proof {
-                if cmp == 0i8 {
-                    assert(RuntimeBigNatWitness::limbs_value_spec(self.magnitude.limbs_le@)
-                        == RuntimeBigNatWitness::limbs_value_spec(other.magnitude.limbs_le@));
-                }
-                if cmp != 0i8 {
-                    assert(RuntimeBigNatWitness::limbs_value_spec(self.magnitude.limbs_le@)
-                        != RuntimeBigNatWitness::limbs_value_spec(other.magnitude.limbs_le@));
-                }
-            }
-            cmp == 0i8
-        }
-    }
-}
-
-impl Eq for RuntimeBigIntWitness {}
-
 impl<'a> vstd::std_specs::ops::NegSpecImpl for &'a RuntimeBigIntWitness {
     open spec fn obeys_neg_spec() -> bool {
         true
@@ -3985,20 +3970,6 @@ impl<'a> vstd::std_specs::ops::NegSpecImpl for &'a RuntimeBigIntWitness {
 
     open spec fn neg_spec(self) -> Self::Output {
         choose|out: RuntimeBigIntWitness| out.wf_spec() && out.model@ == -self.model@
-    }
-}
-
-impl<'a> core::ops::Neg for &'a RuntimeBigIntWitness {
-    type Output = RuntimeBigIntWitness;
-
-    fn neg(self) -> (out: Self::Output) {
-        let ret = RuntimeBigIntWitness::neg(self);
-        proof {
-            let spec_ret: RuntimeBigIntWitness = choose|out: RuntimeBigIntWitness|
-                out.wf_spec() && out.model@ == -self.model@;
-            RuntimeBigIntWitness::lemma_signed_wf_witnesses_ext_equal(ret, spec_ret);
-        }
-        ret
     }
 }
 
@@ -4075,6 +4046,49 @@ impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigIntWitness> for &'a
             if rhs.model@ == 0 { out.model@ == 0 }
             else { out.model@ == RuntimeBigIntWitness::trunc_rem_spec(self.model@, rhs.model@) }
         }
+    }
+}
+
+} // end spec-only verus! block
+
+// Exec trait impls — always available
+verus! {
+
+impl PartialEq for RuntimeBigIntWitness {
+    fn eq(&self, other: &Self) -> (out: bool) {
+        // Compare sign + magnitude limbs directly (no wf_spec required)
+        if self.is_negative != other.is_negative {
+            false
+        } else {
+            let cmp = self.magnitude.cmp_limbwise_small_total(&other.magnitude);
+            proof {
+                if cmp == 0i8 {
+                    assert(RuntimeBigNatWitness::limbs_value_spec(self.magnitude.limbs_le@)
+                        == RuntimeBigNatWitness::limbs_value_spec(other.magnitude.limbs_le@));
+                }
+                if cmp != 0i8 {
+                    assert(RuntimeBigNatWitness::limbs_value_spec(self.magnitude.limbs_le@)
+                        != RuntimeBigNatWitness::limbs_value_spec(other.magnitude.limbs_le@));
+                }
+            }
+            cmp == 0i8
+        }
+    }
+}
+
+impl Eq for RuntimeBigIntWitness {}
+
+impl<'a> core::ops::Neg for &'a RuntimeBigIntWitness {
+    type Output = RuntimeBigIntWitness;
+
+    fn neg(self) -> (out: Self::Output) {
+        let ret = RuntimeBigIntWitness::neg(self);
+        proof {
+            let spec_ret: RuntimeBigIntWitness = choose|out: RuntimeBigIntWitness|
+                out.wf_spec() && out.model@ == -self.model@;
+            RuntimeBigIntWitness::lemma_signed_wf_witnesses_ext_equal(ret, spec_ret);
+        }
+        ret
     }
 }
 
