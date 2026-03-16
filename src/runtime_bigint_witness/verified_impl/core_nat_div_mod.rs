@@ -219,7 +219,13 @@ impl RuntimeBigNatWitness {
         assert((qa + qb) as int <= ((a + b) / d) as int);
         assert(qa + qb <= (a + b) / d);
 
-        lemma_multiply_divide_lt((a + b) as int, di, (qa + qb + 2) as int);
+        let ci = (qa + qb + 2) as int;
+        assert(di * ci == ((qa + qb + 2) * d) as int)
+            by (nonlinear_arith)
+            requires di == d as int, ci == (qa + qb + 2) as int;
+        let ab_int = (a + b) as int;
+        assert(ab_int < di * ci);
+        lemma_multiply_divide_lt((a + b) as int, di, ci);
         assert(((a + b) as int) / di < (qa + qb + 2) as int);
         let qsum_i = ((a + b) / d) as int;
         let qbound_i = (qa + qb + 2) as int;

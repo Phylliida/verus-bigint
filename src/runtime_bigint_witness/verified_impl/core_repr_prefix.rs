@@ -314,6 +314,59 @@ impl RuntimeBigNatWitness {
             by (nonlinear_arith);
     }
 
+    /// Inductive step for carry-propagating scalar multiplication over prefix sums.
+    ///
+    /// Given that result-so-far + carry_in * pow_i == prefix_of_self * scalar,
+    /// and digit + carry_out * BASE == self_limb * scalar + carry_in,
+    /// proves: (result + digit * pow_i) + carry_out * pow_next == (prefix + limb * pow_i) * scalar.
+    pub proof fn lemma_mul_prefix_step(
+        psr: nat,
+        ps_self: nat,
+        digit: nat,
+        self_limb: nat,
+        scalar: nat,
+        carry_in: nat,
+        carry_out: nat,
+        pow_i: nat,
+        pow_next: nat,
+    )
+        requires
+            psr + carry_in * pow_i == ps_self * scalar,
+            digit + carry_out * Self::limb_base_spec() == self_limb * scalar + carry_in,
+            pow_next == Self::limb_base_spec() * pow_i,
+        ensures
+            (psr + digit * pow_i) + carry_out * pow_next
+                == (ps_self + self_limb * pow_i) * scalar,
+    {
+        // Step 1: carry_out * pow_next == carry_out * BASE * pow_i
+        assert(carry_out * pow_next == carry_out * (Self::limb_base_spec() * pow_i));
+        assert(carry_out * (Self::limb_base_spec() * pow_i) == carry_out * Self::limb_base_spec() * pow_i)
+            by (nonlinear_arith);
+        // Step 2: distributivity
+        assert(
+            digit * pow_i + carry_out * Self::limb_base_spec() * pow_i
+                == (digit + carry_out * Self::limb_base_spec()) * pow_i
+        ) by (nonlinear_arith);
+        // Step 3: digit + carry_out * BASE == self_limb * scalar + carry_in (precondition)
+        assert((digit + carry_out * Self::limb_base_spec()) * pow_i == (self_limb * scalar + carry_in) * pow_i);
+        // Step 4: expand product
+        assert(
+            (self_limb * scalar + carry_in) * pow_i
+                == self_limb * scalar * pow_i + carry_in * pow_i
+        ) by (nonlinear_arith);
+        // Step 5: rearrange
+        assert(
+            psr + self_limb * scalar * pow_i + carry_in * pow_i
+                == (psr + carry_in * pow_i) + self_limb * scalar * pow_i
+        ) by (nonlinear_arith);
+        // Step 6: IH gives psr + carry_in * pow_i == ps_self * scalar
+        // Step 7: factor out scalar
+        assert(
+            ps_self * scalar + self_limb * scalar * pow_i
+                == (ps_self + self_limb * pow_i) * scalar
+        ) by (nonlinear_arith);
+    }
+
     /// Inductive step for borrow-propagating subtraction over prefix sums.
     pub proof fn lemma_sub_prefix_step(
         psr: nat,
