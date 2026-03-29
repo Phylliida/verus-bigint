@@ -1,6 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
-    /// Operation-level wrapper: computes compare output and proves `cmp <= 0 <==> a <= b`.
+    ///  Operation-level wrapper: computes compare output and proves `cmp <= 0 <==> a <= b`.
     pub fn lemma_cmp_le_zero_iff_le_ops(a: &Self, b: &Self) -> (out: i8)
         requires
             a.wf_spec(),
@@ -35,7 +35,7 @@ impl RuntimeBigNatWitness {
         out_cmp
     }
 
-    /// Operation-level wrapper: computes compare output and proves `cmp < 0 <==> a < b`.
+    ///  Operation-level wrapper: computes compare output and proves `cmp < 0 <==> a < b`.
     pub fn lemma_cmp_lt_zero_iff_lt_ops(a: &Self, b: &Self) -> (out: i8)
         requires
             a.wf_spec(),
@@ -70,7 +70,7 @@ impl RuntimeBigNatWitness {
         out_cmp
     }
 
-    /// Operation-level wrapper: computes compare output and proves `cmp == 0 <==> a == b`.
+    ///  Operation-level wrapper: computes compare output and proves `cmp == 0 <==> a == b`.
     pub fn lemma_cmp_eq_zero_iff_eq_ops(a: &Self, b: &Self) -> (out: i8)
         requires
             a.wf_spec(),
@@ -105,7 +105,7 @@ impl RuntimeBigNatWitness {
         out_cmp
     }
 
-    /// Operation-level wrapper: computes subtraction and proves zero-iff-order characterization.
+    ///  Operation-level wrapper: computes subtraction and proves zero-iff-order characterization.
     pub fn lemma_model_sub_zero_iff_le_ops(a: &Self, b: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -131,7 +131,7 @@ impl RuntimeBigNatWitness {
         sub_ab
     }
 
-    /// Operation-level wrapper: computes `sub(a, b)` and `add(sub(a, b), b)` under `b <= a`.
+    ///  Operation-level wrapper: computes `sub(a, b)` and `add(sub(a, b), b)` under `b <= a`.
     pub fn lemma_model_sub_add_inverse_ge_ops(a: &Self, b: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -168,7 +168,7 @@ impl RuntimeBigNatWitness {
         (sub_ab, add_sub_ab_b)
     }
 
-    /// Operation-level wrapper: computes compare and subtraction; positive compare implies positive subtraction.
+    ///  Operation-level wrapper: computes compare and subtraction; positive compare implies positive subtraction.
     pub fn lemma_cmp_pos_implies_sub_pos_ops(a: &Self, b: &Self) -> (out: (i8, Self))
         requires
             a.wf_spec(),
@@ -197,8 +197,8 @@ impl RuntimeBigNatWitness {
         (cmp, sub_ab)
     }
 
-    /// Operation-level wrapper: computes compare and both directional subtractions;
-    /// equality compare implies both truncated subtractions are zero.
+    ///  Operation-level wrapper: computes compare and both directional subtractions;
+    ///  equality compare implies both truncated subtractions are zero.
     pub fn lemma_cmp_eq_implies_bi_sub_zero_ops(a: &Self, b: &Self) -> (out: (i8, Self, Self))
         requires
             a.wf_spec(),
@@ -224,7 +224,7 @@ impl RuntimeBigNatWitness {
         (cmp, sub_ab, sub_ba)
     }
 
-    /// Operation-level wrapper: negative compare implies one-sided zero/positive trunc-sub split.
+    ///  Operation-level wrapper: negative compare implies one-sided zero/positive trunc-sub split.
     pub fn lemma_cmp_neg_implies_asym_sub_ops(a: &Self, b: &Self) -> (out: (i8, Self, Self))
         requires
             a.wf_spec(),

@@ -1,6 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
-    /// Operation-level wrapper: computes quotients and proves floor-division add bounds.
+    ///  Operation-level wrapper: computes quotients and proves floor-division add bounds.
     pub fn lemma_model_div_add_bounds_pos_ops(a: &Self, b: &Self, d: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -39,7 +39,7 @@ impl RuntimeBigNatWitness {
         (q_a, q_b, q_sum)
     }
 
-    /// Operation-level wrapper: computes both quotients and proves quotient monotonicity.
+    ///  Operation-level wrapper: computes both quotients and proves quotient monotonicity.
     pub fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -74,7 +74,7 @@ impl RuntimeBigNatWitness {
         (div_a, div_b)
     }
 
-    /// Operation-level wrapper: computes quotient and proves quotient limb-length bound.
+    ///  Operation-level wrapper: computes quotient and proves quotient limb-length bound.
     pub fn lemma_model_div_len_bound_pos_ops(a: &Self, d: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -114,7 +114,7 @@ impl RuntimeBigNatWitness {
         div_a
     }
 
-    /// Operation-level wrapper: computes remainder and proves positive-divisor upper bound.
+    ///  Operation-level wrapper: computes remainder and proves positive-divisor upper bound.
     pub fn lemma_model_rem_upper_bound_pos_ops(a: &Self, d: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -139,7 +139,7 @@ impl RuntimeBigNatWitness {
         rem_a
     }
 
-    /// Operation-level wrapper: computes remainder and proves remainder limb-length bound.
+    ///  Operation-level wrapper: computes remainder and proves remainder limb-length bound.
     pub fn lemma_model_rem_len_bound_pos_ops(a: &Self, d: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -169,8 +169,8 @@ impl RuntimeBigNatWitness {
         rem_a
     }
 
-    /// Operation-level wrapper: computes product/quotient/remainder and proves
-    /// exact cancellation for positive divisors.
+    ///  Operation-level wrapper: computes product/quotient/remainder and proves
+    ///  exact cancellation for positive divisors.
     pub fn lemma_model_mul_div_rem_cancel_pos_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -205,7 +205,7 @@ impl RuntimeBigNatWitness {
         (prod, q, r)
     }
 
-    /// Operation-level wrapper: computes `(q, r)` and proves recomposition for `d > 0`.
+    ///  Operation-level wrapper: computes `(q, r)` and proves recomposition for `d > 0`.
     pub fn lemma_model_div_rem_recompose_pos_ops(a: &Self, d: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),

@@ -4,10 +4,10 @@ use vstd::prelude::{Ghost, int, nat};
 #[cfg(verus_keep_ghost)]
 use vstd::prelude::*;
 
-// Exact runtime big-natural witness scaffold for future scalar de-trusting work.
+//  Exact runtime big-natural witness scaffold for future scalar de-trusting work.
 //
-// Phase 2 intentionally starts with minimal verified constructors and representation
-// predicates. Arithmetic over limb vectors is added in subsequent steps.
+//  Phase 2 intentionally starts with minimal verified constructors and representation
+//  predicates. Arithmetic over limb vectors is added in subsequent steps.
 verus! {
 #[verifier::ext_equal]
 pub struct RuntimeBigNatWitness {
@@ -32,7 +32,7 @@ impl core::fmt::Debug for RuntimeBigNatWitness {
     }
 }
 
-// PartialEq/Eq for RuntimeBigNatWitness are in verified_impl.rs (value-based).
+//  PartialEq/Eq for RuntimeBigNatWitness are in verified_impl.rs (value-based).
 
 impl core::fmt::Debug for RuntimeBigIntWitness {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -40,4 +40,4 @@ impl core::fmt::Debug for RuntimeBigIntWitness {
     }
 }
 
-// PartialEq/Eq for RuntimeBigIntWitness are in signed_verified_impl.rs (value-based).
+//  PartialEq/Eq for RuntimeBigIntWitness are in signed_verified_impl.rs (value-based).

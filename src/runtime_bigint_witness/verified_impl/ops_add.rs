@@ -1,6 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
-    /// Operation-level wrapper: computes both sums and proves additive commutativity.
+    ///  Operation-level wrapper: computes both sums and proves additive commutativity.
     pub fn lemma_model_add_commutative_ops(a: &Self, b: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -28,7 +28,7 @@ impl RuntimeBigNatWitness {
         (add_ab, add_ba)
     }
 
-    /// Operation-level wrapper: computes both sums and proves additive monotonicity.
+    ///  Operation-level wrapper: computes both sums and proves additive monotonicity.
     pub fn lemma_model_add_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -64,7 +64,7 @@ impl RuntimeBigNatWitness {
         (add_ac, add_bc)
     }
 
-    /// Operation-level wrapper: computes sum and proves canonical length upper bounds.
+    ///  Operation-level wrapper: computes sum and proves canonical length upper bounds.
     pub fn lemma_model_add_len_bound_ops(a: &Self, b: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -162,7 +162,7 @@ impl RuntimeBigNatWitness {
         out_sum
     }
 
-    /// Operation-level wrapper: computes `sum = a + b` and proves both subtraction round-trips.
+    ///  Operation-level wrapper: computes `sum = a + b` and proves both subtraction round-trips.
     pub fn lemma_model_add_sub_round_trip_ops(a: &Self, b: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),

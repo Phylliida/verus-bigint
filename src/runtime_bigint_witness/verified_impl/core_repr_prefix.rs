@@ -1,11 +1,11 @@
 verus! {
 impl RuntimeBigNatWitness {
-    /// The radix base for a single limb (2^32).
+    ///  The radix base for a single limb (2^32).
     pub open spec fn limb_base_spec() -> nat {
         4_294_967_296
     }
 
-    /// Computes `limb_base^exp` (positional weight for limb at position `exp`).
+    ///  Computes `limb_base^exp` (positional weight for limb at position `exp`).
     pub open spec fn pow_base_spec(exp: nat) -> nat
         decreases exp
     {
@@ -16,7 +16,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Evaluates a little-endian limb sequence as a natural number.
+    ///  Evaluates a little-endian limb sequence as a natural number.
     pub open spec fn limbs_value_spec(limbs: Seq<u32>) -> nat
         decreases limbs.len()
     {
@@ -29,25 +29,25 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// A limb sequence is canonical iff it has no trailing zero limbs.
+    ///  A limb sequence is canonical iff it has no trailing zero limbs.
     pub open spec fn canonical_limbs_spec(limbs: Seq<u32>) -> bool {
         limbs.len() == 0 || limbs[(limbs.len() - 1) as int] != 0u32
     }
 
-    /// Well-formedness: model equals limb evaluation and limbs are canonical.
+    ///  Well-formedness: model equals limb evaluation and limbs are canonical.
     pub open spec fn wf_spec(&self) -> bool {
         &&& self.model@ == Self::limbs_value_spec(self.limbs_le@)
         &&& Self::canonical_limbs_spec(self.limbs_le@)
     }
 
-    /// Successor law: `pow_base(exp + 1) == limb_base * pow_base(exp)`.
+    ///  Successor law: `pow_base(exp + 1) == limb_base * pow_base(exp)`.
     pub proof fn lemma_pow_base_succ(exp: nat)
         ensures
             Self::pow_base_spec(exp + 1) == Self::limb_base_spec() * Self::pow_base_spec(exp),
     {
     }
 
-    /// Value update law for appending a high limb in little-endian representation.
+    ///  Value update law for appending a high limb in little-endian representation.
     pub proof fn lemma_limbs_value_push(limbs: Seq<u32>, digit: u32)
         ensures
             Self::limbs_value_spec(limbs.push(digit))
@@ -94,7 +94,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Dropping a trailing zero limb preserves the evaluated value.
+    ///  Dropping a trailing zero limb preserves the evaluated value.
     pub proof fn lemma_limbs_value_drop_last_zero(limbs: Seq<u32>)
         requires
             limbs.len() > 0,
@@ -136,7 +136,7 @@ impl RuntimeBigNatWitness {
         );
     }
 
-    /// Trimming all trailing zero limbs beyond position `n` preserves the evaluated value.
+    ///  Trimming all trailing zero limbs beyond position `n` preserves the evaluated value.
     pub proof fn lemma_limbs_value_trim_suffix_zeros(limbs: Seq<u32>, n: nat)
         requires
             n <= limbs.len(),
@@ -184,7 +184,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Returns `limbs[idx]` if in bounds, otherwise 0.
+    ///  Returns `limbs[idx]` if in bounds, otherwise 0.
     pub open spec fn limb_or_zero_spec(limbs: Seq<u32>, logical_len: nat, idx: nat) -> nat {
         if idx < logical_len && idx < limbs.len() {
             limbs[idx as int] as nat
@@ -193,7 +193,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Partial positional sum of the first `count` limbs (zero-extended beyond `logical_len`).
+    ///  Partial positional sum of the first `count` limbs (zero-extended beyond `logical_len`).
     pub open spec fn prefix_sum_spec(limbs: Seq<u32>, logical_len: nat, count: nat) -> nat
         decreases count
     {
@@ -206,12 +206,12 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Raw digit sum before carry extraction: `a + b + carry_in`.
+    ///  Raw digit sum before carry extraction: `a + b + carry_in`.
     pub open spec fn add_sum_spec(a: nat, b: nat, carry_in: nat) -> nat {
         a + b + carry_in
     }
 
-    /// Output digit after carry: `(a + b + carry_in) mod limb_base`.
+    ///  Output digit after carry: `(a + b + carry_in) mod limb_base`.
     pub open spec fn add_digit_spec(a: nat, b: nat, carry_in: nat) -> nat {
         if Self::add_sum_spec(a, b, carry_in) >= Self::limb_base_spec() {
             (Self::add_sum_spec(a, b, carry_in) - Self::limb_base_spec()) as nat
@@ -220,7 +220,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Carry-out bit: 1 if `a + b + carry_in >= limb_base`, else 0.
+    ///  Carry-out bit: 1 if `a + b + carry_in >= limb_base`, else 0.
     pub open spec fn add_carry_spec(a: nat, b: nat, carry_in: nat) -> nat {
         if Self::add_sum_spec(a, b, carry_in) >= Self::limb_base_spec() {
             1
@@ -229,7 +229,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Digit + carry decomposition: `digit + carry * base == a + b + carry_in`.
+    ///  Digit + carry decomposition: `digit + carry * base == a + b + carry_in`.
     pub proof fn lemma_add_digit_carry_decompose(a: nat, b: nat, carry_in: nat)
         requires
             a < Self::limb_base_spec(),
@@ -266,7 +266,7 @@ impl RuntimeBigNatWitness {
         assert(sum == Self::add_sum_spec(a, b, carry_in));
     }
 
-    /// Inductive step for carry-propagating addition over prefix sums.
+    ///  Inductive step for carry-propagating addition over prefix sums.
     pub proof fn lemma_add_prefix_step(
         psr: nat,
         psa: nat,
@@ -314,11 +314,11 @@ impl RuntimeBigNatWitness {
             by (nonlinear_arith);
     }
 
-    /// Inductive step for carry-propagating scalar multiplication over prefix sums.
+    ///  Inductive step for carry-propagating scalar multiplication over prefix sums.
     ///
-    /// Given that result-so-far + carry_in * pow_i == prefix_of_self * scalar,
-    /// and digit + carry_out * BASE == self_limb * scalar + carry_in,
-    /// proves: (result + digit * pow_i) + carry_out * pow_next == (prefix + limb * pow_i) * scalar.
+    ///  Given that result-so-far + carry_in * pow_i == prefix_of_self * scalar,
+    ///  and digit + carry_out * BASE == self_limb * scalar + carry_in,
+    ///  proves: (result + digit * pow_i) + carry_out * pow_next == (prefix + limb * pow_i) * scalar.
     pub proof fn lemma_mul_prefix_step(
         psr: nat,
         ps_self: nat,
@@ -338,36 +338,36 @@ impl RuntimeBigNatWitness {
             (psr + digit * pow_i) + carry_out * pow_next
                 == (ps_self + self_limb * pow_i) * scalar,
     {
-        // Step 1: carry_out * pow_next == carry_out * BASE * pow_i
+        //  Step 1: carry_out * pow_next == carry_out * BASE * pow_i
         assert(carry_out * pow_next == carry_out * (Self::limb_base_spec() * pow_i));
         assert(carry_out * (Self::limb_base_spec() * pow_i) == carry_out * Self::limb_base_spec() * pow_i)
             by (nonlinear_arith);
-        // Step 2: distributivity
+        //  Step 2: distributivity
         assert(
             digit * pow_i + carry_out * Self::limb_base_spec() * pow_i
                 == (digit + carry_out * Self::limb_base_spec()) * pow_i
         ) by (nonlinear_arith);
-        // Step 3: digit + carry_out * BASE == self_limb * scalar + carry_in (precondition)
+        //  Step 3: digit + carry_out * BASE == self_limb * scalar + carry_in (precondition)
         assert((digit + carry_out * Self::limb_base_spec()) * pow_i == (self_limb * scalar + carry_in) * pow_i);
-        // Step 4: expand product
+        //  Step 4: expand product
         assert(
             (self_limb * scalar + carry_in) * pow_i
                 == self_limb * scalar * pow_i + carry_in * pow_i
         ) by (nonlinear_arith);
-        // Step 5: rearrange
+        //  Step 5: rearrange
         assert(
             psr + self_limb * scalar * pow_i + carry_in * pow_i
                 == (psr + carry_in * pow_i) + self_limb * scalar * pow_i
         ) by (nonlinear_arith);
-        // Step 6: IH gives psr + carry_in * pow_i == ps_self * scalar
-        // Step 7: factor out scalar
+        //  Step 6: IH gives psr + carry_in * pow_i == ps_self * scalar
+        //  Step 7: factor out scalar
         assert(
             ps_self * scalar + self_limb * scalar * pow_i
                 == (ps_self + self_limb * pow_i) * scalar
         ) by (nonlinear_arith);
     }
 
-    /// Inductive step for borrow-propagating subtraction over prefix sums.
+    ///  Inductive step for borrow-propagating subtraction over prefix sums.
     pub proof fn lemma_sub_prefix_step(
         psr: nat,
         psa: nat,
@@ -422,7 +422,7 @@ impl RuntimeBigNatWitness {
         );
     }
 
-    /// `limb_or_zero` returns 0 for indices at or beyond the logical length.
+    ///  `limb_or_zero` returns 0 for indices at or beyond the logical length.
     pub proof fn lemma_limb_or_zero_past_logical_len(limbs: Seq<u32>, logical_len: nat, idx: nat)
         requires
             logical_len <= idx,
@@ -433,7 +433,7 @@ impl RuntimeBigNatWitness {
         assert(Self::limb_or_zero_spec(limbs, logical_len, idx) == 0);
     }
 
-    /// Unfolding law: `prefix_sum(count+1) == prefix_sum(count) + limb_or_zero(count) * pow(count)`.
+    ///  Unfolding law: `prefix_sum(count+1) == prefix_sum(count) + limb_or_zero(count) * pow(count)`.
     pub proof fn lemma_prefix_sum_step(limbs: Seq<u32>, logical_len: nat, count: nat)
         ensures
             Self::prefix_sum_spec(limbs, logical_len, count + 1)
@@ -447,7 +447,7 @@ impl RuntimeBigNatWitness {
         );
     }
 
-    /// Prefix sum is constant for indices beyond the logical length (induction on extra).
+    ///  Prefix sum is constant for indices beyond the logical length (induction on extra).
     pub proof fn lemma_prefix_sum_constant_from_extra(limbs: Seq<u32>, logical_len: nat, extra: nat)
         ensures
             Self::prefix_sum_spec(limbs, logical_len, logical_len + extra)
@@ -480,7 +480,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Prefix sum stabilises once `count >= logical_len`.
+    ///  Prefix sum stabilises once `count >= logical_len`.
     pub proof fn lemma_prefix_sum_constant_past_logical_len(limbs: Seq<u32>, logical_len: nat, count: nat)
         requires
             logical_len <= count,
@@ -497,7 +497,7 @@ impl RuntimeBigNatWitness {
         );
     }
 
-    /// Prefix sum over `count` limbs equals `limbs_value_spec` of the first `count` elements.
+    ///  Prefix sum over `count` limbs equals `limbs_value_spec` of the first `count` elements.
     pub proof fn lemma_prefix_sum_matches_subrange(limbs: Seq<u32>, logical_len: nat, count: nat)
         requires
             count <= logical_len,
@@ -557,7 +557,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Full prefix sum equals `limbs_value_spec` of the logical prefix.
+    ///  Full prefix sum equals `limbs_value_spec` of the logical prefix.
     pub proof fn lemma_prefix_sum_eq_subrange_value(limbs: Seq<u32>, logical_len: nat)
         requires
             logical_len <= limbs.len(),

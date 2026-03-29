@@ -1,6 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
-    /// Operation-level wrapper: proves tight nonzero limb-length/value window.
+    ///  Operation-level wrapper: proves tight nonzero limb-length/value window.
     pub fn lemma_model_len_window_nonzero_ops(a: &Self)
         requires
             a.wf_spec(),
@@ -30,7 +30,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Operation-level wrapper: zero value implies empty canonical limb vector.
+    ///  Operation-level wrapper: zero value implies empty canonical limb vector.
     pub fn lemma_model_zero_implies_len_zero_ops(a: &Self)
         requires
             a.wf_spec(),

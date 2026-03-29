@@ -1,6 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
-    /// Additive monotonicity from total contracts: `a <= b` implies `a + c <= b + c`.
+    ///  Additive monotonicity from total contracts: `a <= b` implies `a + c <= b + c`.
     pub proof fn lemma_model_add_monotonic_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -35,7 +35,7 @@ impl RuntimeBigNatWitness {
         assert(add_ac.model@ <= add_bc.model@);
     }
 
-    /// Multiplicative monotonicity from total contracts: `a <= b` implies `a * c <= b * c`.
+    ///  Multiplicative monotonicity from total contracts: `a <= b` implies `a * c <= b * c`.
     pub proof fn lemma_model_mul_monotonic_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -68,7 +68,7 @@ impl RuntimeBigNatWitness {
         assert(mul_ac.model@ <= mul_bc.model@);
     }
 
-    /// Strict additive monotonicity from total contracts: `a < b` implies `a + c < b + c`.
+    ///  Strict additive monotonicity from total contracts: `a < b` implies `a + c < b + c`.
     pub proof fn lemma_model_add_strict_monotonic_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -100,7 +100,7 @@ impl RuntimeBigNatWitness {
         assert(add_ac.model@ < add_bc.model@);
     }
 
-    /// Strict multiplicative monotonicity from total contracts: `a < b` and `c > 0` implies `a*c < b*c`.
+    ///  Strict multiplicative monotonicity from total contracts: `a < b` and `c > 0` implies `a*c < b*c`.
     pub proof fn lemma_model_mul_strict_monotonic_pos_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -143,7 +143,7 @@ impl RuntimeBigNatWitness {
         assert(mul_ac.model@ < mul_bc.model@);
     }
 
-    /// Additive cancellation from total contracts: `a + c == b + c` implies `a == b`.
+    ///  Additive cancellation from total contracts: `a + c == b + c` implies `a == b`.
     pub proof fn lemma_model_add_cancellation_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -187,7 +187,7 @@ impl RuntimeBigNatWitness {
         assert(a_val == b_val);
     }
 
-    /// Multiplicative cancellation from total contracts: `a*c == b*c` and `c > 0` implies `a == b`.
+    ///  Multiplicative cancellation from total contracts: `a*c == b*c` and `c > 0` implies `a == b`.
     pub proof fn lemma_model_mul_cancellation_pos_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -232,7 +232,7 @@ impl RuntimeBigNatWitness {
         assert(a_val == b_val);
     }
 
-    /// Division monotonicity from total contracts: `a <= b` implies `a/d <= b/d`.
+    ///  Division monotonicity from total contracts: `a <= b` implies `a/d <= b/d`.
     pub proof fn lemma_model_div_monotonic_pos_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -279,7 +279,7 @@ impl RuntimeBigNatWitness {
         assert(qa <= qb);
     }
 
-    /// Remainder upper bound from total contracts: `a % d < d`.
+    ///  Remainder upper bound from total contracts: `a % d < d`.
     pub proof fn lemma_model_rem_upper_bound_pos_from_total_contracts(
         a: &Self,
         d: &Self,
@@ -306,7 +306,7 @@ impl RuntimeBigNatWitness {
         assert(rem_a.model@ < d_val);
     }
 
-    /// Additive commutativity from total contracts: `a + b == b + a`.
+    ///  Additive commutativity from total contracts: `a + b == b + a`.
     pub proof fn lemma_model_add_commutative_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -329,7 +329,7 @@ impl RuntimeBigNatWitness {
         assert(add_ab.model@ == add_ba.model@);
     }
 
-    /// Additive associativity from total contracts: `(a + b) + c == a + (b + c)`.
+    ///  Additive associativity from total contracts: `(a + b) + c == a + (b + c)`.
     pub proof fn lemma_model_add_associative_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -356,7 +356,7 @@ impl RuntimeBigNatWitness {
         assert(add_ab_c.model@ == add_a_bc.model@);
     }
 
-    /// Multiplicative commutativity from total contracts: `a * b == b * a`.
+    ///  Multiplicative commutativity from total contracts: `a * b == b * a`.
     pub proof fn lemma_model_mul_commutative_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -379,7 +379,7 @@ impl RuntimeBigNatWitness {
         assert(mul_ab.model@ == mul_ba.model@);
     }
 
-    /// Multiplicative associativity from total contracts: `(a * b) * c == a * (b * c)`.
+    ///  Multiplicative associativity from total contracts: `(a * b) * c == a * (b * c)`.
     pub proof fn lemma_model_mul_associative_from_total_contracts(
         a: &Self,
         b: &Self,
@@ -406,7 +406,7 @@ impl RuntimeBigNatWitness {
         assert(mul_ab_c.model@ == mul_a_bc.model@);
     }
 
-    /// Distributivity from total contracts: `a * (b + c) == a*b + a*c`.
+    ///  Distributivity from total contracts: `a * (b + c) == a*b + a*c`.
     pub proof fn lemma_model_mul_distributes_over_add_from_total_contracts(
         a: &Self,
         b: &Self,

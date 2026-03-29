@@ -13,7 +13,7 @@ use vstd::prelude::*;
 
 verus! {
 
-/// Two Vecs with extensionally equal views are extensionally equal.
+///  Two Vecs with extensionally equal views are extensionally equal.
 #[verifier::external_body]
 pub broadcast proof fn axiom_vec_ext_equal<T>(v1: Vec<T>, v2: Vec<T>)
     requires
@@ -23,4 +23,4 @@ pub broadcast proof fn axiom_vec_ext_equal<T>(v1: Vec<T>, v2: Vec<T>)
         v1 =~= v2,
 { }
 
-} // verus!
+} //  verus!
