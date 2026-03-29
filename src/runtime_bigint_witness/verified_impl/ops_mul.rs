@@ -1,6 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
-    /// Operation-level wrapper: computes both products and proves multiplicative commutativity.
+    ///  Operation-level wrapper: computes both products and proves multiplicative commutativity.
     pub fn lemma_model_mul_commutative_ops(a: &Self, b: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -28,7 +28,7 @@ impl RuntimeBigNatWitness {
         (mul_ab, mul_ba)
     }
 
-    /// Operation-level wrapper: computes both products and proves multiplicative monotonicity.
+    ///  Operation-level wrapper: computes both products and proves multiplicative monotonicity.
     pub fn lemma_model_mul_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -64,7 +64,7 @@ impl RuntimeBigNatWitness {
         (mul_ac, mul_bc)
     }
 
-    /// Operation-level wrapper: computes product and proves canonical length upper bound.
+    ///  Operation-level wrapper: computes product and proves canonical length upper bound.
     pub fn lemma_model_mul_len_bound_ops(a: &Self, b: &Self) -> (out: Self)
         requires
             a.wf_spec(),

@@ -21,7 +21,7 @@ use vstd::arithmetic::mul::{
 
 verus! {
 impl RuntimeBigIntWitness {
-    /// Computes the signed integer model from a sign flag and magnitude.
+    ///  Computes the signed integer model from a sign flag and magnitude.
     pub open spec fn model_from_sign_and_magnitude_spec(is_negative: bool, magnitude_model: nat) -> int {
         if is_negative {
             -(magnitude_model as int)
@@ -30,12 +30,12 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Canonical sign: negative flag is false when magnitude is zero.
+    ///  Canonical sign: negative flag is false when magnitude is zero.
     pub open spec fn canonical_sign_spec(is_negative: bool, magnitude_model: nat) -> bool {
         !is_negative || magnitude_model > 0
     }
 
-    /// Absolute value of an integer model.
+    ///  Absolute value of an integer model.
     pub open spec fn abs_model_spec(model: int) -> nat {
         if model < 0 {
             (-model) as nat
@@ -44,7 +44,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Truncating (towards-zero) division of signed integers.
+    ///  Truncating (towards-zero) division of signed integers.
     pub open spec fn trunc_div_spec(a: int, b: int) -> int
         recommends
             b != 0,
@@ -59,7 +59,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Truncating (towards-zero) remainder of signed integers.
+    ///  Truncating (towards-zero) remainder of signed integers.
     pub open spec fn trunc_rem_spec(a: int, b: int) -> int
         recommends
             b != 0,
@@ -74,21 +74,21 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Well-formedness: magnitude is well-formed, sign is canonical, and model is consistent.
+    ///  Well-formedness: magnitude is well-formed, sign is canonical, and model is consistent.
     pub open spec fn wf_spec(&self) -> bool {
         &&& self.magnitude.wf_spec()
         &&& Self::canonical_sign_spec(self.is_negative, self.magnitude.model@)
         &&& self.model@ == Self::model_from_sign_and_magnitude_spec(self.is_negative, self.magnitude.model@)
     }
 
-    /// `abs_model(x) >= 0` for all integers.
+    ///  `abs_model(x) >= 0` for all integers.
     pub proof fn lemma_abs_model_nonnegative(model: int)
         ensures
             0 <= Self::abs_model_spec(model),
     {
     }
 
-    /// Round-trip: `abs(model_from_sign_and_magnitude(s, m)) == m`.
+    ///  Round-trip: `abs(model_from_sign_and_magnitude(s, m)) == m`.
     pub proof fn lemma_abs_model_from_sign_and_magnitude(is_negative: bool, magnitude_model: nat)
         ensures
             Self::abs_model_spec(
@@ -120,7 +120,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Bridge between sign/magnitude representation and model: relates sign, abs, and zero.
+    ///  Bridge between sign/magnitude representation and model: relates sign, abs, and zero.
     pub proof fn lemma_sign_model_bridge(&self)
         requires
             self.wf_spec(),
@@ -203,7 +203,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Constructs a BigInt from a sign flag and unsigned magnitude.
+    ///  Constructs a BigInt from a sign flag and unsigned magnitude.
     pub fn from_sign_and_magnitude(is_negative: bool, magnitude: RuntimeBigNatWitness) -> (out: Self)
         requires
             magnitude.wf_spec(),
@@ -251,7 +251,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Constructs a zero-valued BigInt.
+    ///  Constructs a zero-valued BigInt.
     pub fn zero() -> (out: Self)
         ensures
             out.wf_spec(),
@@ -269,7 +269,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Constructs a non-negative BigInt from an unsigned magnitude.
+    ///  Constructs a non-negative BigInt from an unsigned magnitude.
     pub fn from_unsigned(magnitude: RuntimeBigNatWitness) -> (out: Self)
         requires
             magnitude.wf_spec(),
@@ -294,7 +294,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Constructs a BigInt from a `u64`.
+    ///  Constructs a BigInt from a `u64`.
     pub fn from_u64(x: u64) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -311,7 +311,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Constructs a BigInt from a `u32`.
+    ///  Constructs a BigInt from a `u32`.
     pub fn from_u32(x: u32) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -384,7 +384,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Attempts to convert to `u64`; returns `(true, value)` on success, `(false, 0)` on overflow.
+    ///  Attempts to convert to `u64`; returns `(true, value)` on success, `(false, 0)` on overflow.
     pub fn try_to_u64(&self) -> (out: (bool, u64))
         requires
             self.wf_spec(),
@@ -416,7 +416,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Attempts to convert to `i64`; returns `(true, value)` on success, `(false, 0)` on overflow.
+    ///  Attempts to convert to `i64`; returns `(true, value)` on success, `(false, 0)` on overflow.
     pub fn try_to_i64(&self) -> (out: (bool, i64))
         requires
             self.wf_spec(),
@@ -472,7 +472,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Returns `'-'` if negative, `'+'` otherwise.
+    ///  Returns `'-'` if negative, `'+'` otherwise.
     pub fn sign_char(&self) -> (out: char)
         requires
             self.wf_spec(),
@@ -509,7 +509,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Parses a sign character (`'+'`/`'-'`) and `u64` magnitude into a BigInt.
+    ///  Parses a sign character (`'+'`/`'-'`) and `u64` magnitude into a BigInt.
     pub fn parse_sign_char_and_u64(sign: char, magnitude: u64) -> (out: (bool, Self))
         ensures
             out.0 ==> (sign == '+' || sign == '-'),
@@ -538,7 +538,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Constructs a `BigInt` from an `i64` value.
+    ///  Constructs a `BigInt` from an `i64` value.
     pub fn from_i64(x: i64) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -585,7 +585,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Constructs a `BigInt` from an `i32` value.
+    ///  Constructs a `BigInt` from an `i32` value.
     pub fn from_i32(x: i32) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -600,7 +600,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Returns `true` iff this signed integer equals zero.
+    ///  Returns `true` iff this signed integer equals zero.
     pub fn is_zero(&self) -> (out: bool)
         requires
             self.wf_spec(),
@@ -631,7 +631,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Returns `true` iff this signed integer is strictly negative.
+    ///  Returns `true` iff this signed integer is strictly negative.
     pub fn is_negative(&self) -> (out: bool)
         requires
             self.wf_spec(),
@@ -652,7 +652,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Returns the absolute value of this signed integer as an unsigned `BigNat`.
+    ///  Returns the absolute value of this signed integer as an unsigned `BigNat`.
     pub fn abs(&self) -> (out: RuntimeBigNatWitness)
         requires
             self.wf_spec(),
@@ -682,7 +682,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Copy this signed integer (analogous to `RuntimeBigNatWitness::copy_small_total`).
+    ///  Copy this signed integer (analogous to `RuntimeBigNatWitness::copy_small_total`).
     pub fn copy_small_total(&self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -709,7 +709,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Returns the sign of this integer: `-1` if negative, `0` if zero, `1` if positive.
+    ///  Returns the sign of this integer: `-1` if negative, `0` if zero, `1` if positive.
     pub fn signum(&self) -> (out: i8)
         requires
             self.wf_spec(),
@@ -783,7 +783,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Three-way comparison: returns `-1`, `0`, or `1` as `self` is less than, equal to, or greater than `rhs`.
+    ///  Three-way comparison: returns `-1`, `0`, or `1` as `self` is less than, equal to, or greater than `rhs`.
     pub fn cmp(&self, rhs: &Self) -> (out: i8)
         requires
             self.wf_spec(),
@@ -879,7 +879,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Returns the sum `self + rhs`.
+    ///  Returns the sum `self + rhs`.
     pub fn add(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1002,7 +1002,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Returns the difference `self - rhs`.
+    ///  Returns the difference `self - rhs`.
     pub fn sub(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1022,7 +1022,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Returns the product `self * rhs`.
+    ///  Returns the product `self * rhs`.
     pub fn mul(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1112,7 +1112,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Returns the truncating quotient `self / rhs` (returns zero when `rhs` is zero).
+    ///  Returns the truncating quotient `self / rhs` (returns zero when `rhs` is zero).
     pub fn div(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1189,7 +1189,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Returns the truncating remainder `self % rhs` (returns zero when `rhs` is zero).
+    ///  Returns the truncating remainder `self % rhs` (returns zero when `rhs` is zero).
     pub fn rem(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1308,7 +1308,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Returns the truncating quotient and remainder `(self / rhs, self % rhs)` simultaneously.
+    ///  Returns the truncating quotient and remainder `(self / rhs, self % rhs)` simultaneously.
     pub fn div_rem(&self, rhs: &Self) -> (out: (Self, Self))
         requires
             self.wf_spec(),
@@ -1503,7 +1503,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Signed operation-level wrapper: computes compare output and proves `cmp <= 0 <==> a <= b`.
+    ///  Signed operation-level wrapper: computes compare output and proves `cmp <= 0 <==> a <= b`.
     pub(crate) fn lemma_cmp_le_zero_iff_le_ops(a: &Self, b: &Self) -> (out: i8)
         requires
             a.wf_spec(),
@@ -1546,7 +1546,7 @@ impl RuntimeBigIntWitness {
         out_cmp
     }
 
-    /// Signed operation-level wrapper: computes compare output and proves `cmp < 0 <==> a < b`.
+    ///  Signed operation-level wrapper: computes compare output and proves `cmp < 0 <==> a < b`.
     pub(crate) fn lemma_cmp_lt_zero_iff_lt_ops(a: &Self, b: &Self) -> (out: i8)
         requires
             a.wf_spec(),
@@ -1582,7 +1582,7 @@ impl RuntimeBigIntWitness {
         out_cmp
     }
 
-    /// Signed operation-level wrapper: computes compare output and proves `cmp == 0 <==> a == b`.
+    ///  Signed operation-level wrapper: computes compare output and proves `cmp == 0 <==> a == b`.
     pub(crate) fn lemma_cmp_eq_zero_iff_eq_ops(a: &Self, b: &Self) -> (out: i8)
         requires
             a.wf_spec(),
@@ -1606,7 +1606,7 @@ impl RuntimeBigIntWitness {
         out_cmp
     }
 
-    /// Signed operation-level wrapper: subtraction is exact; zero result iff operands are equal.
+    ///  Signed operation-level wrapper: subtraction is exact; zero result iff operands are equal.
     pub(crate) fn lemma_model_sub_zero_iff_eq_ops(a: &Self, b: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -1631,7 +1631,7 @@ impl RuntimeBigIntWitness {
         out_sub
     }
 
-    /// Signed operation-level wrapper: computes `sub(a, b)` and proves exact add inverse.
+    ///  Signed operation-level wrapper: computes `sub(a, b)` and proves exact add inverse.
     pub(crate) fn lemma_model_sub_add_inverse_ops(a: &Self, b: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -1655,7 +1655,7 @@ impl RuntimeBigIntWitness {
         (sub_ab, add_sub_ab_b)
     }
 
-    /// Signed operation-level wrapper: computes `sum = a + b` and proves both subtraction round-trips.
+    ///  Signed operation-level wrapper: computes `sum = a + b` and proves both subtraction round-trips.
     pub(crate) fn lemma_model_add_sub_round_trip_ops(a: &Self, b: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -1685,7 +1685,7 @@ impl RuntimeBigIntWitness {
         (sum, sub_sum_b, sub_sum_a)
     }
 
-    /// Signed operation-level wrapper: numerator monotonicity for truncating division with positive divisor.
+    ///  Signed operation-level wrapper: numerator monotonicity for truncating division with positive divisor.
     pub(crate) fn lemma_model_div_monotonic_pos_ops(a: &Self, b: &Self, d: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -1777,7 +1777,7 @@ impl RuntimeBigIntWitness {
         (div_a, div_b)
     }
 
-    /// Signed operation-level wrapper: positive compare implies positive exact subtraction.
+    ///  Signed operation-level wrapper: positive compare implies positive exact subtraction.
     pub(crate) fn lemma_cmp_pos_implies_sub_pos_ops(a: &Self, b: &Self) -> (out: (i8, Self))
         requires
             a.wf_spec(),
@@ -1801,7 +1801,7 @@ impl RuntimeBigIntWitness {
         (cmp, sub_ab)
     }
 
-    /// Signed operation-level wrapper: equality compare implies both directional subtractions are zero.
+    ///  Signed operation-level wrapper: equality compare implies both directional subtractions are zero.
     pub(crate) fn lemma_cmp_eq_implies_bi_sub_zero_ops(a: &Self, b: &Self) -> (out: (i8, Self, Self))
         requires
             a.wf_spec(),
@@ -1829,7 +1829,7 @@ impl RuntimeBigIntWitness {
         (cmp, sub_ab, sub_ba)
     }
 
-    /// Signed operation-level wrapper: negative compare implies asymmetric exact subtraction signs.
+    ///  Signed operation-level wrapper: negative compare implies asymmetric exact subtraction signs.
     pub(crate) fn lemma_cmp_neg_implies_asym_sub_ops(a: &Self, b: &Self) -> (out: (i8, Self, Self))
         requires
             a.wf_spec(),
@@ -1859,7 +1859,7 @@ impl RuntimeBigIntWitness {
         (cmp, sub_ab, sub_ba)
     }
 
-    /// Signed operation-level wrapper: for `a >= 0`, `d > 0`, remainder is in `[0, d)`.
+    ///  Signed operation-level wrapper: for `a >= 0`, `d > 0`, remainder is in `[0, d)`.
     pub(crate) fn lemma_model_rem_bounds_nonneg_dividend_pos_divisor_ops(a: &Self, d: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -1903,7 +1903,7 @@ impl RuntimeBigIntWitness {
         r
     }
 
-    /// Signed operation-level wrapper: for `a <= 0`, `d > 0`, remainder is in `(-d, 0]`.
+    ///  Signed operation-level wrapper: for `a <= 0`, `d > 0`, remainder is in `(-d, 0]`.
     pub(crate) fn lemma_model_rem_bounds_nonpos_dividend_pos_divisor_ops(a: &Self, d: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -1961,7 +1961,7 @@ impl RuntimeBigIntWitness {
         r
     }
 
-    /// Signed shape wrapper: nonzero model implies tight limb-length/value window on magnitude.
+    ///  Signed shape wrapper: nonzero model implies tight limb-length/value window on magnitude.
     pub(crate) fn lemma_model_len_window_nonzero_ops(a: &Self)
         requires
             a.wf_spec(),
@@ -1986,7 +1986,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Signed shape wrapper: zero model implies empty canonical magnitude limb vector.
+    ///  Signed shape wrapper: zero model implies empty canonical magnitude limb vector.
     pub(crate) fn lemma_model_zero_implies_len_zero_ops(a: &Self)
         requires
             a.wf_spec(),
@@ -2001,7 +2001,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Signed P3 wrapper: abs-add length bound over magnitudes.
+    ///  Signed P3 wrapper: abs-add length bound over magnitudes.
     pub(crate) fn lemma_abs_add_len_bound_ops(a: &Self, b: &Self) -> (out: RuntimeBigNatWitness)
         requires
             a.wf_spec(),
@@ -2026,7 +2026,7 @@ impl RuntimeBigIntWitness {
         out_sum
     }
 
-    /// Signed P3 wrapper: abs-mul length bound over magnitudes.
+    ///  Signed P3 wrapper: abs-mul length bound over magnitudes.
     pub(crate) fn lemma_abs_mul_len_bound_ops(a: &Self, b: &Self) -> (out: RuntimeBigNatWitness)
         requires
             a.wf_spec(),
@@ -2048,7 +2048,7 @@ impl RuntimeBigIntWitness {
         out_mul
     }
 
-    /// Signed P3 wrapper: abs-quotient length bound for nonzero divisor.
+    ///  Signed P3 wrapper: abs-quotient length bound for nonzero divisor.
     pub(crate) fn lemma_abs_div_len_bound_nonzero_ops(a: &Self, d: &Self) -> (out: RuntimeBigNatWitness)
         requires
             a.wf_spec(),
@@ -2072,7 +2072,7 @@ impl RuntimeBigIntWitness {
         out_div
     }
 
-    /// Signed P3 wrapper: abs-remainder length bound for nonzero divisor.
+    ///  Signed P3 wrapper: abs-remainder length bound for nonzero divisor.
     pub(crate) fn lemma_abs_rem_len_bound_nonzero_ops(a: &Self, d: &Self) -> (out: RuntimeBigNatWitness)
         requires
             a.wf_spec(),
@@ -2096,7 +2096,7 @@ impl RuntimeBigIntWitness {
         out_rem
     }
 
-    /// Arithmetic helper: negation does not change absolute value.
+    ///  Arithmetic helper: negation does not change absolute value.
     pub proof fn lemma_abs_model_neg_symmetry(model: int)
         ensures
             Self::abs_model_spec(-model) == Self::abs_model_spec(model),
@@ -2118,7 +2118,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Arithmetic helper: absolute value distributes over integer multiplication.
+    ///  Arithmetic helper: absolute value distributes over integer multiplication.
     pub proof fn lemma_abs_model_mul_distributes(a: int, b: int)
         ensures
             Self::abs_model_spec(a * b) == Self::abs_model_spec(a) * Self::abs_model_spec(b),
@@ -2189,7 +2189,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Arithmetic helper: flipping divisor sign negates trunc quotient.
+    ///  Arithmetic helper: flipping divisor sign negates trunc quotient.
     pub proof fn lemma_trunc_div_divisor_sign_flip(a: int, d: int)
         requires
             d != 0,
@@ -2239,7 +2239,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Arithmetic helper: flipping divisor sign preserves trunc remainder.
+    ///  Arithmetic helper: flipping divisor sign preserves trunc remainder.
     pub proof fn lemma_trunc_rem_divisor_sign_flip(a: int, d: int)
         requires
             d != 0,
@@ -2264,7 +2264,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Arithmetic helper: negating dividend negates trunc quotient.
+    ///  Arithmetic helper: negating dividend negates trunc quotient.
     pub proof fn lemma_trunc_div_neg_dividend(a: int, d: int)
         requires
             d != 0,
@@ -2314,7 +2314,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Arithmetic helper: negating dividend negates trunc remainder.
+    ///  Arithmetic helper: negating dividend negates trunc remainder.
     pub proof fn lemma_trunc_rem_neg_dividend(a: int, d: int)
         requires
             d != 0,
@@ -2363,7 +2363,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Signed-only wrapper: sign of exact difference matches compare result.
+    ///  Signed-only wrapper: sign of exact difference matches compare result.
     pub(crate) fn lemma_signum_sub_eq_cmp_ops(a: &Self, b: &Self) -> (out: (Self, i8, i8))
         requires
             a.wf_spec(),
@@ -2431,7 +2431,7 @@ impl RuntimeBigIntWitness {
         (sub_ab, sign_sub, cmp_ab)
     }
 
-    /// Signed-only wrapper: flipping divisor sign negates quotient.
+    ///  Signed-only wrapper: flipping divisor sign negates quotient.
     pub(crate) fn lemma_model_div_divisor_sign_flip_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -2461,7 +2461,7 @@ impl RuntimeBigIntWitness {
         (neg_d, div_a_d, div_a_neg_d)
     }
 
-    /// Signed-only wrapper: flipping divisor sign preserves remainder.
+    ///  Signed-only wrapper: flipping divisor sign preserves remainder.
     pub(crate) fn lemma_model_rem_divisor_sign_flip_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -2491,7 +2491,7 @@ impl RuntimeBigIntWitness {
         (neg_d, rem_a_d, rem_a_neg_d)
     }
 
-    /// Signed-only wrapper: negating dividend negates quotient.
+    ///  Signed-only wrapper: negating dividend negates quotient.
     pub(crate) fn lemma_model_div_neg_dividend_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -2520,7 +2520,7 @@ impl RuntimeBigIntWitness {
         (neg_a, div_a_d, div_neg_a_d)
     }
 
-    /// Signed-only wrapper: negating dividend negates remainder.
+    ///  Signed-only wrapper: negating dividend negates remainder.
     pub(crate) fn lemma_model_rem_neg_dividend_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -2549,7 +2549,7 @@ impl RuntimeBigIntWitness {
         (neg_a, rem_a_d, rem_neg_a_d)
     }
 
-    /// Signed-only wrapper: unit divisor identities for truncating division/remainder.
+    ///  Signed-only wrapper: unit divisor identities for truncating division/remainder.
     pub(crate) fn lemma_model_unit_div_rem_ops(a: &Self) -> (out: (Self, Self, Self, Self, Self, Self))
         requires
             a.wf_spec(),
@@ -2607,7 +2607,7 @@ impl RuntimeBigIntWitness {
         (one, neg_one, div_by_one, div_by_neg_one, rem_by_one, rem_by_neg_one)
     }
 
-    /// Signed-only wrapper: explicit nonzero sign law for multiplication result.
+    ///  Signed-only wrapper: explicit nonzero sign law for multiplication result.
     pub(crate) fn lemma_model_mul_sign_nonzero_ops(a: &Self, b: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -2668,7 +2668,7 @@ impl RuntimeBigIntWitness {
         out_prod
     }
 
-    /// Signed-only wrapper: explicit sign law for nonzero trunc quotient.
+    ///  Signed-only wrapper: explicit sign law for nonzero trunc quotient.
     pub(crate) fn lemma_model_div_sign_nonzero_quotient_ops(a: &Self, d: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -2721,7 +2721,7 @@ impl RuntimeBigIntWitness {
         out_div
     }
 
-    /// Signed-only wrapper: explicit sign law for nonzero trunc remainder.
+    ///  Signed-only wrapper: explicit sign law for nonzero trunc remainder.
     pub(crate) fn lemma_model_rem_sign_nonzero_ops(a: &Self, d: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -2742,7 +2742,7 @@ impl RuntimeBigIntWitness {
         out_rem
     }
 
-    /// Signed-only wrapper: `abs(-a) == abs(a)` with runtime witnesses.
+    ///  Signed-only wrapper: `abs(-a) == abs(a)` with runtime witnesses.
     pub(crate) fn lemma_abs_neg_eq_abs_ops(a: &Self) -> (out: (Self, RuntimeBigNatWitness, RuntimeBigNatWitness))
         requires
             a.wf_spec(),
@@ -2770,7 +2770,7 @@ impl RuntimeBigIntWitness {
         (neg_a, abs_a, abs_neg_a)
     }
 
-    /// Signed-only wrapper: `abs(a * b) == abs(a) * abs(b)` with runtime witnesses.
+    ///  Signed-only wrapper: `abs(a * b) == abs(a) * abs(b)` with runtime witnesses.
     pub(crate) fn lemma_abs_mul_distribution_ops(
         a: &Self,
         b: &Self,
@@ -2809,7 +2809,7 @@ impl RuntimeBigIntWitness {
         (prod, abs_prod, abs_a, abs_b)
     }
 
-    /// Signed-only wrapper: `abs(rem(a, d)) < abs(d)` with explicit abs witnesses.
+    ///  Signed-only wrapper: `abs(rem(a, d)) < abs(d)` with explicit abs witnesses.
     pub(crate) fn lemma_abs_rem_bound_nonzero_ops(
         a: &Self,
         d: &Self,
@@ -2840,7 +2840,7 @@ impl RuntimeBigIntWitness {
         (rem_a_d, abs_rem, abs_d)
     }
 
-    /// Arithmetic helper for signed truncating division/remainder cancellation on exact products.
+    ///  Arithmetic helper for signed truncating division/remainder cancellation on exact products.
     pub proof fn lemma_trunc_div_rem_mul_cancel(a: int, d: int)
         requires
             d != 0,
@@ -3022,7 +3022,7 @@ impl RuntimeBigIntWitness {
         assert(Self::trunc_rem_spec(a * d, d) == 0);
     }
 
-    /// Signed operation-level parity wrapper for div/rem recomposition under nonzero divisors.
+    ///  Signed operation-level parity wrapper for div/rem recomposition under nonzero divisors.
     pub(crate) fn lemma_model_div_rem_recompose_nonzero_ops(a: &Self, d: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3040,7 +3040,7 @@ impl RuntimeBigIntWitness {
         Self::lemma_div_rem_sign_edge_ops(a, d)
     }
 
-    /// Signed operation-level wrapper: exact product/div/rem cancellation for nonzero divisors.
+    ///  Signed operation-level wrapper: exact product/div/rem cancellation for nonzero divisors.
     pub(crate) fn lemma_model_mul_div_rem_cancel_nonzero_ops(a: &Self, d: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -3073,7 +3073,7 @@ impl RuntimeBigIntWitness {
         (prod, qr.0, qr.1)
     }
 
-    /// Signed operation-level wrapper: addition is commutative (`a + b == b + a`).
+    ///  Signed operation-level wrapper: addition is commutative (`a + b == b + a`).
     pub(crate) fn lemma_model_add_commutative_ops(a: &Self, b: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3095,7 +3095,7 @@ impl RuntimeBigIntWitness {
         (ab, ba)
     }
 
-    /// Signed operation-level wrapper: addition is associative (`(a + b) + c == a + (b + c)`).
+    ///  Signed operation-level wrapper: addition is associative (`(a + b) + c == a + (b + c)`).
     pub(crate) fn lemma_model_add_associative_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3125,7 +3125,7 @@ impl RuntimeBigIntWitness {
         (lhs, rhs_sum)
     }
 
-    /// Signed operation-level wrapper: multiplication is commutative (`a * b == b * a`).
+    ///  Signed operation-level wrapper: multiplication is commutative (`a * b == b * a`).
     pub(crate) fn lemma_model_mul_commutative_ops(a: &Self, b: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3149,7 +3149,7 @@ impl RuntimeBigIntWitness {
         (ab, ba)
     }
 
-    /// Signed operation-level wrapper: multiplication is associative (`(a * b) * c == a * (b * c)`).
+    ///  Signed operation-level wrapper: multiplication is associative (`(a * b) * c == a * (b * c)`).
     pub(crate) fn lemma_model_mul_associative_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3180,7 +3180,7 @@ impl RuntimeBigIntWitness {
         (lhs, rhs_prod)
     }
 
-    /// Signed operation-level wrapper: multiplication distributes over addition (`a * (b + c) == a*b + a*c`).
+    ///  Signed operation-level wrapper: multiplication distributes over addition (`a * (b + c) == a*b + a*c`).
     pub(crate) fn lemma_model_mul_distributes_over_add_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3213,7 +3213,7 @@ impl RuntimeBigIntWitness {
         (lhs, rhs_sum)
     }
 
-    /// Signed operation-level wrapper: addition preserves `<=` (`a <= b ==> a + c <= b + c`).
+    ///  Signed operation-level wrapper: addition preserves `<=` (`a <= b ==> a + c <= b + c`).
     pub(crate) fn lemma_model_add_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3238,7 +3238,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
-    /// Signed operation-level wrapper: addition preserves `<` (`a < b ==> a + c < b + c`).
+    ///  Signed operation-level wrapper: addition preserves `<` (`a < b ==> a + c < b + c`).
     pub(crate) fn lemma_model_add_strict_monotonic_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3263,7 +3263,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
-    /// Signed operation-level wrapper: additive cancellation (`a + c == b + c ==> a == b`).
+    ///  Signed operation-level wrapper: additive cancellation (`a + c == b + c ==> a == b`).
     pub(crate) fn lemma_model_add_cancellation_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3288,7 +3288,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
-    /// Signed operation-level wrapper: multiplication by nonneg preserves `<=` (`a <= b, c >= 0 ==> a*c <= b*c`).
+    ///  Signed operation-level wrapper: multiplication by nonneg preserves `<=` (`a <= b, c >= 0 ==> a*c <= b*c`).
     pub(crate) fn lemma_model_mul_monotonic_nonneg_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3315,7 +3315,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
-    /// Signed operation-level wrapper: multiplication by positive preserves `<` (`a < b, c > 0 ==> a*c < b*c`).
+    ///  Signed operation-level wrapper: multiplication by positive preserves `<` (`a < b, c > 0 ==> a*c < b*c`).
     pub(crate) fn lemma_model_mul_strict_monotonic_pos_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3342,7 +3342,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
-    /// Signed operation-level wrapper: multiplicative cancellation for positive factor (`c > 0, a*c == b*c ==> a == b`).
+    ///  Signed operation-level wrapper: multiplicative cancellation for positive factor (`c > 0, a*c == b*c ==> a == b`).
     pub(crate) fn lemma_model_mul_cancellation_pos_ops(a: &Self, b: &Self, c: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3374,7 +3374,7 @@ impl RuntimeBigIntWitness {
         (ac, bc)
     }
 
-    /// Signed operation-level wrapper: `a + (-a) == 0`.
+    ///  Signed operation-level wrapper: `a + (-a) == 0`.
     pub(crate) fn lemma_neg_add_self_zero_ops(a: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3395,7 +3395,7 @@ impl RuntimeBigIntWitness {
         (neg_a, sum)
     }
 
-    /// Signed operation-level wrapper: `a - a == 0`.
+    ///  Signed operation-level wrapper: `a - a == 0`.
     pub(crate) fn lemma_sub_self_zero_ops(a: &Self) -> (out: Self)
         requires
             a.wf_spec(),
@@ -3411,7 +3411,7 @@ impl RuntimeBigIntWitness {
         out_sub
     }
 
-    /// Signed operation-level wrapper: all ways to construct zero yield a canonical non-negative zero.
+    ///  Signed operation-level wrapper: all ways to construct zero yield a canonical non-negative zero.
     pub(crate) fn lemma_zero_sign_normalization_ops() -> (out: (Self, Self, Self))
         ensures
             out.0.wf_spec(),
@@ -3440,7 +3440,7 @@ impl RuntimeBigIntWitness {
         (z_from_neg_sign, z_ctor, z_neg)
     }
 
-    /// Signed operation-level wrapper: computes sum, difference, and product for nonneg `a` and nonpos `b`.
+    ///  Signed operation-level wrapper: computes sum, difference, and product for nonneg `a` and nonpos `b`.
     pub(crate) fn lemma_mixed_sign_arith_ops(a: &Self, b: &Self) -> (out: (Self, Self, Self))
         requires
             a.wf_spec(),
@@ -3466,7 +3466,7 @@ impl RuntimeBigIntWitness {
         (sum, diff, prod)
     }
 
-    /// Signed operation-level wrapper: truncating div/rem with sign-aware remainder guarantee.
+    ///  Signed operation-level wrapper: truncating div/rem with sign-aware remainder guarantee.
     pub(crate) fn lemma_div_rem_sign_edge_ops(a: &Self, d: &Self) -> (out: (Self, Self))
         requires
             a.wf_spec(),
@@ -3492,7 +3492,7 @@ impl RuntimeBigIntWitness {
         qr
     }
 
-    /// Returns the negation `-self`.
+    ///  Returns the negation `-self`.
     pub fn neg(&self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -3528,11 +3528,11 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Signed div/rem composition lemmas
-    // ═══════════════════════════════════════════════════════════════════════
+    //  ═══════════════════════════════════════════════════════════════════════
+    //  Signed div/rem composition lemmas
+    //  ═══════════════════════════════════════════════════════════════════════
 
-    /// |a * b| == |a| * |b|.
+    ///  |a * b| == |a| * |b|.
     pub proof fn lemma_abs_model_mul(a: int, b: int)
         ensures
             Self::abs_model_spec(a * b) == Self::abs_model_spec(a) * Self::abs_model_spec(b),
@@ -3593,8 +3593,8 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// trunc_div and trunc_rem satisfy the fundamental division identity:
-    /// a == trunc_div(a, b) * b + trunc_rem(a, b) when b != 0.
+    ///  trunc_div and trunc_rem satisfy the fundamental division identity:
+    ///  a == trunc_div(a, b) * b + trunc_rem(a, b) when b != 0.
     pub proof fn lemma_trunc_div_rem_identity(a: int, b: int)
         requires b != 0,
         ensures a == Self::trunc_div_spec(a, b) * b + Self::trunc_rem_spec(a, b),
@@ -3604,7 +3604,7 @@ impl RuntimeBigIntWitness {
         let q_abs: nat = abs_a / abs_b;
         let r_abs: nat = abs_a % abs_b;
 
-        // abs_b > 0
+        //  abs_b > 0
         if b > 0 {
             assert(abs_b == b as nat);
         } else {
@@ -3612,10 +3612,10 @@ impl RuntimeBigIntWitness {
         }
         assert(abs_b > 0);
 
-        // Fundamental identity for nats: abs_a == q_abs * abs_b + r_abs
+        //  Fundamental identity for nats: abs_a == q_abs * abs_b + r_abs
         lemma_fundamental_div_mod(abs_a as int, abs_b as int);
 
-        // Case split on signs of a and b
+        //  Case split on signs of a and b
         if a >= 0 && b > 0 {
             assert(abs_a == a as nat);
             assert(Self::trunc_div_spec(a, b) == q_abs as int);
@@ -3632,7 +3632,7 @@ impl RuntimeBigIntWitness {
         } else if a >= 0 && b < 0 {
             assert(abs_a == a as nat);
             assert(abs_b == (-b) as nat);
-            // signs differ: (a < 0) != (b < 0) is false != true = true
+            //  signs differ: (a < 0) != (b < 0) is false != true = true
             assert((a < 0) != (b < 0));
             assert(Self::trunc_div_spec(a, b) == -(q_abs as int));
             assert(Self::trunc_rem_spec(a, b) == r_abs as int);
@@ -3661,7 +3661,7 @@ impl RuntimeBigIntWitness {
                     Self::trunc_rem_spec(a, b) == -(r_abs as int),
                     a < 0, b > 0;
         } else {
-            // a < 0 && b < 0
+            //  a < 0 && b < 0
             assert(abs_a == (-a) as nat);
             assert(abs_b == (-b) as nat);
             assert(!((a < 0) != (b < 0)));
@@ -3679,7 +3679,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Truncating division by 1 is identity.
+    ///  Truncating division by 1 is identity.
     pub proof fn lemma_trunc_div_one(a: int)
         ensures Self::trunc_div_spec(a, 1) == a,
     {
@@ -3698,7 +3698,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Truncating remainder by 1 is zero.
+    ///  Truncating remainder by 1 is zero.
     pub proof fn lemma_trunc_rem_one(a: int)
         ensures Self::trunc_rem_spec(a, 1) == 0,
     {
@@ -3713,7 +3713,7 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    /// Truncating division of zero is zero.
+    ///  Truncating division of zero is zero.
     pub proof fn lemma_trunc_div_zero_numerator(b: int)
         requires b != 0,
         ensures Self::trunc_div_spec(0, b) == 0,
@@ -3725,7 +3725,7 @@ impl RuntimeBigIntWitness {
         assert(0nat / abs_b == 0nat);
     }
 
-    /// Truncating remainder of zero is zero.
+    ///  Truncating remainder of zero is zero.
     pub proof fn lemma_trunc_rem_zero_numerator(b: int)
         requires b != 0,
         ensures Self::trunc_rem_spec(0, b) == 0,
@@ -3739,7 +3739,7 @@ impl RuntimeBigIntWitness {
         };
     }
 
-    /// (a * b) / b == a via truncating division when b != 0.
+    ///  (a * b) / b == a via truncating division when b != 0.
     pub proof fn lemma_trunc_div_mul_cancel(a: int, b: int)
         requires b != 0,
         ensures Self::trunc_div_spec(a * b, b) == a,
@@ -3754,12 +3754,12 @@ impl RuntimeBigIntWitness {
         if b > 0 { assert(abs_b == b as nat); } else { assert(abs_b == (-b) as nat); }
         assert(abs_b > 0);
 
-        // (|a| * |b|) / |b| == |a|
+        //  (|a| * |b|) / |b| == |a|
         RuntimeBigNatWitness::lemma_mul_div_rem_cancel_nat(abs_a, abs_b);
         let q_abs = abs_ab / abs_b;
         assert(q_abs == abs_a);
 
-        // Reconstruct signed quotient
+        //  Reconstruct signed quotient
         if a == 0 {
             assert(a * b == 0) by (nonlinear_arith)
                 requires a == 0;
@@ -3797,11 +3797,11 @@ impl RuntimeBigIntWitness {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Exec-level roundtrip proofs
-    // ═══════════════════════════════════════════════════════════════════════
+    //  ═══════════════════════════════════════════════════════════════════════
+    //  Exec-level roundtrip proofs
+    //  ═══════════════════════════════════════════════════════════════════════
 
-    /// Exec roundtrip: (a + b) - b == a.
+    ///  Exec roundtrip: (a + b) - b == a.
     pub fn lemma_exec_add_sub_roundtrip(a: &Self, b: &Self) -> (out: Self)
         requires a.wf_spec(), b.wf_spec(),
         ensures out.wf_spec(), out.model@ == a.model@,
@@ -3815,7 +3815,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Exec roundtrip: (a - b) + b == a.
+    ///  Exec roundtrip: (a - b) + b == a.
     pub fn lemma_exec_sub_add_roundtrip(a: &Self, b: &Self) -> (out: Self)
         requires a.wf_spec(), b.wf_spec(),
         ensures out.wf_spec(), out.model@ == a.model@,
@@ -3829,7 +3829,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Exec roundtrip: neg(neg(a)) == a.
+    ///  Exec roundtrip: neg(neg(a)) == a.
     pub fn lemma_exec_neg_neg_roundtrip(a: &Self) -> (out: Self)
         requires a.wf_spec(),
         ensures out.wf_spec(), out.model@ == a.model@,
@@ -3843,7 +3843,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Exec roundtrip: (a * b) / b == a when b != 0.
+    ///  Exec roundtrip: (a * b) / b == a when b != 0.
     pub fn lemma_exec_mul_div_roundtrip(a: &Self, b: &Self) -> (out: Self)
         requires a.wf_spec(), b.wf_spec(), b.model@ != 0,
         ensures out.wf_spec(), out.model@ == a.model@,
@@ -3859,7 +3859,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// Exec roundtrip: a / 1 == a.
+    ///  Exec roundtrip: a / 1 == a.
     pub fn lemma_exec_div_one(a: &Self) -> (out: Self)
         requires a.wf_spec(),
         ensures out.wf_spec(), out.model@ == a.model@,
@@ -3875,7 +3875,7 @@ impl RuntimeBigIntWitness {
         out
     }
 
-    /// If two well-formed signed witnesses have the same model, they have the same sign and magnitude limbs.
+    ///  If two well-formed signed witnesses have the same model, they have the same sign and magnitude limbs.
     pub proof fn lemma_signed_wf_same_model_same_repr(a: RuntimeBigIntWitness, b: RuntimeBigIntWitness)
         requires
             a.wf_spec(),
@@ -3885,18 +3885,18 @@ impl RuntimeBigIntWitness {
             a.is_negative == b.is_negative,
             a.magnitude.limbs_le@ == b.magnitude.limbs_le@,
     {
-        // Both wf: same model => same sign and same magnitude model
+        //  Both wf: same model => same sign and same magnitude model
         a.lemma_sign_model_bridge();
         b.lemma_sign_model_bridge();
 
-        // Same model => same abs => same magnitude model
+        //  Same model => same abs => same magnitude model
         assert(Self::abs_model_spec(a.model@) == a.magnitude.model@);
         assert(Self::abs_model_spec(b.model@) == b.magnitude.model@);
         assert(a.model@ == b.model@);
         assert(Self::abs_model_spec(a.model@) == Self::abs_model_spec(b.model@));
         assert(a.magnitude.model@ == b.magnitude.model@);
 
-        // Same model sign => same is_negative flag
+        //  Same model sign => same is_negative flag
         if a.model@ < 0 {
             assert(a.is_negative);
             assert(b.is_negative);
@@ -3909,11 +3909,11 @@ impl RuntimeBigIntWitness {
         }
         assert(a.is_negative == b.is_negative);
 
-        // Same magnitude model + both wf => same magnitude limbs
+        //  Same magnitude model + both wf => same magnitude limbs
         RuntimeBigNatWitness::lemma_wf_same_model_same_limbs(a.magnitude, b.magnitude);
     }
 
-    /// If two well-formed signed witnesses have the same model, they are extensionally equal.
+    ///  If two well-formed signed witnesses have the same model, they are extensionally equal.
     pub proof fn lemma_signed_wf_witnesses_ext_equal(a: RuntimeBigIntWitness, b: RuntimeBigIntWitness)
         requires
             a.wf_spec(),
@@ -3923,8 +3923,8 @@ impl RuntimeBigIntWitness {
             a =~= b,
     {
         Self::lemma_signed_wf_same_model_same_repr(a, b);
-        // a.is_negative == b.is_negative
-        // a.magnitude.limbs_le@ == b.magnitude.limbs_le@
+        //  a.is_negative == b.is_negative
+        //  a.magnitude.limbs_le@ == b.magnitude.limbs_le@
         crate::trusted::vec_ext_equal::axiom_vec_ext_equal(a.magnitude.limbs_le, b.magnitude.limbs_le);
         assert(a.magnitude.limbs_le =~= b.magnitude.limbs_le);
         assert(a.magnitude.model =~= b.magnitude.model);
@@ -3933,9 +3933,9 @@ impl RuntimeBigIntWitness {
         assert(a =~= b);
     }
 }
-} // end main verus! block
+} //  end main verus! block
 
-// Spec-only trait impls — only available in Verus builds
+//  Spec-only trait impls — only available in Verus builds
 #[cfg(verus_keep_ghost)]
 verus! {
 
@@ -4049,14 +4049,14 @@ impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigIntWitness> for &'a
     }
 }
 
-} // end spec-only verus! block
+} //  end spec-only verus! block
 
-// Exec trait impls — always available
+//  Exec trait impls — always available
 verus! {
 
 impl PartialEq for RuntimeBigIntWitness {
     fn eq(&self, other: &Self) -> (out: bool) {
-        // Compare sign + magnitude limbs directly (no wf_spec required)
+        //  Compare sign + magnitude limbs directly (no wf_spec required)
         if self.is_negative != other.is_negative {
             false
         } else {

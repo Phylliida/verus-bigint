@@ -112,4 +112,4 @@ impl OrderedRing for BigInt {
     }
 }
 
-} // verus!
+} //  verus!

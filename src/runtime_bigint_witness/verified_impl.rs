@@ -21,23 +21,23 @@ use vstd::arithmetic::div_mod::{
 #[cfg(verus_keep_ghost)]
 use vstd::seq::Seq;
 
-// Core representation/arithmetic proof helpers are split by theme for readability.
+//  Core representation/arithmetic proof helpers are split by theme for readability.
 include!("verified_impl/core_repr_prefix.rs");
 include!("verified_impl/core_pow_cmp.rs");
 include!("verified_impl/core_nat_div_mod.rs");
 
-// Operation-level proof wrappers are split by operation for readability.
+//  Operation-level proof wrappers are split by operation for readability.
 include!("verified_impl/ops_add.rs");
 include!("verified_impl/ops_mul.rs");
 include!("verified_impl/ops_shape.rs");
 include!("verified_impl/ops_cmp_sub.rs");
 include!("verified_impl/ops_div_rem.rs");
 
-// Contract-level proof obligations are split from exec implementations.
+//  Contract-level proof obligations are split from exec implementations.
 include!("verified_impl/contracts_cmp_sub.rs");
 include!("verified_impl/contracts_arith.rs");
 
-// Canonical uniqueness proofs for ext_equal-based operator SpecImpls.
+//  Canonical uniqueness proofs for ext_equal-based operator SpecImpls.
 include!("verified_impl/canonical_uniqueness.rs");
 
 verus! {
@@ -61,7 +61,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Constructs a zero-valued BigUint.
+    ///  Constructs a zero-valued BigUint.
     pub fn zero() -> (out: Self)
         ensures
             out.model@ == 0,
@@ -76,7 +76,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Constructs a BigUint from a `u32`.
+    ///  Constructs a BigUint from a `u32`.
     pub fn from_u32(x: u32) -> (out: Self)
         ensures
             out.model@ == x as nat,
@@ -97,7 +97,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Constructs a BigUint from a `u64`.
+    ///  Constructs a BigUint from a `u64`.
     pub fn from_u64(x: u64) -> (out: Self)
         ensures
             out.model@ == x as nat,
@@ -124,7 +124,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Constructs a BigUint from two limbs: `lo + base * hi`.
+    ///  Constructs a BigUint from two limbs: `lo + base * hi`.
     pub fn from_two_limbs(lo: u32, hi: u32) -> (out: Self)
         ensures
             out.model@ == lo as nat + Self::limb_base_spec() * hi as nat,
@@ -156,7 +156,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Returns `self + rhs`.
+    ///  Returns `self + rhs`.
     pub fn add(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -179,7 +179,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Returns `self * rhs`.
+    ///  Returns `self * rhs`.
     pub fn mul(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -222,7 +222,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Returns `self / rhs` (floor division; returns 0 if `rhs == 0`).
+    ///  Returns `self / rhs` (floor division; returns 0 if `rhs == 0`).
     pub fn div(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -288,7 +288,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Returns `self % rhs` (returns 0 if `rhs == 0`).
+    ///  Returns `self % rhs` (returns 0 if `rhs == 0`).
     pub fn rem(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -364,7 +364,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Returns `(self / rhs, self % rhs)`.
+    ///  Returns `(self / rhs, self % rhs)`.
     pub fn div_rem(&self, rhs: &Self) -> (out: (Self, Self))
         requires
             self.wf_spec(),
@@ -413,7 +413,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Returns `true` iff `self == 0`.
+    ///  Returns `true` iff `self == 0`.
     pub fn is_zero(&self) -> (out: bool)
         requires
             self.wf_spec(),
@@ -444,7 +444,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Returns a reference to the little-endian limb slice.
+    ///  Returns a reference to the little-endian limb slice.
     pub fn limbs_le(&self) -> (out: &[u32])
         ensures
             out@ == self.limbs_le@,
@@ -452,8 +452,8 @@ impl RuntimeBigNatWitness {
         &self.limbs_le
     }
 
-    /// First constructive limb-wise addition milestone:
-    /// supports operands represented by at most one limb each.
+    ///  First constructive limb-wise addition milestone:
+    ///  supports operands represented by at most one limb each.
     pub fn add_limbwise_small(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -534,10 +534,10 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Total limb-wise addition helper used by scalar witness plumbing.
+    ///  Total limb-wise addition helper used by scalar witness plumbing.
     ///
-    /// Computes carry-propagating multi-limb addition over little-endian limbs,
-    /// then canonicalizes the output by trimming trailing zero limbs.
+    ///  Computes carry-propagating multi-limb addition over little-endian limbs,
+    ///  then canonicalizes the output by trimming trailing zero limbs.
     pub fn add_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -886,7 +886,7 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Multiplies by one base limb (`2^32`) by prepending a zero low limb.
+    ///  Multiplies by one base limb (`2^32`) by prepending a zero low limb.
     fn shift_base_once_total(&self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -980,7 +980,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Multiplies by one `u32` limb via O(n) carry-propagating multiplication.
+    ///  Multiplies by one `u32` limb via O(n) carry-propagating multiplication.
     fn mul_by_u32_total(&self, rhs_limb: u32) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -1026,13 +1026,13 @@ impl RuntimeBigNatWitness {
             assert(i < alen);
             assert(i < self.limbs_le.len());
             let limb = self.limbs_le[i] as u64;
-            // Prove no overflow: limb * scalar + carry_in fits in u64
-            // max: (2^32-1)*(2^32-1) + (2^32-1) = 2^64 - 2^32 < 2^64
+            //  Prove no overflow: limb * scalar + carry_in fits in u64
+            //  max: (2^32-1)*(2^32-1) + (2^32-1) = 2^64 - 2^32 < 2^64
             proof {
                 assert(limb <= 4_294_967_295u64);
                 assert(scalar <= 4_294_967_295u64);
                 assert(carry_in < 4_294_967_296u64);
-                // Prove at int level to avoid u64 overflow in the assertion itself
+                //  Prove at int level to avoid u64 overflow in the assertion itself
                 let limb_i = limb as int;
                 let scalar_i = scalar as int;
                 let carry_i = carry_in as int;
@@ -1061,7 +1061,7 @@ impl RuntimeBigNatWitness {
                 let digit_nat = digit as nat;
                 let next_carry_nat = next_carry as nat;
 
-                // digit + next_carry * BASE == limb * scalar + carry_in
+                //  digit + next_carry * BASE == limb * scalar + carry_in
                 assert(product == limb * scalar + carry_in);
                 assert((product as int) == (limb as int) * (scalar as int) + (carry_in as int));
                 assert(product as nat == limb_nat * scalar_nat + carry_in_nat);
@@ -1076,8 +1076,8 @@ impl RuntimeBigNatWitness {
                 assert(digit_nat + next_carry_nat * Self::limb_base_spec()
                     == limb_nat * scalar_nat + carry_in_nat);
 
-                // next_carry < BASE
-                // product < BASE * BASE, so product / BASE < BASE
+                //  next_carry < BASE
+                //  product < BASE * BASE, so product / BASE < BASE
                 assert(product <= 18_446_744_069_414_584_320u64);
                 assert((4_294_967_296int) * (4_294_967_296int) == 18_446_744_073_709_551_616int);
                 assert((product as int) < (4_294_967_296int) * (4_294_967_296int));
@@ -1086,7 +1086,7 @@ impl RuntimeBigNatWitness {
                 assert((product as int) / 4_294_967_296int < 4_294_967_296int);
                 assert(next_carry < 4_294_967_296u64);
 
-                // Relate limb to limb_or_zero
+                //  Relate limb to limb_or_zero
                 assert(i_nat < alen_nat);
                 assert(i_nat < self.limbs_le@.len());
                 assert(
@@ -1095,7 +1095,7 @@ impl RuntimeBigNatWitness {
                 );
                 assert(Self::limb_or_zero_spec(self.limbs_le@, alen_nat, i_nat) == limb_nat);
 
-                // Use the prefix step lemma
+                //  Use the prefix step lemma
                 Self::lemma_prefix_sum_step(self.limbs_le@, alen_nat, i_nat);
                 Self::lemma_pow_base_succ(i_nat);
                 Self::lemma_mul_prefix_step(
@@ -1194,12 +1194,12 @@ impl RuntimeBigNatWitness {
         }
         out
     }
-    /// Total limb-wise multiplication helper used by scalar witness plumbing.
+    ///  Total limb-wise multiplication helper used by scalar witness plumbing.
     ///
-    /// Computes exact multiplication in little-endian limb space by combining:
-    /// - per-limb scalar multiplication (`mul_by_u32_total`)
-    /// - base shifting (`shift_base_once_total`)
-    /// - semantic accumulation (`add_limbwise_small_total`)
+    ///  Computes exact multiplication in little-endian limb space by combining:
+    ///  - per-limb scalar multiplication (`mul_by_u32_total`)
+    ///  - base shifting (`shift_base_once_total`)
+    ///  - semantic accumulation (`add_limbwise_small_total`)
     pub fn mul_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -1342,10 +1342,10 @@ impl RuntimeBigNatWitness {
         acc
     }
 
-    /// Iterative division by doubling: O(n * log(quotient)).
+    ///  Iterative division by doubling: O(n * log(quotient)).
     ///
-    /// Returns `(q, r)` where `self == q * rhs + r` and `0 <= r < rhs`.
-    /// Uses a heap-allocated doubling stack to avoid deep recursion.
+    ///  Returns `(q, r)` where `self == q * rhs + r` and `0 <= r < rhs`.
+    ///  Uses a heap-allocated doubling stack to avoid deep recursion.
     fn div_rem_by_doubling(&self, rhs: &Self) -> (out: (Self, Self))
         requires
             self.wf_spec(),
@@ -1362,7 +1362,7 @@ impl RuntimeBigNatWitness {
         let ghost rhs_val = Self::limbs_value_spec(rhs.limbs_le@);
         let cmp = self.cmp_limbwise_small_total(rhs);
         if cmp == -1i8 {
-            // self < rhs: quotient 0, remainder self
+            //  self < rhs: quotient 0, remainder self
             let q = Self::zero();
             let r = self.copy_small_total();
             proof {
@@ -1371,8 +1371,8 @@ impl RuntimeBigNatWitness {
             return (q, r);
         }
 
-        // Phase 1: Build doubling stack [rhs, 2*rhs, 4*rhs, ...]
-        // until 2 * stack.last() > self
+        //  Phase 1: Build doubling stack [rhs, 2*rhs, 4*rhs, ...]
+        //  until 2 * stack.last() > self
         let mut stack: Vec<Self> = Vec::new();
         stack.push(rhs.copy_small_total());
 
@@ -1411,9 +1411,9 @@ impl RuntimeBigNatWitness {
             next_doubled = top.add_limbwise_small_total(top);
             self_ge_doubled = self.cmp_limbwise_small_total(&next_doubled) != -1i8;
         }
-        // After: stack.last() <= self < 2 * stack.last()
+        //  After: stack.last() <= self < 2 * stack.last()
 
-        // Phase 2: Walk back from top, accumulating quotient bits
+        //  Phase 2: Walk back from top, accumulating quotient bits
         let k: usize = stack.len() - 1;
         let top = &stack[k];
         let mut q = Self::from_u32(1);
@@ -1454,21 +1454,21 @@ impl RuntimeBigNatWitness {
             let ghost r_old = r.model@;
 
             proof {
-                // stack[j+1] = 2 * stack[j]
+                //  stack[j+1] = 2 * stack[j]
                 assert(stack@[(j + 1) as int].model@ == d_val + d_val);
             }
 
             let q2 = q.add_limbwise_small_total(&q);
             let cmp3 = r.cmp_limbwise_small_total(d);
             if cmp3 == -1i8 {
-                // r < d: quotient bit 0
+                //  r < d: quotient bit 0
                 q = q2;
                 proof {
                     assert((q_old + q_old) * d_val == q_old * (d_val + d_val))
                         by (nonlinear_arith);
                 }
             } else {
-                // r >= d: quotient bit 1
+                //  r >= d: quotient bit 1
                 q = q2.add_limbwise_small_total(&one);
                 r = r.sub_limbwise_small_total(d);
                 proof {
@@ -1485,10 +1485,10 @@ impl RuntimeBigNatWitness {
         (q, r)
     }
 
-    /// Total small-limb division helper used by scalar witness plumbing.
+    ///  Total small-limb division helper used by scalar witness plumbing.
     ///
-    /// Computes the floor quotient of `self / rhs` using recursive doubling.
-    /// Returns `0` when `rhs == 0`.
+    ///  Computes the floor quotient of `self / rhs` using recursive doubling.
+    ///  Returns `0` when `rhs == 0`.
     pub fn div_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1514,17 +1514,17 @@ impl RuntimeBigNatWitness {
         } else {
             let (q, r) = self.div_rem_by_doubling(rhs);
             proof {
-                // self = q * rhs + r, 0 <= r < rhs
+                //  self = q * rhs + r, 0 <= r < rhs
                 assert(self_val == q.model@ * rhs_val + r.model@);
                 assert(r.model@ < rhs_val);
-                // q * rhs <= self
+                //  q * rhs <= self
                 assert(q.model@ * rhs_val <= self_val);
-                // self < (q + 1) * rhs
+                //  self < (q + 1) * rhs
                 assert((q.model@ + 1) * rhs_val == q.model@ * rhs_val + rhs_val)
                     by (nonlinear_arith);
                 assert(self_val < q.model@ * rhs_val + rhs_val);
                 assert(self_val < (q.model@ + 1) * rhs_val);
-                // q == self / rhs by uniqueness
+                //  q == self / rhs by uniqueness
                 let xi = self_val as int;
                 let di = rhs_val as int;
                 let qi = q.model@ as int;
@@ -1539,9 +1539,9 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Total small-limb remainder helper used by scalar witness plumbing.
+    ///  Total small-limb remainder helper used by scalar witness plumbing.
     ///
-    /// Computes `self % rhs` with total semantics, returning `0` when `rhs == 0`.
+    ///  Computes `self % rhs` with total semantics, returning `0` when `rhs == 0`.
     pub fn rem_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -1576,10 +1576,10 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Total small-limb quotient/remainder helper used by scalar witness plumbing.
+    ///  Total small-limb quotient/remainder helper used by scalar witness plumbing.
     ///
-    /// Returns `(q, r)` where `q = floor(self / rhs)` and `r = self % rhs`.
-    /// Uses total semantics `(0, 0)` when `rhs == 0`.
+    ///  Returns `(q, r)` where `q = floor(self / rhs)` and `r = self % rhs`.
+    ///  Uses total semantics `(0, 0)` when `rhs == 0`.
     pub fn div_rem_limbwise_small_total(&self, rhs: &Self) -> (out: (Self, Self))
         requires
             self.wf_spec(),
@@ -1626,10 +1626,10 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Total small-limb compare helper used by scalar witness plumbing.
+    ///  Total small-limb compare helper used by scalar witness plumbing.
     ///
-    /// Returns the exact sign of `(self - rhs)` as `-1/0/1` using full
-    /// multi-limb comparison with trailing-zero normalization.
+    ///  Returns the exact sign of `(self - rhs)` as `-1/0/1` using full
+    ///  multi-limb comparison with trailing-zero normalization.
     pub fn cmp_limbwise_small_total(&self, rhs: &Self) -> (out: i8)
         ensures
             out == -1 || out == 0 || out == 1,
@@ -1842,11 +1842,11 @@ impl RuntimeBigNatWitness {
     }
 
 
-    /// Total small-limb subtraction helper used by scalar witness plumbing.
+    ///  Total small-limb subtraction helper used by scalar witness plumbing.
     ///
-    /// Computes the exact nonnegative difference when `self >= rhs` using full
-    /// multi-limb borrow propagation (with trailing-zero normalization).
-    /// Returns `0` when `self < rhs`.
+    ///  Computes the exact nonnegative difference when `self >= rhs` using full
+    ///  multi-limb borrow propagation (with trailing-zero normalization).
+    ///  Returns `0` when `self < rhs`.
     pub fn sub_limbwise_small_total(&self, rhs: &Self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -2160,7 +2160,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// Checked subtraction: requires `self >= rhs` and unconditionally ensures the exact difference.
+    ///  Checked subtraction: requires `self >= rhs` and unconditionally ensures the exact difference.
     pub fn checked_sub(&self, rhs: &Self) -> (out: Self)
         requires
             self.wf_spec(),
@@ -2193,9 +2193,9 @@ impl RuntimeBigNatWitness {
         out
     }
 
-    /// Total witness copy helper for scalar witness plumbing.
+    ///  Total witness copy helper for scalar witness plumbing.
     ///
-    /// Preserves all limbs exactly (after trailing-zero normalization).
+    ///  Preserves all limbs exactly (after trailing-zero normalization).
     pub fn copy_small_total(&self) -> (out: Self)
         ensures
             out.wf_spec(),
@@ -2261,9 +2261,9 @@ impl RuntimeBigNatWitness {
         out
     }
 }
-} // end main verus! block
+} //  end main verus! block
 
-// Spec-only trait impls — only available in Verus builds
+//  Spec-only trait impls — only available in Verus builds
 #[cfg(verus_keep_ghost)]
 verus! {
 
@@ -2361,17 +2361,17 @@ impl<'a, 'b> vstd::std_specs::ops::RemSpecImpl<&'b RuntimeBigNatWitness> for &'a
     }
 }
 
-} // end spec-only verus! block
+} //  end spec-only verus! block
 
-// Exec trait impls — always available
+//  Exec trait impls — always available
 verus! {
 
 impl PartialEq for RuntimeBigNatWitness {
     fn eq(&self, other: &Self) -> (out: bool) {
         let cmp = self.cmp_limbwise_small_total(other);
         proof {
-            // cmp_limbwise_small_total postconditions give us:
-            // cmp == 0 <==> limbs_value_spec(self) == limbs_value_spec(other)
+            //  cmp_limbwise_small_total postconditions give us:
+            //  cmp == 0 <==> limbs_value_spec(self) == limbs_value_spec(other)
             if cmp == 0i8 {
                 assert(Self::limbs_value_spec(self.limbs_le@) == Self::limbs_value_spec(other.limbs_le@));
             }

@@ -1,6 +1,6 @@
 verus! {
 impl RuntimeBigNatWitness {
-    /// For non-empty canonical limbs, the value mod base equals the first limb.
+    ///  For non-empty canonical limbs, the value mod base equals the first limb.
     pub proof fn lemma_limbs_value_mod_base(xs: Seq<u32>)
         requires
             xs.len() > 0,
@@ -21,12 +21,12 @@ impl RuntimeBigNatWitness {
             let x0 = xs[0] as nat;
             let b = Self::limb_base_spec();
             assert(Self::limbs_value_spec(xs) == x0 + b * Self::limbs_value_spec(tail));
-            // xs[0] < limb_base, and value = xs[0] + base * tail_value
-            // So value % base = xs[0]
+            //  xs[0] < limb_base, and value = xs[0] + base * tail_value
+            //  So value % base = xs[0]
             assert(x0 < b);
             let tv = Self::limbs_value_spec(tail);
             assert(Self::limbs_value_spec(xs) == x0 + b * tv);
-            // x0 + b * tv: since x0 < b, (x0 + b*tv) % b == x0
+            //  x0 + b * tv: since x0 < b, (x0 + b*tv) % b == x0
             lemma_fundamental_div_mod_converse(
                 (x0 + b * tv) as int,
                 b as int,
@@ -41,7 +41,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// For non-empty limbs, the value divided by base equals the tail value.
+    ///  For non-empty limbs, the value divided by base equals the tail value.
     pub proof fn lemma_limbs_value_div_base(xs: Seq<u32>)
         requires
             xs.len() > 0,
@@ -71,7 +71,7 @@ impl RuntimeBigNatWitness {
             let tv = Self::limbs_value_spec(tail);
             assert(Self::limbs_value_spec(xs) == x0 + b * tv);
             assert(x0 < b);
-            // (x0 + b * tv) / b == tv
+            //  (x0 + b * tv) / b == tv
             lemma_fundamental_div_mod_converse(
                 (x0 + b * tv) as int,
                 b as int,
@@ -86,7 +86,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// If two canonical sequences have the same value, they are equal.
+    ///  If two canonical sequences have the same value, they are equal.
     pub proof fn lemma_canonical_limbs_unique(xs: Seq<u32>, ys: Seq<u32>)
         requires
             Self::canonical_limbs_spec(xs),
@@ -99,12 +99,12 @@ impl RuntimeBigNatWitness {
         if xs.len() == 0 && ys.len() == 0 {
             assert(xs == ys);
         } else if xs.len() == 0 && ys.len() > 0 {
-            // xs value is 0, ys must also be 0 but ys is canonical with len > 0
+            //  xs value is 0, ys must also be 0 but ys is canonical with len > 0
             assert(Self::limbs_value_spec(xs) == 0);
             assert(Self::limbs_value_spec(ys) == 0);
-            // canonical and non-empty means last limb != 0
+            //  canonical and non-empty means last limb != 0
             assert(ys[(ys.len() - 1) as int] != 0u32);
-            // But value is 0, so all limbs must be 0 — contradiction
+            //  But value is 0, so all limbs must be 0 — contradiction
             Self::lemma_limbs_value_ge_pow_last_nonzero(ys);
             Self::lemma_pow_ge_one((ys.len() - 1) as nat);
             assert(Self::limbs_value_spec(ys) >= 1);
@@ -118,11 +118,11 @@ impl RuntimeBigNatWitness {
             assert(Self::limbs_value_spec(xs) >= 1);
             assert(false);
         } else {
-            // Both non-empty
+            //  Both non-empty
             assert(xs.len() > 0);
             assert(ys.len() > 0);
 
-            // First limbs must be equal (via mod base)
+            //  First limbs must be equal (via mod base)
             Self::lemma_limbs_value_mod_base(xs);
             Self::lemma_limbs_value_mod_base(ys);
             assert(Self::limbs_value_spec(xs) % Self::limb_base_spec() == xs[0] as nat);
@@ -130,14 +130,14 @@ impl RuntimeBigNatWitness {
             assert(xs[0] as nat == ys[0] as nat);
             assert(xs[0] == ys[0]);
 
-            // Tail values must be equal (via div base)
+            //  Tail values must be equal (via div base)
             Self::lemma_limbs_value_div_base(xs);
             Self::lemma_limbs_value_div_base(ys);
             let xs_tail = xs.subrange(1, xs.len() as int);
             let ys_tail = ys.subrange(1, ys.len() as int);
             assert(Self::limbs_value_spec(xs_tail) == Self::limbs_value_spec(ys_tail));
 
-            // Tails are canonical
+            //  Tails are canonical
             if xs_tail.len() > 0 {
                 assert(xs_tail[(xs_tail.len() - 1) as int] == xs[(xs.len() - 1) as int]);
                 assert(Self::canonical_limbs_spec(xs_tail));
@@ -151,11 +151,11 @@ impl RuntimeBigNatWitness {
                 assert(Self::canonical_limbs_spec(ys_tail));
             }
 
-            // Recurse
+            //  Recurse
             Self::lemma_canonical_limbs_unique(xs_tail, ys_tail);
             assert(xs_tail == ys_tail);
 
-            // Now reconstruct: xs[0] == ys[0] and xs[1..] == ys[1..]
+            //  Now reconstruct: xs[0] == ys[0] and xs[1..] == ys[1..]
             assert(xs.len() == ys.len()) by {
                 assert(xs_tail.len() == ys_tail.len());
                 assert(xs.len() - 1 == ys.len() - 1);
@@ -174,7 +174,7 @@ impl RuntimeBigNatWitness {
         }
     }
 
-    /// If two well-formed BigNat witnesses have the same model, their limb sequences are equal.
+    ///  If two well-formed BigNat witnesses have the same model, their limb sequences are equal.
     pub proof fn lemma_wf_same_model_same_limbs(a: RuntimeBigNatWitness, b: RuntimeBigNatWitness)
         requires
             a.wf_spec(),
@@ -191,7 +191,7 @@ impl RuntimeBigNatWitness {
         Self::lemma_canonical_limbs_unique(a.limbs_le@, b.limbs_le@);
     }
 
-    /// If two well-formed BigNat witnesses have the same model, they are extensionally equal.
+    ///  If two well-formed BigNat witnesses have the same model, they are extensionally equal.
     pub proof fn lemma_wf_witnesses_ext_equal(a: RuntimeBigNatWitness, b: RuntimeBigNatWitness)
         requires
             a.wf_spec(),
@@ -201,13 +201,13 @@ impl RuntimeBigNatWitness {
             a =~= b,
     {
         Self::lemma_wf_same_model_same_limbs(a, b);
-        // a.limbs_le@ == b.limbs_le@ (from canonical uniqueness)
-        // Apply trusted axiom: Vec content equality => Vec ext_equal
+        //  a.limbs_le@ == b.limbs_le@ (from canonical uniqueness)
+        //  Apply trusted axiom: Vec content equality => Vec ext_equal
         crate::trusted::vec_ext_equal::axiom_vec_ext_equal(a.limbs_le, b.limbs_le);
         assert(a.limbs_le =~= b.limbs_le);
-        // Ghost supports ext_equal natively
+        //  Ghost supports ext_equal natively
         assert(a.model =~= b.model);
-        // All fields =~=, struct =~= (via #[verifier::ext_equal])
+        //  All fields =~=, struct =~= (via #[verifier::ext_equal])
         assert(a =~= b);
     }
 }

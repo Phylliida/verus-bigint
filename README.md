@@ -37,16 +37,16 @@ pub fn bigint_example() -> (out: (RuntimeBigNatWitness, RuntimeBigNatWitness, Ru
 {
     let a = RuntimeBigNatWitness::from_u64(7);
     let b = RuntimeBigNatWitness::from_u64(9);
-    let sum = &a + &b; // 16
-    let product = &a * &b; // 63
+    let sum = &a + &b; //  16
+    let product = &a * &b; //  63
 
     let numerator = RuntimeBigNatWitness::from_u64(63);
     let denominator = RuntimeBigNatWitness::from_u64(9);
-    let quotient = &numerator / &denominator; // 7
-    let remainder = &numerator % &denominator; // 0
+    let quotient = &numerator / &denominator; //  7
+    let remainder = &numerator % &denominator; //  0
 
     let ordering = RuntimeBigNatWitness::from_u64(7)
-        .cmp_limbwise_small_total(&RuntimeBigNatWitness::from_u64(9)); // -1, 0, or 1
+        .cmp_limbwise_small_total(&RuntimeBigNatWitness::from_u64(9)); //  -1, 0, or 1
     let remainder_is_zero = remainder.is_zero();
 
     (sum, product, quotient, remainder, ordering, remainder_is_zero)
@@ -83,17 +83,17 @@ pub fn signed_bigint_example() -> (out: (
     let b = RuntimeBigIntWitness::from_i64(5);
     let zero = RuntimeBigIntWitness::zero();
 
-    let sum = &a + &b;      // -18
-    let difference = &a - &b; // -28
-    let product = &a * &b;  // -115
-    let quotient = &a / &b; // -4 (truncates toward 0)
-    let remainder = &a % &b; // -3 (same sign as dividend when nonzero)
-    let quotient_by_zero = &a / &zero; // 0
-    let remainder_by_zero = &a % &zero; // 0
-    let negated = -&a; // 23
+    let sum = &a + &b;      //  -18
+    let difference = &a - &b; //  -28
+    let product = &a * &b;  //  -115
+    let quotient = &a / &b; //  -4 (truncates toward 0)
+    let remainder = &a % &b; //  -3 (same sign as dividend when nonzero)
+    let quotient_by_zero = &a / &zero; //  0
+    let remainder_by_zero = &a % &zero; //  0
+    let negated = -&a; //  23
 
-    let ordering = a.cmp(&b); // -1, 0, or 1
-    let sign = remainder.signum(); // -1, 0, or 1
+    let ordering = a.cmp(&b); //  -1, 0, or 1
+    let sign = remainder.signum(); //  -1, 0, or 1
 
     (
         sum,
@@ -128,7 +128,7 @@ verus! {
 pub fn limbs_example() -> (out: &[u32])
 {
     let x = RuntimeBigNatWitness::from_two_limbs(5, 3);
-    x.limbs_le() // little-endian limbs: [5, 3]
+    x.limbs_le() //  little-endian limbs: [5, 3]
 }
 }
 ```
